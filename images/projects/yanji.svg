@@ -1,0 +1,24 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 400" fill="none">
+  <rect width="640" height="400" rx="20" fill="#eeedf8"/>
+  <circle cx="495" cy="190" r="151" fill="#e6e2f7"/>
+  <circle cx="490" cy="191" r="117" stroke="#d5cdec" stroke-dasharray="5 9"/>
+  <text x="60" y="197" fill="#45346b" font-size="64" font-weight="700" font-family="system-ui,'Microsoft YaHei',sans-serif">研迹</text>
+  <path d="M65 228h79" stroke="#a398c2" stroke-width="7" stroke-linecap="round"/>
+  <path d="M65 247h121" stroke="#d0c9e5" stroke-width="6" stroke-linecap="round"/>
+  <g transform="translate(349 51) rotate(6 89 145)">
+    <rect width="178" height="298" rx="28" fill="#fff" stroke="#c9bfe1" stroke-width="2"/>
+    <rect x="64" y="12" width="50" height="6" rx="3" fill="#d6cfe7"/>
+    <rect x="18" y="40" width="53" height="8" rx="4" fill="#7356b2"/>
+    <rect x="18" y="61" width="109" height="5" rx="2.5" fill="#e3deed"/>
+    <rect x="17" y="86" width="144" height="64" rx="12" fill="#f0ecfa"/>
+    <rect x="29" y="101" width="74" height="6" rx="3" fill="#b3a2d5"/>
+    <rect x="29" y="120" width="112" height="5" rx="2.5" fill="#dbd2ec"/>
+    <rect x="17" y="164" width="66" height="68" rx="10" fill="#eef3f0"/>
+    <path d="m38 196 8 8 17-20" stroke="#6d9883" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+    <rect x="95" y="164" width="66" height="68" rx="10" fill="#f5f0e7"/>
+    <path d="M113 185h22v25h-22zM119 192h10m-10 6h10" stroke="#bba26f" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+    <path d="M24 257h130" stroke="#eae5f1" stroke-linecap="round"/>
+    <circle cx="40" cy="275" r="4" fill="#9d88c4"/><circle cx="73" cy="275" r="4" fill="#d9d1e7"/><circle cx="106" cy="275" r="4" fill="#d9d1e7"/><circle cx="139" cy="275" r="4" fill="#d9d1e7"/>
+  </g>
+  <g transform="translate(524 106)"><rect width="49" height="49" rx="14" fill="#faf8ff" stroke="#d2c7e9"/><path d="m25 12 4 9 9 4-9 4-4 9-4-9-9-4 9-4z" fill="#9677c2"/></g>
+</svg>
