@@ -18,7 +18,24 @@
   <a class="skip-link" href="#main">跳转到内容</a>
   <header class="site-header">
     <div class="header-inner">
-      <a class="brand" href="/" aria-label="Ella 的学习手记，首页"><svg class="brand-symbol" viewBox="0 0 36 36" width="36" height="36" fill="none" aria-hidden="true"><path d="M12 12c-6-6-12 3-9 11 2 5 6 5 10 1h10c4 4 8 4 10-1 3-8-3-17-9-11H12Z" fill="#f7c1d1" stroke="#b5466b" stroke-width="1.6"/><path d="M9 17v8m-4-4h8" stroke="#90374f" stroke-width="1.6" stroke-linecap="round"/><circle cx="24" cy="18" r="2" fill="#b5466b"/><circle cx="28" cy="23" r="2" fill="#b5466b"/></svg><span>Ella<span class="brand-period">.</span></span></a>
+      <a class="brand" href="/" aria-label="Ella 的学习手记，首页"><svg class="brand-symbol" aria-hidden="true"
+  xmlns="http://www.w3.org/2000/svg"
+  width="30"
+  height="30"
+  viewBox="0 0 24 24"
+  fill="none"
+  stroke="currentColor"
+  stroke-width="1.7"
+  stroke-linecap="round"
+  stroke-linejoin="round"
+>
+  <line x1="6" x2="10" y1="11" y2="11" />
+  <line x1="8" x2="8" y1="9" y2="13" />
+  <line x1="15" x2="15.01" y1="12" y2="12" />
+  <line x1="18" x2="18.01" y1="10" y2="10" />
+  <path d="M17.32 5H6.68a4 4 0 0 0-3.978 3.59c-.006.052-.01.101-.017.152C2.604 9.416 2 14.456 2 16a3 3 0 0 0 3 3c1 0 1.5-.5 2-1l1.414-1.414A2 2 0 0 1 9.828 16h4.344a2 2 0 0 1 1.414.586L17 18c.5.5 1 1 2 1a3 3 0 0 0 3-3c0-1.545-.604-6.584-.685-7.258-.007-.05-.011-.1-.017-.151A4 4 0 0 0 17.32 5z" />
+</svg>
+<span>Ella<span class="brand-period">.</span></span></a>
       <button class="menu-toggle" type="button" aria-label="展开导航" aria-expanded="false" aria-controls="navigation"><span></span><span></span><span></span></button>
       <nav class="navigation" id="navigation" aria-label="主导航">
         
@@ -30,19 +47,21 @@
   <main id="main" class="site-main"><section class="game-shell" data-state="loading" aria-labelledby="game-title" data-sprites="/game/loopy-game.webp">
   <canvas class="game-canvas" id="loopy-game" tabindex="0" aria-label="Loopy 横版闯关游戏" aria-describedby="game-instructions">你的浏览器暂不支持 Canvas，请使用顶部导航阅读笔记和项目。</canvas>
   <div class="game-hud">
-    <div class="level-info"><span class="level-number">01</span><span>樱桃小径</span><span class="hud-divider"></span><span class="gem-stat"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m12 3 7 9-7 9-7-9Z"/></svg><span data-score>0 / 17</span></span><span class="lives-stat" aria-label="剩余 3 次机会" data-lives></span></div>
+    <div class="game-stats"><span class="learning-stat" aria-label="学习徽章收集进度"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m8 7-5 5 5 5m8-10 5 5-5 5m-3-14-2 18"/></svg><span data-score>0 / 17</span></span><span class="lives-stat" aria-label="剩余 3 次机会" data-lives></span></div>
     <div class="game-tools">
       <button class="game-icon-button" type="button" data-sound aria-label="开启音效" aria-pressed="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><path d="M11 5 6 9H3v6h3l5 4V5Z"/><path class="sound-muted" d="m16 9 5 6m0-6-5 6"/><path class="sound-waves" d="M15 8a6 6 0 0 1 0 8m3-11a10 10 0 0 1 0 14"/></svg></button>
       <button class="game-icon-button" type="button" data-pause aria-label="暂停游戏" disabled><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><path d="M8 5v14M16 5v14"/></svg></button>
       <button class="game-icon-button" type="button" data-restart aria-label="重新开始" disabled><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><path d="M4 11a8 8 0 1 1 2 7M4 4v7h7"/></svg></button>
     </div>
   </div>
+  <div class="collection-toast" data-collection-toast hidden></div>
   <div class="game-overlay" data-overlay>
     <div class="game-intro" data-dialog>
       <h1 id="game-title">Loopy 的<br>粉色冒险<span class="title-period">.</span></h1>
       <p class="game-message" data-message>素材加载中…</p>
-      <button class="game-start" type="button" data-start disabled><svg viewBox="0 0 20 20" aria-hidden="true"><path d="m7 4 9 6-9 6Z"/></svg><span>准备中</span></button>
+      <div class="game-actions"><button class="game-start" type="button" data-start disabled><svg viewBox="0 0 20 20" aria-hidden="true"><path d="m7 4 9 6-9 6Z"/></svg><span>准备中</span></button><button class="game-exit" type="button" data-exit hidden>返回开始页</button></div>
       <p class="game-result" data-result hidden></p>
+      <div class="game-collection" data-collection aria-label="本局收集的学习徽章" hidden></div>
     </div>
   </div>
   <div class="game-bottom-bar"><p class="control-hint" id="game-instructions"><span><kbd>←</kbd><kbd>→</kbd> 移动</span><span><kbd>空格</kbd> 跳跃</span><span><kbd>P</kbd> 暂停</span></p><a class="game-credits" href="/game/credits.txt" target="_blank" rel="noopener">开源说明</a></div>

@@ -11,6 +11,18 @@ The AABB overlap and fixed-timestep patterns informed this implementation.
 The level, rendering, checkpoints, controls and game states were written for
 this blog. No Mario or Nintendo game artwork, music or level maps are used.
 
+Interface and learning icons
+
+Navigation: Lucide Gamepad 2 (ISC).
+Java / database / AI learning symbols: Lucide Coffee, Database, Brain Circuit
+(ISC, and Feather MIT for Database).
+LeetCode / Git / Redis / Python / GitHub symbols: Simple Icons (CC0 1.0).
+https://lucide.dev/icons/gamepad-2
+https://simpleicons.org/
+Full icon licenses are bundled in icon-licenses.txt beside this file.
+These are game collectibles themed around learning, not endorsements or
+verified records of academic progress.
+
 MIT License
 
 Copyright (c) 2013, 2014, 2015, 2016 Jake Gordon and contributors

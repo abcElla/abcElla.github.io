@@ -4,11 +4,9 @@
 .game-canvas { width: 100%; height: 100%; display: block; touch-action: none; }
 .game-canvas:focus-visible { outline-offset: -4px; }
 .game-hud { position: absolute; top: 24px; left: 40px; right: 40px; display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; pointer-events: none; }
-.level-info { display: flex; align-items: center; flex-wrap: wrap; gap: 16px; font-size: 15px; line-height: 40px; font-weight: 550; font-variant-numeric: tabular-nums; }
-.level-number { font-size: 13px; font-weight: 650; border: 1px solid #d8afbf; min-width: 32px; line-height: 30px; text-align: center; border-radius: 8px; }
-.hud-divider { width: 1px; height: 20px; background: #dec0cc; margin: 0 4px; }
-.gem-stat { display: inline-flex; align-items: center; gap: 8px; }
-.gem-stat svg { width: 19px; height: 23px; fill: #d16b91; stroke: #ad4a71; stroke-width: 1.2; }
+.game-stats { display: flex; align-items: center; gap: 20px; font-size: 15px; min-height: 40px; font-weight: 550; font-variant-numeric: tabular-nums; }
+.learning-stat { display: inline-flex; align-items: center; gap: 10px; }
+.learning-stat svg { width: 22px; height: 22px; color: #a35072; }
 .lives-stat { display: flex; gap: 4px; margin-left: 8px; }
 .lives-stat svg { width: 18px; height: 18px; fill: #b85c7d; stroke: #b85c7d; stroke-width: 1.5; }
 .lives-stat .is-lost { fill: transparent; stroke: #9b6f80; }
@@ -27,6 +25,14 @@
 .game-start:hover:not(:disabled) { background: #85304f; border-color: #85304f; }
 .game-start svg { width: 18px; height: 18px; fill: currentColor; }
 .game-start:disabled { background: #b88b9c; border-color: #b88b9c; color: #fff; opacity: 1; }
+.game-actions { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; }
+.game-exit { display: inline-flex; justify-content: center; align-items: center; min-height: 52px; border: 1px solid #d7b3c1; border-radius: 12px; padding: 12px 24px; background: #fffbfc; color: #864661; font-size: 15px; transition: background 140ms ease-out, transform 60ms ease-out; }
+.game-exit:hover { background: #f8e6ee; }
+.game-shell[data-state=paused] .game-actions, .game-shell[data-state=over] .game-actions, .game-shell[data-state=won] .game-actions { justify-content: center; }
+.collection-toast { position: absolute; z-index: 2; top: 80px; left: 40px; display: inline-flex; align-items: center; gap: 10px; max-width: calc(100% - 80px); padding: 10px 16px; border: 1px solid #e0c2cf; border-radius: 10px; background: #fffbfcf2; color: #75465d; font-size: 14px; pointer-events: none; }
+.collection-toast svg, .collected-badge svg { width: 22px; height: 22px; flex-shrink: 0; }
+.game-collection { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; margin: 20px auto 0; max-width: 480px; }
+.collected-badge { display: inline-flex; align-items: center; gap: 8px; border: 1px solid #e4cad5; border-radius: 8px; background: #fffbfc; padding: 8px 12px; font-size: 13px; color: #745468; }
 .game-shell[data-state=paused] .game-overlay, .game-shell[data-state=over] .game-overlay, .game-shell[data-state=won] .game-overlay { background: #fff5f8df; backdrop-filter: blur(4px); }
 .game-shell[data-state=paused] .game-intro, .game-shell[data-state=over] .game-intro, .game-shell[data-state=won] .game-intro { top: 44%; left: 50%; transform: translate(-50%,-50%); width: min(540px,calc(100% - 48px)); text-align: center; }
 .game-result { font-size: 15px; color: #83536b; margin: 24px 0 0; font-variant-numeric: tabular-nums; }
@@ -41,7 +47,8 @@ kbd { font: inherit; min-width: 24px; min-height: 24px; display: inline-flex; al
 @media (max-width: 1000px) {
   .game-hud { left: 24px; right: 24px; }
   .game-bottom-bar { left: 24px; right: 24px; }
-  .level-info { gap: 12px; }
+  .game-stats { gap: 12px; }
+  .collection-toast { left: 24px; }
   .game-intro { left: 6vw; }
 }
 @media (max-width: 760px), (pointer: coarse) {
@@ -57,9 +64,9 @@ kbd { font: inherit; min-width: 24px; min-height: 24px; display: inline-flex; al
 }
 @media (max-width: 760px) {
   .game-hud { top: 16px; left: 20px; right: 20px; gap: 8px; }
-  .level-info { max-width: 170px; gap: 4px 12px; font-size: 14px; line-height: 28px; }
-  .level-info > span:nth-child(2) { width: 100%; font-size: 14px; }
-  .level-number, .hud-divider { display: none; }
+  .game-stats { gap: 12px; font-size: 14px; min-height: 44px; }
+  .learning-stat { gap: 6px; }
+  .learning-stat svg { width: 20px; height: 20px; }
   .lives-stat { margin-left: 0; gap: 3px; }
   .lives-stat svg { width: 16px; height: 16px; }
   .game-tools { gap: 4px; }
@@ -67,6 +74,8 @@ kbd { font: inherit; min-width: 24px; min-height: 24px; display: inline-flex; al
   .game-intro h1 { font-size: clamp(36px,9vw,48px); margin-bottom: 16px; }
   .game-message { font-size: 14px; margin-bottom: 24px; max-width: 250px; }
   .game-start { min-height: 48px; font-size: 15px; padding: 10px 24px; }
+  .game-exit { min-height: 48px; font-size: 14px; padding: 10px 20px; }
+  .collection-toast { top: 72px; left: 20px; max-width: calc(100% - 40px); font-size: 13px; }
   .game-bottom-bar { right: 20px; }
 }
 @media (max-height: 520px) and (min-width: 761px) {

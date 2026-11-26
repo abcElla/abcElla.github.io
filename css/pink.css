@@ -48,7 +48,7 @@ svg { flex-shrink: 0; vertical-align: middle; }
 .site-header { height: 80px; flex: 0 0 80px; background: #fffbfc; border-bottom: 1px solid var(--line); z-index: 30; position: relative; }
 .header-inner { width: min(1440px, calc(100% - 80px)); height: 100%; margin-inline: auto; display: flex; align-items: center; justify-content: space-between; gap: 32px; }
 .brand { min-height: 44px; display: inline-flex; align-items: center; gap: 12px; font-size: 26px; font-weight: 750; letter-spacing: -.04em; }
-.brand-symbol { width: 36px; height: 36px; }
+.brand-symbol { width: 30px; height: 30px; color: var(--accent); }
 .brand-period { color: var(--accent); }
 .navigation { height: 100%; display: flex; align-items: center; gap: 36px; }
 .navigation a { display: inline-flex; align-items: center; min-height: 44px; height: 100%; position: relative; font-size: 15px; color: var(--muted); transition: color 140ms ease-out; }
@@ -202,7 +202,7 @@ summary.notion-row::-webkit-details-marker { display: none; }
   .site-header { height: 72px; flex-basis: 72px; }
   .header-inner { width: calc(100% - 40px); gap: 16px; }
   .brand { font-size: 24px; gap: 8px; }
-  .brand-symbol { width: 32px; height: 32px; }
+  .brand-symbol { width: 28px; height: 28px; }
   .github-link { margin-left: auto; min-width: 44px; justify-content: center; }
   .github-link span { display: none; }
   .menu-toggle { display: flex; flex-direction: column; gap: 5px; justify-content: center; align-items: center; order: 3; width: 44px; height: 44px; background: transparent; color: var(--accent); border: 1px solid var(--line); border-radius: 8px; }
