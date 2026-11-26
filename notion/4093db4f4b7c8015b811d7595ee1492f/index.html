@@ -1,0 +1,1985 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#fff8fa">
+  <meta name="description" content="线程对象被new出来，但还没有调用start()方法时的状态。">
+  <title>Java · Ella 的学习手记</title>
+  <link rel="icon" href="/images/favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="/assets/ella-ui.css">
+  <link rel="stylesheet" href="/assets/katex/katex.min.css">
+  <link rel="stylesheet" href="/css/pink.css">
+  
+  <script defer src="/assets/ella-ui.js"></script>
+  <script defer src="/js/main.js"></script>
+<meta name="generator" content="Hexo 8.1.2"></head>
+<body class="is-reading-page">
+  <a class="skip-link" href="#main">跳转到内容</a>
+  <header class="site-header">
+    <div class="header-inner">
+      <a class="brand" href="/" aria-label="Ella 的学习手记，首页"><svg class="brand-symbol" viewBox="0 0 36 36" width="36" height="36" fill="none" aria-hidden="true"><path d="M12 12c-6-6-12 3-9 11 2 5 6 5 10 1h10c4 4 8 4 10-1 3-8-3-17-9-11H12Z" fill="#f7c1d1" stroke="#b5466b" stroke-width="1.6"/><path d="M9 17v8m-4-4h8" stroke="#90374f" stroke-width="1.6" stroke-linecap="round"/><circle cx="24" cy="18" r="2" fill="#b5466b"/><circle cx="28" cy="23" r="2" fill="#b5466b"/></svg><span>Ella<span class="brand-period">.</span></span></a>
+      <button class="menu-toggle" type="button" aria-label="展开导航" aria-expanded="false" aria-controls="navigation"><span></span><span></span><span></span></button>
+      <nav class="navigation" id="navigation" aria-label="主导航">
+        
+        <a href="/">首页</a><a href="/algorithms/">算法笔记</a><a href="/notes/" class="active" aria-current="page">技术笔记</a><a href="/projects/">项目</a><a href="/about/">关于我</a>
+      </nav>
+      <a class="github-link" href="https://github.com/abcElla" target="_blank" rel="noopener noreferrer" aria-label="Ella 的 GitHub"><svg class="icon" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 19c-4 1-4-2-6-2m12 5v-4a3.5 3.5 0 0 0-1-3c3-.3 6-1.5 6-6a5 5 0 0 0-1.4-3.5A4.5 4.5 0 0 0 18.5 2S17.3 1.7 15 3.4a12 12 0 0 0-6 0C6.7 1.7 5.5 2 5.5 2a4.5 4.5 0 0 0-.1 3.5A5 5 0 0 0 4 9c0 4.5 3 5.7 6 6a3.5 3.5 0 0 0-1 3v4"/></svg><span>GitHub</span></a>
+    </div>
+  </header>
+  <main id="main" class="site-main">
+
+<nav class="notion-breadcrumbs" aria-label="笔记位置">
+  <ol>
+    <li><a href="/notes/">技术笔记</a></li>
+    <li><a href="/notion/3f03db4f4b7c809aa284ed7db5e4dd8c/">八股学习</a></li>
+    <li aria-current="page">Java</li>
+  </ol>
+</nav>
+
+<div class="article-layout">
+  <article class="article">
+    <header class="article-header">
+      <a class="back-link" href="/archives/">全部文章</a>
+      <div class="post-meta">
+        <span>技术笔记</span>
+        <span class="meta-separator">/</span>
+        <time datetime="2026-10-30T01:49:00.000Z">2026.10.30</time>
+      </div>
+      <h1>Java</h1>
+      <div class="tag-list"><a href="/tags/Notion/"># Notion</a></div>
+      
+    </header>
+    <details class="reading-outline"><summary>本篇目录</summary><ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#JUC"><span class="toc-text">JUC</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#Java%E7%BA%BF%E7%A8%8B%E6%9C%89%E5%93%AA%E4%BA%9B%E7%8A%B6%E6%80%81"><span class="toc-text">Java线程有哪些状态</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#Java%E4%B8%AD%E5%A4%9A%E7%BA%BF%E7%A8%8B%E7%9A%84%E7%9B%AE%E7%9A%84%E6%98%AF%E4%BB%80%E4%B9%88"><span class="toc-text">Java中多线程的目的是什么</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#Java%E7%9A%84%E5%A4%9A%E7%BA%BF%E7%A8%8B%E5%BC%80%E5%8F%91%E4%B8%AD%EF%BC%8C%E7%BA%BF%E7%A8%8B%E6%95%B0%E6%98%AF%E4%B8%8D%E6%98%AF%E8%B6%8A%E5%A4%9A%E8%B6%8A%E5%A5%BD%EF%BC%9F%E4%B8%80%E8%88%AC%E6%80%8E%E4%B9%88%E8%AE%BE%E7%BD%AE%EF%BC%9F"><span class="toc-text">Java的多线程开发中，线程数是不是越多越好？一般怎么设置？</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#Java%E4%B8%AD-%E4%BB%80%E4%B9%88%E6%98%AF%E7%BA%BF%E7%A8%8B%E6%B1%A0"><span class="toc-text">Java中,什么是线程池</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#Stream-API%E4%B8%AD%E7%9A%84%E5%B9%B6%E8%A1%8C%E6%B5%81%E6%98%AF%E5%A6%82%E4%BD%95%E5%B7%A5%E4%BD%9C%E7%9A%84-%E5%AE%83%E9%BB%98%E8%AE%A4%E4%BD%BF%E7%94%A8%E4%BB%80%E4%B9%88%E7%BA%BF%E7%A8%8B%E6%B1%A0"><span class="toc-text">Stream API中的并行流是如何工作的?它默认使用什么线程池?</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E8%99%9A%E6%8B%9F%E7%BA%BF%E7%A8%8B%E4%B8%8E%E4%BC%A0%E7%BB%9F%E7%BA%BF%E7%A8%8B%E7%9A%84%E5%8C%BA%E5%88%AB%E6%98%AF%E4%BB%80%E4%B9%88-%E5%AE%83%E5%A6%82%E4%BD%95%E6%94%B9%E5%8F%98%E9%AB%98%E5%B9%B6%E5%8F%91%E7%BC%96%E7%A8%8B%E6%A8%A1%E5%9E%8B"><span class="toc-text">虚拟线程与传统线程的区别是什么?它如何改变高并发编程模型?</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#Java%E4%B8%AD%E7%BA%BF%E7%A8%8B%E6%B1%A0%E7%9A%84%E6%A0%B8%E5%BF%83%E5%8F%82%E6%95%B0%E6%9C%89%E5%93%AA%E4%BA%9B"><span class="toc-text">Java中线程池的核心参数有哪些</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E7%BA%BF%E7%A8%8B%E6%B1%A0%E7%9A%84%E5%B7%A5%E4%BD%9C%E6%B5%81%E7%A8%8B%E6%98%AF%E6%80%8E%E6%A0%B7%E7%9A%84"><span class="toc-text">线程池的工作流程是怎样的</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E7%BA%BF%E7%A8%8B%E6%B1%A0%E4%B8%BA%E4%BB%80%E4%B9%88%E8%A6%81%E5%88%86%E5%88%AB%E8%AE%BE%E8%AE%A1%E6%A0%B8%E5%BF%83%E7%BA%BF%E7%A8%8B%E5%92%8C%E9%9D%9E%E6%A0%B8%E5%BF%83%E7%BA%BF%E7%A8%8B"><span class="toc-text">线程池为什么要分别设计核心线程和非核心线程</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#Java%E7%BA%BF%E7%A8%8B%E6%B1%A0%E7%9A%84%E6%8B%92%E7%BB%9D%E7%AD%96%E7%95%A5%E6%9C%89%E5%93%AA%E4%BA%9B"><span class="toc-text">Java线程池的拒绝策略有哪些</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%88%9B%E5%BB%BA%E7%BA%BF%E7%A8%8B%E6%9C%89%E5%93%AA%E4%BA%9B%E6%96%B9%E5%BC%8F"><span class="toc-text">创建线程有哪些方式</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#Runnable-%E5%92%8C-Callable-%E5%85%B7%E4%BD%93%E6%9C%89%E4%BB%80%E4%B9%88%E5%8C%BA%E5%88%AB"><span class="toc-text">Runnable 和 Callable 具体有什么区别</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#Java%E4%B8%AD%E7%9A%84%E7%BA%BF%E7%A8%8B%E6%B1%A0%E6%9C%89%E5%93%AA%E4%BA%9B%E7%B1%BB%E5%9E%8B"><span class="toc-text">Java中的线程池有哪些类型</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%BA%E4%BB%80%E4%B9%88%E9%98%BF%E9%87%8C%E5%BC%80%E5%8F%91%E6%89%8B%E5%86%8C%E7%A6%81%E6%AD%A2%E7%9B%B4%E6%8E%A5%E4%BD%BF%E7%94%A8JDK%E8%87%AA%E5%B8%A6%E7%9A%84%E7%BA%BF%E7%A8%8B%E6%B1%A0"><span class="toc-text">为什么阿里开发手册禁止直接使用JDK自带的线程池</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%BB%80%E4%B9%88%E6%98%AFThreadLocal%EF%BC%9F%E5%A6%82%E4%BD%95%E5%AE%9E%E7%8E%B0%E7%9A%84%EF%BC%9F"><span class="toc-text">什么是ThreadLocal？如何实现的？</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#synchronized%E6%98%AF%E6%80%8E%E4%B9%88%E5%AE%9E%E7%8E%B0%E7%9A%84"><span class="toc-text">synchronized是怎么实现的</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#synchronized%E7%9A%84%E9%94%81%E5%8D%87%E7%BA%A7%E7%9A%84%E7%9B%AE%E7%9A%84%E6%98%AF%E4%BB%80%E4%B9%88"><span class="toc-text">synchronized的锁升级的目的是什么</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#Java%E5%B9%B6%E5%8F%91%E7%9A%84%E4%B8%89%E5%A4%A7%E5%8E%9F%E5%88%99%E6%98%AF%E4%BB%80%E4%B9%88%E5%A6%82%E4%BD%95%E7%90%86%E8%A7%A3"><span class="toc-text">Java并发的三大原则是什么如何理解</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#synchronized-%E4%B8%8E-ReentrantLock-%E7%9A%84%E5%8C%BA%E5%88%AB%E6%9C%89%E5%93%AA%E4%BA%9B"><span class="toc-text">synchronized 与 ReentrantLock 的区别有哪些</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#AQS%E5%BA%95%E5%B1%82%E5%8E%9F%E7%90%86%E6%98%AF%E6%80%8E%E6%A0%B7%E7%9A%84"><span class="toc-text">AQS底层原理是怎样的</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#CountDownLatch-%E5%92%8C-CyclicBarrier-%E9%83%BD%E6%9C%89%E7%AD%89%E5%BE%85%E7%9A%84%E5%8A%9F%E8%83%BD-%E5%AE%83%E4%BB%AC%E6%9C%89%E4%BB%80%E4%B9%88%E5%8C%BA%E5%88%AB%E5%BA%95%E5%B1%82%E5%AE%9E%E7%8E%B0%E4%B8%80%E6%A0%B7%E5%90%97"><span class="toc-text">CountDownLatch 和 CyclicBarrier 都有等待的功能,它们有什么区别底层实现一样吗</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#CompletableFuture%E7%9A%84%E5%BA%95%E5%B1%82%E6%98%AF%E5%A6%82%E4%BD%95%E5%AE%9E%E7%8E%B0%E7%9A%84"><span class="toc-text">CompletableFuture的底层是如何实现的</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#ForkJoinPool%E6%98%AF%E4%BB%80%E4%B9%88%EF%BC%8C%E5%92%8CThreadPoolExecutor%E5%8C%BA%E5%88%AB%E6%98%AF%E4%BB%80%E4%B9%88"><span class="toc-text">ForkJoinPool是什么，和ThreadPoolExecutor区别是什么</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#Java%E4%B8%AD%E7%88%B6%E5%AD%90%E7%BA%BF%E7%A8%8B%E5%A6%82%E4%BD%95%E9%80%9A%E4%BF%A1"><span class="toc-text">Java中父子线程如何通信</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#Java%E4%B8%AD%E4%BD%BF%E7%94%A8-InheritableThreadLocal-%E6%9C%89%E4%BB%80%E4%B9%88%E5%9D%91%E5%90%97%EF%BC%9F%E5%9C%A8%E7%BA%BF%E7%A8%8B%E6%B1%A0%E9%87%8C%E5%A5%BD%E7%94%A8%E5%90%97%EF%BC%9F"><span class="toc-text">Java中使用 InheritableThreadLocal 有什么坑吗？在线程池里好用吗？</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#Java%E4%B8%ADvolatile%E6%98%AF%E4%BB%80%E4%B9%88-%E5%A6%82%E4%BD%95%E7%90%86%E8%A7%A3JMM"><span class="toc-text">Java中volatile是什么?如何理解JMM</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%BB%80%E4%B9%88%E6%98%AFhappens-before"><span class="toc-text">什么是happens-before</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%BA%E4%BB%80%E4%B9%88%E5%8D%95%E4%BE%8B%E6%A8%A1%E5%BC%8F%E7%9A%84DCL%E6%A8%A1%E5%BC%8F%E9%9C%80%E8%A6%81%E7%94%A8volatile"><span class="toc-text">为什么单例模式的DCL模式需要用volatile</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%BB%80%E4%B9%88%E6%98%AFCAS-%E4%BB%80%E4%B9%88%E6%98%AFABA%E9%97%AE%E9%A2%98-%E5%A6%82%E4%BD%95%E8%A7%A3%E5%86%B3ABA%E9%97%AE%E9%A2%98"><span class="toc-text">什么是CAS?什么是ABA问题?如何解决ABA问题?</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#Java%E4%B8%ADAtomicInteger-%E9%80%82%E5%90%88%E9%AB%98%E5%B9%B6%E5%8F%91-%E4%BD%86%E5%9C%A8%E7%AB%9E%E4%BA%89%E6%9E%81%E5%85%B6%E6%BF%80%E7%83%88%E7%9A%84%E6%97%B6%E5%80%99%E5%AE%83%E7%9A%84%E6%80%A7%E8%83%BD%E4%BC%9A%E4%B8%8B%E9%99%8D-%E4%BD%A0%E7%9F%A5%E9%81%93%E4%B8%BA%E4%BB%80%E4%B9%88%E5%90%97%EF%BC%9F%E6%9C%89%E4%BB%80%E4%B9%88%E4%BC%98%E5%8C%96%E7%9A%84%E6%96%B9%E6%A1%88%E5%90%97%EF%BC%9F"><span class="toc-text">Java中AtomicInteger 适合高并发,但在竞争极其激烈的时候它的性能会下降,你知道为什么吗？有什么优化的方案吗？</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%AE%9E%E7%8E%B0%E4%B8%80%E4%B8%AA%E7%94%9F%E4%BA%A7%E8%80%85%E6%B6%88%E8%B4%B9%E8%80%85%E7%9A%84%E4%BB%A3%E7%A0%81"><span class="toc-text">实现一个生产者消费者的代码</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%AE%9E%E7%8E%B0DCL%E7%9A%84%E4%BB%A3%E7%A0%81"><span class="toc-text">实现DCL的代码</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%AE%9E%E7%8E%B0%E4%B8%89%E4%B8%AA%E7%BA%BF%E7%A8%8B%E4%BA%A4%E6%9B%BF%E6%89%93%E5%8D%B0ABC%E7%9A%84%E4%BB%A3%E7%A0%81"><span class="toc-text">实现三个线程交替打印ABC的代码</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%AE%9E%E7%8E%B0%E9%A1%BA%E5%BA%8F%E6%89%93%E5%8D%B0%E6%95%B0%E5%AD%97N%E4%B8%AA%E7%BA%BF%E7%A8%8B"><span class="toc-text">实现顺序打印数字N个线程</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%AE%9E%E7%8E%B0%E4%B8%80%E4%B8%AA%E6%AD%BB%E9%94%81%E4%BA%A7%E7%94%9F%E7%A4%BA%E4%BE%8B"><span class="toc-text">实现一个死锁产生示例</span></a></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#JVM"><span class="toc-text">JVM</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#Java%E6%98%AF%E7%BC%96%E8%AF%91%E5%9E%8B%E8%BF%98%E6%98%AF%E8%A7%A3%E9%87%8A%E5%9E%8B"><span class="toc-text">Java是编译型还是解释型?</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%BB%80%E4%B9%88%E6%98%AFJIT%EF%BC%9F"><span class="toc-text">什么是JIT？</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%A6%82%E4%BD%95%E7%90%86%E8%A7%A3JVM%E7%9A%84%E5%86%85%E5%AD%98%E9%80%83%E9%80%B8%EF%BC%9F"><span class="toc-text">如何理解JVM的内存逃逸？</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#JVM%E7%9A%84%E8%BF%90%E8%A1%8C%E5%86%85%E5%AD%98%E5%8C%BA%E5%9F%9F%E6%98%AF%E6%80%8E%E6%A0%B7%E7%9A%84%EF%BC%9F"><span class="toc-text">JVM的运行内存区域是怎样的？</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#JVM%E4%B8%AD%E5%A0%86%E5%92%8C%E6%A0%88%E6%9C%89%E4%BB%80%E4%B9%88%E5%8C%BA%E5%88%AB%EF%BC%9F"><span class="toc-text">JVM中堆和栈有什么区别？</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#Java-%E5%AF%B9%E8%B1%A1%E7%9A%84%E5%86%85%E5%AD%98%E5%B8%83%E5%B1%80%E6%98%AF%E6%80%8E%E6%A0%B7%E7%9A%84"><span class="toc-text">Java 对象的内存布局是怎样的</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%B0%B8%E4%B9%85%E4%BB%A3%E4%B8%BA%E4%BB%80%E4%B9%88%E8%A6%81%E6%94%B9%E6%88%90%E5%85%83%E7%A9%BA%E9%97%B4"><span class="toc-text">永久代为什么要改成元空间</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#JVM%E7%B1%BB%E5%8A%A0%E8%BD%BD%E7%9A%84%E8%BF%87%E7%A8%8B%E6%98%AF%E6%80%8E%E6%A0%B7%E7%9A%84"><span class="toc-text">JVM类加载的过程是怎样的</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%8F%8C%E4%BA%B2%E5%A7%94%E6%B4%BE%E7%9A%84%E8%BF%87%E7%A8%8B%E6%98%AF%E6%80%8E%E6%A0%B7%E7%9A%84%EF%BC%9F%E7%9B%AE%E7%9A%84%E6%98%AF%E4%BB%80%E4%B9%88%EF%BC%9F"><span class="toc-text">双亲委派的过程是怎样的？目的是什么？</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%BB%80%E4%B9%88%E6%83%85%E5%86%B5%E4%B8%8B%E9%9C%80%E8%A6%81%E6%89%93%E7%A0%B4%E5%8F%8C%E4%BA%B2%E5%A7%94%E6%B4%BE"><span class="toc-text">什么情况下需要打破双亲委派</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#JVM%E6%98%AF%E5%A6%82%E4%BD%95%E5%88%A4%E6%96%AD%E4%B8%80%E4%B8%AA%E5%AF%B9%E8%B1%A1%E6%98%AF%E5%8F%AF%E5%9B%9E%E6%94%B6%E7%9A%84"><span class="toc-text">JVM是如何判断一个对象是可回收的</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#Java-%E4%B8%AD%E7%9A%84%E5%BC%BA%E5%BC%95%E7%94%A8%E3%80%81%E8%BD%AF%E5%BC%95%E7%94%A8%E3%80%81%E5%BC%B1%E5%BC%95%E7%94%A8%E3%80%81%E8%99%9A%E5%BC%95%E7%94%A8%E6%9C%89%E4%BB%80%E4%B9%88%E5%8C%BA%E5%88%AB%EF%BC%9F"><span class="toc-text">Java 中的强引用、软引用、弱引用、虚引用有什么区别？</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%B8%B8%E8%A7%81%E7%9A%84%E5%9E%83%E5%9C%BE%E6%94%B6%E9%9B%86%E7%AE%97%E6%B3%95%E6%9C%89%E5%93%AA%E4%BA%9B"><span class="toc-text">常见的垃圾收集算法有哪些</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%BB%80%E4%B9%88%E6%98%AFSTW"><span class="toc-text">什么是STW</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%B8%B8%E8%A7%81%E7%9A%84%E5%9E%83%E5%9C%BE%E6%94%B6%E9%9B%86%E5%99%A8%E6%9C%89%E5%93%AA%E4%BA%9B"><span class="toc-text">常见的垃圾收集器有哪些</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#G1%E5%AF%B9%E6%AF%94CMS%E4%BC%98%E5%8A%BF%E5%9C%A8%E5%93%AA"><span class="toc-text">G1对比CMS优势在哪</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#Java-%E4%B8%AD%E4%BB%80%E4%B9%88%E6%98%AF%E4%B8%89%E8%89%B2%E6%A0%87%E8%AE%B0%E7%AE%97%E6%B3%95"><span class="toc-text">Java 中什么是三色标记算法</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#GC%E9%A2%91%E7%B9%81%E6%9C%89%E5%8F%AF%E8%83%BD%E6%98%AF%E4%BB%80%E4%B9%88%E5%8E%9F%E5%9B%A0%E9%80%A0%E6%88%90%E7%9A%84"><span class="toc-text">GC频繁有可能是什么原因造成的</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%A6%82%E6%9E%9C%E7%BA%BF%E4%B8%8A%E5%87%BA%E7%8E%B0%E4%BA%86%E9%A2%91%E7%B9%81GC%E7%9A%84%E5%91%8A%E8%AD%A6%E5%BA%94%E8%AF%A5%E5%A6%82%E4%BD%95%E6%8E%92%E6%9F%A5"><span class="toc-text">如果线上出现了频繁GC的告警应该如何排查</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#ZGC%E6%98%AF%E4%BB%80%E4%B9%88%E4%BB%80%E4%B9%88%E6%83%85%E5%86%B5%E4%B8%8B%E8%80%83%E8%99%91%E9%80%89%E6%8B%A9"><span class="toc-text">ZGC是什么什么情况下考虑选择</span></a></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#Spring"><span class="toc-text">Spring</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%BB%80%E4%B9%88%E6%98%AFSpring%E6%A1%86%E6%9E%B6"><span class="toc-text">什么是Spring框架</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%A6%82%E4%BD%95%E7%90%86%E8%A7%A3IOC"><span class="toc-text">如何理解IOC</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#Bean%E7%9A%84%E4%BD%9C%E7%94%A8%E5%9F%9F%E6%9C%89%E5%93%AA%E4%BA%9B"><span class="toc-text">Bean的作用域有哪些</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#Bean%E7%9A%84%E7%94%9F%E5%91%BD%E5%91%A8%E6%9C%9F%E6%98%AF%E6%80%8E%E6%A0%B7%E7%9A%84"><span class="toc-text">Bean的生命周期是怎样的</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%8D%95%E4%BE%8BBean%E7%9A%84%E7%BA%BF%E7%A8%8B%E5%AE%89%E5%85%A8%E5%A6%82%E4%BD%95%E7%90%86%E8%A7%A3"><span class="toc-text">单例Bean的线程安全如何理解</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%8D%95%E4%BE%8BBean%E7%9A%84%E5%BE%AA%E7%8E%AF%E4%BE%9D%E8%B5%96%E9%97%AE%E9%A2%98%E6%98%AF%E5%A6%82%E4%BD%95%E8%A7%A3%E5%86%B3%E7%9A%84"><span class="toc-text">单例Bean的循环依赖问题是如何解决的</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%BB%80%E4%B9%88%E6%98%AFAOP-%E6%9C%89%E4%BB%80%E4%B9%88%E5%BA%94%E7%94%A8%E5%9C%BA%E6%99%AF"><span class="toc-text">什么是AOP?有什么应用场景?</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#AOP%E7%9A%84%E5%AE%9E%E7%8E%B0%E5%8E%9F%E7%90%86%E6%98%AF%E6%80%8E%E6%A0%B7%E7%9A%84"><span class="toc-text">AOP的实现原理是怎样的</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%8B%A6%E6%88%AA%E5%99%A8%E5%92%8C%E8%BF%87%E6%BB%A4%E5%99%A8%E6%9C%89%E4%BB%80%E4%B9%88%E5%8C%BA%E5%88%AB"><span class="toc-text">拦截器和过滤器有什么区别</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#Spring%E7%9A%84%E4%BA%8B%E5%8A%A1%E7%AE%A1%E7%90%86%E6%98%AF%E6%80%8E%E6%A0%B7%E7%9A%84"><span class="toc-text">Spring的事务管理是怎样的</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%A3%B0%E6%98%8E%E5%BC%8F%E4%BA%8B%E5%8A%A1%E4%BB%80%E4%B9%88%E6%83%85%E5%86%B5%E4%BC%9A%E5%A4%B1%E6%95%88"><span class="toc-text">声明式事务什么情况会失效</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%BA%8B%E5%8A%A1%E7%9A%84%E4%BC%A0%E6%92%AD%E8%A7%84%E5%88%99%E6%98%AF%E6%80%8E%E6%A0%B7%E7%9A%84"><span class="toc-text">事务的传播规则是怎样的</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#SpringMVC%E6%80%8E%E4%B9%88%E7%90%86%E8%A7%A3"><span class="toc-text">SpringMVC怎么理解</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#SpringBoot%E5%AF%B9%E6%AF%94Spring%E6%9C%89%E4%BD%95%E5%8C%BA%E5%88%AB"><span class="toc-text">SpringBoot对比Spring有何区别</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#BeanFactory%E5%92%8CFactroyBean%E7%9A%84%E5%85%B3%E7%B3%BB"><span class="toc-text">BeanFactory和FactroyBean的关系</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#Spring%E4%B8%AD%E7%94%A8%E5%88%B0%E4%BA%86%E5%93%AA%E4%BA%9B%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F"><span class="toc-text">Spring中用到了哪些设计模式</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#Springboot%E6%98%AF%E5%A6%82%E4%BD%95%E5%AE%9E%E7%8E%B0%E8%87%AA%E5%8A%A8%E9%85%8D%E7%BD%AE%E7%9A%84"><span class="toc-text">Springboot是如何实现自动配置的</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#Springboot%E7%9A%84starter%E6%98%AF%E4%BB%80%E4%B9%88-%E6%9C%89%E4%BB%80%E4%B9%88%E5%BA%94%E7%94%A8%E5%9C%BA%E6%99%AF"><span class="toc-text">Springboot的starter是什么?有什么应用场景</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#Spring%E6%A1%86%E6%9E%B6%E6%9C%89%E5%A4%9A%E7%BA%BF%E7%A8%8B%E5%90%97%EF%BC%88%E6%AF%94%E5%A6%82%E5%90%8C%E4%B8%80%E4%B8%AAcontroller%E8%A2%AB%E5%A4%9A%E4%B8%AA%E7%94%A8%E6%88%B7%E5%90%8C%E6%97%B6%E8%AE%BF%E9%97%AE%EF%BC%89%EF%BC%9F%E5%BA%95%E5%B1%82%E5%8E%9F%E7%90%86%E6%98%AF%E6%80%8E%E6%A0%B7%E7%9A%84%EF%BC%9F"><span class="toc-text">Spring框架有多线程吗（比如同一个controller被多个用户同时访问）？底层原理是怎样的？</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#Spring-Task%E6%98%AF%E4%BB%80%E4%B9%88%EF%BC%9F%E5%AE%9E%E7%8E%B0%E5%8E%9F%E7%90%86%E6%98%AF%E6%80%8E%E6%A0%B7%E7%9A%84%EF%BC%9F"><span class="toc-text">Spring Task是什么？实现原理是怎样的？</span></a></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#MyBatis"><span class="toc-text">MyBatis</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%BB%80%E4%B9%88%E6%98%AFMybatis-%E4%BB%80%E4%B9%88%E6%98%AFORM%E6%A1%86%E6%9E%B6"><span class="toc-text">什么是Mybatis?什么是ORM框架?</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%92%8C-%E7%9A%84%E5%8C%BA%E5%88%AB%E6%98%AF%E4%BB%80%E4%B9%88%EF%BC%9F%E4%BB%80%E4%B9%88%E6%83%85%E5%86%B5%E5%BF%85%E9%A1%BB%E7%94%A8"><span class="toc-text">#和$的区别是什么？什么情况必须用$</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#Mybatis%E6%8F%92%E4%BB%B6%E6%98%AF%E4%BB%80%E4%B9%88%EF%BC%9F%E8%BF%90%E8%A1%8C%E5%8E%9F%E7%90%86%E6%98%AF%E6%80%8E%E6%A0%B7%E7%9A%84%EF%BC%9F"><span class="toc-text">Mybatis插件是什么？运行原理是怎样的？</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#Mybatis%E7%9A%84%E7%BC%93%E5%AD%98%E6%9C%BA%E5%88%B6%E6%98%AF%E6%80%8E%E6%A0%B7%E7%9A%84"><span class="toc-text">Mybatis的缓存机制是怎样的</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#Mybatis%E7%9A%84%E5%8A%A8%E6%80%81SQL%E6%98%AF%E6%80%8E%E6%A0%B7%E7%9A%84"><span class="toc-text">Mybatis的动态SQL是怎样的</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#Mybatis%E5%A6%82%E4%BD%95%E5%AE%9E%E7%8E%B0%E5%88%86%E9%A1%B5%E6%9F%A5%E8%AF%A2"><span class="toc-text">Mybatis如何实现分页查询</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#Mybatis-Plus%E6%98%AF%E4%BB%80%E4%B9%88"><span class="toc-text">Mybatis-Plus是什么</span></a></li></ol></li></ol></details>
+    <div class="prose"><h1 id="JUC"><a href="#JUC" class="headerlink" title="JUC"></a>JUC</h1><h2 id="Java线程有哪些状态"><a href="#Java线程有哪些状态" class="headerlink" title="Java线程有哪些状态"></a>Java线程有哪些状态</h2><p><b>第一种是NEW：</b></p>
+<p>线程对象被new出来，但还没有调用start()方法时的状态。</p>
+<p><b>第二种是RUNNABLE：</b></p>
+<p>这是Java比较特殊的地方，它把操作系统里的“就绪”和“运行”合并了。只要线程启动了，无论它是在执行代码，还是在等待CPU时间片，在Java眼里都是RUNNABLE。</p>
+<p><b>接下来的三种统称为“非运行状态”，但区别很大：</b></p>
+<ul>
+<li><b>BLOCKED</b>：特指线程在等待获取synchronized锁，拿不到锁就在这排队。</li>
+<li><b>WAITING</b>：指线程通过wait()或join()主动挂起，必须等待别的线程显式唤醒(notify)才能动。</li>
+<li><b>TIMED_WAITING</b>：指线程调用了sleep(time)或wait(time)，它在等待唤醒的同时，还有一个自动唤醒机制。</li>
+</ul>
+<p><b>最后一种是TERMINATED：</b></p>
+<p>线程的run()方法执行结束或抛出异常，生命周期终结。</p>
+<h2 id="Java中多线程的目的是什么"><a href="#Java中多线程的目的是什么" class="headerlink" title="Java中多线程的目的是什么"></a>Java中多线程的目的是什么</h2><p><b>第一，为了充分利用多核CPU的计算能力。</b></p>
+<p>现在的服务器和电脑几乎都是多核的。如果是单线程程序，它只能跑在一个核心上，其他核心资源就被浪费了。通过多线程，我们可以让多个核心并行工作，极大提高程序的执行效率，也就是我们常说的“压榨 CPU 性能”。</p>
+<p><b>第二，为了提高系统的吞吐量，尤其是应对IO阻塞。</b></p>
+<p>绝大多数应用都不是纯计算的，都会涉及读写数据库或网络请求。在单线程模式下，一旦发生 IO 等待，CPU 就会空闲。而多线程允许我们在等待 IO 的时候，把 CPU 让给其他线程去处理业务。这样 CPU 一直在干活，系统的整体处理能力就上来了。</p>
+<p><b>第三，为了提升用户体验和程序的响应速度。</b></p>
+<p>这一点在 GUI 编程或高并发 Web 服务中很明显。我们不能让一个耗时的任务（比如生成报表）阻塞住主线程，导致用户界面卡死或后续请求无法响应。通过异步线程处理耗时任务，主线程可以一直保持“敏捷”的状态。</p>
+<p><b>总结来说：</b>多线程并不是万能的，它带来了上下文切换的开销，但在现代硬件背景下，它是提升系统性能和并发能力的必要手段。</p>
+<h2 id="Java的多线程开发中，线程数是不是越多越好？一般怎么设置？"><a href="#Java的多线程开发中，线程数是不是越多越好？一般怎么设置？" class="headerlink" title="Java的多线程开发中，线程数是不是越多越好？一般怎么设置？"></a>Java的多线程开发中，线程数是不是越多越好？一般怎么设置？</h2><p><b>这个问题的答案显然是否定的，线程数绝对不是越多越好。</b></p>
+<p><b>首先，关于为什么不能过多：</b></p>
+<p>主要是因为<b>上下文切换</b>的开销。</p>
+<p>如果线程数远超 CPU 核心数，操作系统为了让每个线程都能运行，就必须频繁地在 CPU 上切换线程。这会消耗大量的 CPU 时间在保存和恢复现场上，反而导致真正执行业务代码的时间变少，性能下降。同时，过多的线程也会占用大量内存，增加 OOM 的风险。</p>
+<p><b>其次，关于如何设置合理的线程数，我会根据业务场景分为两种情况来处理：</b></p>
+<p>第一种是<b>CPU密集型任务</b>：</p>
+<p>比如复杂的加密算法或视频编解码。</p>
+<p>这种任务主要消耗 CPU 资源，所以线程数应该尽量少，减少切换。</p>
+<p>理论公式是：<b>CPU 核心数 + 1</b>。 多出来的那个 1 是为了应对线程偶发的缺页中断或其他暂停，保证 CPU 不空转。</p>
+<p>第二种是<b>IO密集型任务</b>：</p>
+<p>比如我们常见的 Web 开发、数据库交互、RPC 调用。</p>
+<p>这种任务大部分时间线程都在等待网络或磁盘 IO，CPU 其实是空闲的。为了利用这些空闲时间，我们需要多开线程。</p>
+<p>经验公式通常是：<b>2 * CPU 核心数 或者 CPU核心数 * (1 + 等待时间&#x2F;计算时间)</b>。</p>
+<p>当然，如果在生产环境中追求极致性能，我会通过压测来计算具体的 Wait Time &#x2F; Run Time 比例，比例越高，线程数就可以设置得越多。</p>
+<p>总结一下：<b>只有把线程数控制在让 CPU 刚好跑满，且上下文切换最少的状态，才是最优解。</b></p>
+<h2 id="Java中-什么是线程池"><a href="#Java中-什么是线程池" class="headerlink" title="Java中,什么是线程池"></a>Java中,什么是线程池</h2><p><b>Java 中的线程池，本质上是一种基于“池化思想”的线程管理机制。</b></p>
+<p>总的来说，它的出现是为了<b>解决传统 new Thread() 模式带来的性能开销大和资源不可控的问题</b>。 它的核心类是 JUC 包下的 ThreadPoolExecutor。</p>
+<p><b>具体来说，使用线程池主要有三个核心优势：</b></p>
+<p><b>第一，降低资源消耗。</b></p>
+<p>我们知道，线程的创建和销毁在操作系统层面是非常消耗 CPU 和内存资源的。线程池通过复用已创建的线程，让一个线程执行完当前任务后，继续去执行队列里的下一个任务，从而避免了重复造轮子的开销。</p>
+<p><b>第二，提高响应速度。</b></p>
+<p>当任务到达时，如果线程池里有空闲线程，任务可以立刻执行，而不需要等待线程创建的过程。这就好比打车时，车已经在门口等着了，肯定比现叫车要快。</p>
+<p><b>第三，提高线程的可管理性。</b></p>
+<p>线程是稀缺资源，如果无限制地创建，不仅会消耗系统资源，还会降低系统的稳定性（比如导致 OOM）。线程池可以对线程进行统一的分配、调优和监控，通过参数（比如核心线程数、最大线程数）来限制系统的最大并发量，起到一个“防洪堤”的作用。</p>
+<h2 id="Stream-API中的并行流是如何工作的-它默认使用什么线程池"><a href="#Stream-API中的并行流是如何工作的-它默认使用什么线程池" class="headerlink" title="Stream API中的并行流是如何工作的?它默认使用什么线程池?"></a>Stream API中的并行流是如何工作的?它默认使用什么线程池?</h2><p><b>Java 的并行流底层是基于 Fork&#x2F;Join 框架 实现的。</b></p>
+<p>它的工作流程遵循<b>‘分而治之’</b>的策略：</p>
+<p>首先利用 Spliterator 将数据流递归拆分为多个小任务，然后将这些任务提交到线程池中并行执行。为了平衡不同线程的负载，它还利用了 Work-Stealing（工作窃取） 算法，让空闲线程去帮助繁忙线程处理任务。</p>
+<p>关于线程池：</p>
+<p>并行流默认使用的是全局唯一的 <b>ForkJoinPool.commonPool()</b>。</p>
+<p>这个线程池的默认线程数是 <b>CPU 核心数减 1</b>。</p>
+<p>（关键补充）：需要特别注意的是，正因为它是<b>全局共享</b>的，我们在使用时必须非常谨慎。</p>
+<p>如果任务中包含大量的 I&#x2F;O 阻塞操作（如数据库查询），会导致这个公共线程池的线程耗尽，进而拖垮整个系统中所有使用并行流的业务。</p>
+<p>因此，并行流通常只适用于 <b>CPU 密集型</b> 的计算任务。</p>
+<h2 id="虚拟线程与传统线程的区别是什么-它如何改变高并发编程模型"><a href="#虚拟线程与传统线程的区别是什么-它如何改变高并发编程模型" class="headerlink" title="虚拟线程与传统线程的区别是什么?它如何改变高并发编程模型?"></a>虚拟线程与传统线程的区别是什么?它如何改变高并发编程模型?</h2><p>虚拟线程是 Java 在 JDK 21 正式推出的轻量级线程实现，它彻底改变了 Java 的并发模型。</p>
+<p><b>它与传统线程的主要区别在于：</b></p>
+<p><b>第一，映射关系不同：</b></p>
+<p>传统线程是 1:1 映射到操作系统内核线程的，创建和切换开销极大（MB 级栈内存），数量受限。</p>
+<p>而虚拟线程是 M:N 映射的，由 JVM 在用户态进行管理和调度，创建成本极低（字节级），单机支持百万级并发。</p>
+<p><b>第二，阻塞机制不同：</b></p>
+<p>传统线程阻塞时会挂起内核线程，导致 CPU 资源浪费。</p>
+<p>虚拟线程在执行阻塞 I&#x2F;O 操作时，会被 JVM 自动‘卸载’，底层的 Carrier Thread 可以立刻去执行其他虚拟线程，极大地提升了 CPU 利用率。</p>
+<h2 id="Java中线程池的核心参数有哪些"><a href="#Java中线程池的核心参数有哪些" class="headerlink" title="Java中线程池的核心参数有哪些"></a>Java中线程池的核心参数有哪些</h2><p><b>Java 线程池的核心实现类 ThreadPoolExecutor 一共有 7 个核心参数，我可以把它们分为“三类”来介绍。</b></p>
+<p><b>第一类是“配置人员数量”的参数：</b></p>
+<ul>
+<li>corePoolSize： 这是线程池维持的最小常驻线程数量，即使空闲也不会被回收。（银行的正式员工）</li>
+<li>maximumPoolSize： 线程池能容纳的最大线程数量。（银行的所有窗口 正式员工 + 忙碌时临时加开的窗口）</li>
+<li>keepAliveTime 和 unit： 这两个定义了非核心线程的“保活时间”。如果当前线程数超过了核心数，且这些线程空闲时间达到了设定值，就会被回收。（临时工的等待时间）</li>
+</ul>
+<p><b>第二类是“配置等待区”的参数：</b></p>
+<ul>
+<li>workQueue： 用于存放因为核心线程忙碌而来不及处理的任务。常见的有 LinkedBlockingQueue 或 ArrayBlockingQueue。（候客区&#x2F;排队区）</li>
+</ul>
+<p><b>第三类是“兜底与辅助”的参数：</b></p>
+<ul>
+<li>threadFactory： 用来创建新线程，我们通常会自定义它来给线程设置有意义的名字，方便后续查日志。（人力资源部，负责招人、发工牌、录入系统）</li>
+<li>handler（拒绝策略）： 当队列满了，并且线程数也达到了最大值，线程池就会启动拒绝策略来处理新提交的任务。（保安，当排队区坐满了，所有窗口也开满了，这时候再来人，保安要怎么把人挡回去（抛异常、让客户自己办、或者直接赶走））</li>
+</ul>
+<h2 id="线程池的工作流程是怎样的"><a href="#线程池的工作流程是怎样的" class="headerlink" title="线程池的工作流程是怎样的"></a>线程池的工作流程是怎样的</h2><p>Java线程池处理任务的流程非常清晰，主要遵循“四步走”策略：</p>
+<p><b>第一步，检测核心线程：</b></p>
+<p>当一个任务提交进来，线程池首先会判断<b>当前运行的线程数是否少于核心线程数</b>。</p>
+<ul>
+<li>如果少于，则直接创建一个新的核心线程来执行该任务，哪怕此时有空闲线程也会创建。</li>
+<li>如果核心线程数已满，则进入下一步。</li>
+</ul>
+<p><b>第二步，检测任务队列：</b></p>
+<p>这一步非常关键。线程池会将任务尝试放入阻塞队列中排队等待。</p>
+<ul>
+<li>如果入队成功，任务就在队列里等着核心线程忙完来取。</li>
+<li><b>只有当队列也满了</b>，才会进入下一步。</li>
+</ul>
+<p><b>第三步，检测最大线程：</b></p>
+<p>此时，线程池会判断<b>当前线程数是否少于最大线程数</b>。</p>
+<ul>
+<li>如果少于，线程池会<b>创建一个非核心线程</b>来“救急”，立刻处理这个新提交的任务（注意：是处理新任务，而不是去处理队列里的老任务）。</li>
+<li>如果最大线程数也满了，说明系统负载已达极限，进入最后一步。</li>
+</ul>
+<p><b>第四步，执行拒绝策略：</b></p>
+<p>线程池会调用 RejectedExecutionHandler 的 rejectedExecution 方法。默认情况下是抛出 RejectedExecutionException 异常，当然也可以配置为丢弃任务或由调用者线程自己执行。</p>
+<h2 id="线程池为什么要分别设计核心线程和非核心线程"><a href="#线程池为什么要分别设计核心线程和非核心线程" class="headerlink" title="线程池为什么要分别设计核心线程和非核心线程"></a>线程池为什么要分别设计核心线程和非核心线程</h2><p><b>这个设计的核心目的是为了实现线程池的“弹性伸缩”，在系统性能和资源消耗之间找到最优解。</b></p>
+<p>具体可以从以下两点来理解：</p>
+<p><b>第一，核心线程是为了保证“响应速度”和“稳定性”。</b></p>
+<p>核心线程是线程池的基石。它们就像公司的“正式员工”，无论有没有活干，都在那里待命。</p>
+<ul>
+<li>目的： 应对系统的常态流量。</li>
+<li>好处： 当任务来临时，不需要经历“创建线程-启动线程”这个耗时的过程，直接能干活，保证了低延迟。同时，它们避免了线程频繁销毁重建带来的 CPU 开销。</li>
+</ul>
+<p><b>第二，非核心线程是为了应对“突发流量”并“节省资源”。</b></p>
+<p>非核心线程就像是外包的“临时工”。只有当活儿太多，正式员工干不过来，且排队区（队列）也塞满的时候，才会招募它们。</p>
+<ul>
+<li>目的： 应对系统的峰值流量。</li>
+<li>好处： 它们具有“可回收性”。一旦高峰期过去，这些线程空闲超过了 keepAliveTime，就会被销毁。这样就避免了在流量低谷期，系统还维护着几百个无用的线程，白白浪费内存。</li>
+</ul>
+<p>如果没有这个区分，我们要么得维持一个巨大的线程池导致资源浪费（全员常驻），要么在高峰期面临处理能力不足（全员排队）。</p>
+<h2 id="Java线程池的拒绝策略有哪些"><a href="#Java线程池的拒绝策略有哪些" class="headerlink" title="Java线程池的拒绝策略有哪些"></a>Java线程池的拒绝策略有哪些</h2><p>当线程池的任务队列满了，且线程数也达到了最大值时，就会触发拒绝策略。JDK默认提供了4种策略，我们把它们总结为：</p>
+<p><b>第一种是AbortPolicy：</b></p>
+<p>这是线程池的默认策略。它的行为非常直接，就是<b>抛出 RejectedExecutionException 异常</b>。</p>
+<p>适用场景： 这种策略适合<b>对任务完整性要求比较高的场景</b>，抛出异常可以让开发人员及时感知到系统瓶颈并处理。</p>
+<p><b>第二种是CallerRunsPolicy：</b></p>
+<p>这个策略的意思是<b>“谁提交的任务，谁自己去执行”</b>。比如主线程提交的任务，就由主线程自己跑。</p>
+<p>适用场景： 这是一种非常稳健的策略。它<b>既能保证任务不丢失，又能降低任务提交的速度，给线程池一段缓冲时间</b>。这在<b>不允许丢数据的并发场景</b>下很有用。</p>
+<p><b>第三种是DiscardPolicy：</b></p>
+<p>它会<b>直接丢弃新提交的任务</b>，而且不抛出任何异常。</p>
+<p>适用场景： 适合那些<b>不太重要、允许数据丢失的业务</b>，比如某些非核心的日志采集。</p>
+<p><b>第四种是DiscardOldestPolicy：</b></p>
+<p>它会丢弃队列里等待最久（也就是队头）的一个任务，然后尝试再次提交当前的新任务。</p>
+<p>适用场景： 适合<b>关注“最新数据”的场景</b>。但要注意，如果队列是优先级队列（PriorityBlockingQueue），这个策略会导致优先级最高的任务被丢弃，所以要慎用。</p>
+<h2 id="创建线程有哪些方式"><a href="#创建线程有哪些方式" class="headerlink" title="创建线程有哪些方式"></a>创建线程有哪些方式</h2><p><b>在 Java 中创建线程，通常总结为 4 种方式。</b></p>
+<p><b>第一种是继承Thread类：</b></p>
+<p>做法： 定义一个类继承 Thread，重写 run() 方法。然后 new MyThread().start()。</p>
+<p>弊端： Java 是单继承机制。如果你继承了 Thread 类，就没法继承别的类了，扩展性极差。</p>
+<p><b>第二种是实现Runnable接口：</b></p>
+<p>做法： 定义一个类实现 Runnable 接口，实现 run() 方法。把这个实例扔给 Thread 类去执行：new Thread(new MyRunnable()).start()。</p>
+<p>优势： 解耦。任务（Runnable）和线程（Thread）分离，而且类还可以继承别的父类。</p>
+<p><b>第三种是实现Callable接口：</b></p>
+<p>做法： 实现 Callable&lt;V&gt; 接口，重写 call() 方法。需要配合 FutureTask 包装器一起使用。</p>
+<p>核心区别：Runnable 的 run() 没有返回值，也不能抛出检查型异常；而 Callable 的 call()有返回值，且能抛出异常。</p>
+<p><b>第四种是使用线程池：</b></p>
+<p>做法： 使用 Executors 工具类或 ThreadPoolExecutor 创建线程池，然后提交任务。</p>
+<p>优势： 复用线程，避免频繁创建和销毁的开销。</p>
+<h2 id="Runnable-和-Callable-具体有什么区别"><a href="#Runnable-和-Callable-具体有什么区别" class="headerlink" title="Runnable 和 Callable 具体有什么区别"></a>Runnable 和 Callable 具体有什么区别</h2><p><b>这两个接口都是用来定义线程要执行的任务的，但 Callable 可以看作是 Runnable 的升级版。它们主要有三个区别：</b></p>
+<p><b>第一，也是最重要的一点，是关于返回值。</b></p>
+<ul>
+<li>Runnable： 它的 run() 方法返回值是 void。这意味着任务执行完就结束了，主线程无法直接获取执行结果。如果你想要结果，只能通过共享变量等旁门左道解决。</li>
+<li>Callable： 它的 call() 方法有一个泛型返回值 V。配合 Future 或 FutureTask对象，你可以在主线程中通过 future.get() 拿到子线程的执行结果。这在需要处理“并发计算并汇总结果”的场景下非常有用。</li>
+</ul>
+<p><b>第二，是关于异常处理。</b></p>
+<ul>
+<li>Runnable 不允许抛出 Checked Exception（检查型异常），如果在 run 方法里出错了，必须在内部 try-catch 解决，外层根本不知道子线程出了错。</li>
+<li>而 Callable 的 call() 方法允许 throws Exception，异常可以抛出去，由外层调用者来捕获和处理。这大大增加了程序的健壮性。</li>
+</ul>
+<p><b>第三，是具体使用上。</b></p>
+<ul>
+<li>Runnable 可以直接传给 Thread 类的构造方法。</li>
+<li>Callable 不能直接给 Thread，它通常需要用 FutureTask 包装一下，或者直接提交给线程池的 submit 方法来执行。</li>
+<li>在现在的开发中，更多的是直接把它们扔进线程池中。</li>
+</ul>
+<h2 id="Java中的线程池有哪些类型"><a href="#Java中的线程池有哪些类型" class="headerlink" title="Java中的线程池有哪些类型"></a>Java中的线程池有哪些类型</h2><p><b>JDK 的 Executors 工具类主要提供了 4 种（JDK 8 之后是 5 种）常见的线程池：</b></p>
+<p><b>newFixedThreadPool：</b></p>
+<ul>
+<li>特点： 核心线程数 &#x3D; 最大线程数。适合负载比较重但任务量相对稳定的场景。</li>
+<li>行为： 就像一个没有任何临时工、全员正式编制的银行网点。线程数固定，即使空闲也不会回收。</li>
+<li>坑点： 它使用的任务队列是 LinkedBlockingQueue，且没有指定容量（默认为 Integer.MAX_VALUE）。如果任务堆积太快，队列会无限制增长，最终导致 OOM。</li>
+</ul>
+<p><b>newCachedThreadPool：</b></p>
+<ul>
+<li>特点： 核心线程数 &#x3D; 0，最大线程数 &#x3D; Integer.MAX_VALUE。适合执行量大、短时间的异步任务。</li>
+<li>行为： 就像一个完全由兼职人员组成的网点。来一个任务就招一个人，任务做完空闲 60 秒就辞退。</li>
+<li>坑点： 如果任务提交速度极快，它会瞬间创建成千上万个线程，导致 CPU 100% 或 OOM。</li>
+</ul>
+<p><b>newSingleThreadExecutor：</b></p>
+<ul>
+<li>特点： 只有一个核心线程，且保证所有任务按照指定顺序（FIFO）执行。</li>
+<li>行为： 就像只开了一个窗口。</li>
+<li>坑点： 和 FixedThreadPool 一样，它也用了无界队列，存在 OOM 风险。</li>
+</ul>
+<p><b>newScheduledThreadPool：</b></p>
+<ul>
+<li>特点： 支持定时或周期性执行任务。</li>
+<li>行为： 替代了老旧的 Timer 类，更安全可靠。</li>
+</ul>
+<p><b>newWorkStealingPool：</b></p>
+<ul>
+<li>特点： 基于 ForkJoinPool 实现，每个线程都有自己的队列。如果不忙，会去“偷”其他忙线程队列里的任务来干。适合非常耗时的并行计算。</li>
+</ul>
+<p>在实际开发中，我们通常不使用工具类提供的线程池，而是自己设定参数来创建。</p>
+<h2 id="为什么阿里开发手册禁止直接使用JDK自带的线程池"><a href="#为什么阿里开发手册禁止直接使用JDK自带的线程池" class="headerlink" title="为什么阿里开发手册禁止直接使用JDK自带的线程池"></a>为什么阿里开发手册禁止直接使用JDK自带的线程池</h2><p><b>这个规定的核心目的是为了规避内存溢出（OOM）的风险，强制开发者手动进行“资源管控”。</b></p>
+<p><b>JDK 提供的 Executors 工具类虽然方便，但它的默认策略在生产环境中是非常危险的，主要体现在两个方面：</b></p>
+<p><b>第一，是队列无界带来的风险。</b></p>
+<p>像 FixedThreadPool 和 SingleThreadExecutor，它们底层使用的是 LinkedBlockingQueue，且没有限制容量。</p>
+<ul>
+<li>如果消费端处理慢，或者数据库卡顿，任务会无限制地积压在队列里。</li>
+<li>最终导致堆内存被占满，引发 OOM，整个服务宕机。</li>
+</ul>
+<p><b>第二，是线程数无界带来的风险。</b></p>
+<p>像 CachedThreadPool，它的最大线程数被设置成了 Integer.MAX_VALUE。</p>
+<ul>
+<li>这意味着只要有请求来，它就创建线程。</li>
+<li>在高并发场景下，瞬间创建几千上万个线程，不仅会把 CPU 资源耗尽在上下文切换上，更会直接因为内存不足而导致 OOM。</li>
+</ul>
+<p>所以，阿里手册强制要求我们手动使用 ThreadPoolExecutor 的构造函数（<b>明确队列长度、限制线程数量、配置拒绝策略</b>）来创建线程池。</p>
+<h2 id="什么是ThreadLocal？如何实现的？"><a href="#什么是ThreadLocal？如何实现的？" class="headerlink" title="什么是ThreadLocal？如何实现的？"></a>什么是ThreadLocal？如何实现的？</h2><p>ThreadLocal可以理解为Java提供的<b>一种“线程隔离”机制</b>。</p>
+<blockquote class="notion-callout"><span>💡</span><p><b>&quot;同一个 ThreadLocal&quot;只是 key 相同，但每次读写都会先 </b><b><code>Thread.currentThread()</code></b><b> 定位到当前线程，再操作该线程自己的 </b><b><code>ThreadLocalMap</code></b><b>。</b> 数据从来不存在 <code>ThreadLocal</code> 里，而是存在每个 <code>Thread</code> 的 <code>threadLocals</code> 字段里。所以 key 一样，柜子不一样，拿到的数据自然各是各的。</p>
+</blockquote>
+
+<p><b>首先，关于它的作用：</b></p>
+<p>它为每个线程提供了一份独立的变量副本。也就是说，不同线程访问同一个 ThreadLocal 对象时，读写到的都是<b>自己线程内部的私有数据</b>，互不干扰。这在 Web 开发中很常见，比如我们可以用它在同一个线程内传递 UserID、Transaction或者 Session 信息，避免在方法参数里传来传去。</p>
+<p><b>其次，关于它的底层实现，这里有一个常见误区：</b></p>
+<p>数据其实不是存放在 ThreadLocal 这个实例里面的，而是存放在线程对象里面的。</p>
+<ul>
+<li>在 Thread 类的源码中，有一个成员变量叫 threadLocals，类型是 ThreadLocalMap。</li>
+<li>当我们调用 threadLocal.set(value) 时，本质上是获取当前线程的 Map，然后以 ThreadLocal自己作为 Key，以 value 作为值，存进去的。</li>
+<li>当调用 get() 时，也是去当前线程的 Map 里，根据 Key 把值拿出来。</li>
+</ul>
+<p><b>最后，使用它需要注意“内存泄漏”的问题：</b></p>
+<p>因为 ThreadLocalMap 的 Key 是弱引用，但 Value 是强引用。如果线程是复用的（比如在线程池中），且 ThreadLocal 对象被回收了，Key 会变成 null，但 Value 还在内存中。如果不清理，这个 Value 就永远无法被访问也无法被回收。所以标准用法是<b>使用完 ThreadLocal 后，必须手动调用 remove() 方法来清理数据。</b></p>
+<h2 id="synchronized是怎么实现的"><a href="#synchronized是怎么实现的" class="headerlink" title="synchronized是怎么实现的"></a>synchronized是怎么实现的</h2><p><b>synchronized 的底层实现可以从两个维度来理解：一个是字节码层面，一个是 JVM 的锁升级机制。</b></p>
+<p><b>首先，从字节码层面来看：</b></p>
+<p>如果我们反编译 class 文件，会发现 synchronized 代码块的前后分别插入了 monitorenter 和 monitorexit 指令。</p>
+<ul>
+<li>执行 monitorenter 时，线程会尝试获取对象关联的 <b>Monitor（监视器锁）</b>。</li>
+<li>如果 Monitor 的计数器是 0，说明可以进入，计数器加 1，当前线程成为 Owner。</li>
+<li>如果已经拥有锁，再次进入，计数器再加 1（也就是<b>可重入性</b>）。</li>
+<li>执行 monitorexit 时，计数器减 1，减到 0 时释放锁。</li>
+</ul>
+<p><b>其次，从底层和优化层面来看：</b></p>
+<p>在 JDK 1.6 之前，synchronized 是<b>完全依赖操作系统的 互斥锁 实现的</b>。这就导致每次加锁解锁都需要在“用户态”和“内核态”之间切换，性能开销非常大，所以以前它叫“重量级锁”。</p>
+<p><b>但是，JDK 1.6 引入了“锁升级”机制，大大提升了性能。</b> 锁的状态会记录在对象的对象头中，根据竞争程度分为三种状态：</p>
+<ol>
+<li>偏向锁：当只有一个线程访问同步块时，JVM根本不需要通过操作系统加锁，只需要在对象头里记录一下这个线程ID。下次这个线程再来，直接放行。这是最快的。</li>
+<li>轻量级锁：如果有第二个线程开始竞争，偏向锁就会失效，升级为轻量级锁。这时候线程不会立刻阻塞，而是通过 CAS（自旋） 的方式尝试获取锁。如果执行时间短，自旋一下就拿到了，避免了线程切换。</li>
+<li>重量级锁：如果自旋很久还没拿到，或者竞争非常激烈，锁就会最终升级为重量级锁。这时候才会真正去调用操作系统的 MutEx，把线程挂起阻塞。</li>
+</ol>
+<blockquote class="notion-callout"><span>💡</span><p><b>1. 偏向锁：门上贴着你的名字</b></p>
+<p>平时只有你一个人用这个厕所。物业（JVM）发现从来没人跟你抢，于是干脆<b>在门牌上写上你的名字</b>（对象头记录线程 ID）。</p>
+<p>以后你每次来，抬头一看门牌是自己名字，<b>推门就进，连钥匙都不用掏</b>（连 CAS 都不用做）。这是最省事、最快的方式。</p>
+<blockquote>
+<p>关键词：<b>没有竞争，直接放行</b>。适合&quot;这锁基本只有我一个人用&quot;的场景。</p>
+</blockquote>
+<hr>
+<p><b>2. 轻量级锁：门口排队转圈等</b></p>
+<p>有一天，第二个同事也要用。门牌上写着你的名字，他没法直接进，于是<b>偏向锁失效</b>（门牌上的名字作废）。</p>
+<p>但大家都很文明：不叫保安、不去睡觉，而是<b>站在门口原地转圈等</b>（<b>自旋 + CAS</b>）。因为你上厕所通常很快，他转几圈你就出来了，他马上就能进去。</p>
+<p>这比&quot;叫他回工位、过会儿再被叫回来&quot;（线程挂起/唤醒，涉及操作系统）要快得多——因为省掉了来回折腾的时间。</p>
+<blockquote>
+<p>关键词：<b>短暂竞争，原地自旋等一等</b>。适合&quot;锁很快就能释放&quot;的场景。</p>
+</blockquote>
+<hr>
+<p><b>3. 重量级锁：去前台登记、领号、坐着等叫号</b></p>
+<p>如果里面的人一直不出来（自旋很久没拿到锁），或者门口挤了一大堆人（竞争激烈），原地转圈就太浪费体力了。</p>
+<p>这时候系统升级：<b>去前台登记、领个号、回座位坐着等</b>（调用操作系统的 <b>Mutex</b>，线程被<b>挂起阻塞</b>）。等厕所空了，前台再喊你名字，你从座位上起来过去（线程唤醒）。</p>
+<p>这样做的好处是等待期间不占 CPU（回座位歇着）；坏处是<b>挂起和唤醒都要走操作系统，开销很大</b>。</p>
+<blockquote>
+<p>关键词：<b>激烈/长时间竞争，干脆挂起睡觉</b>。适合&quot;锁持有时间长、抢的人多&quot;的场景。</p>
+</blockquote>
+</blockquote>
+
+<h2 id="synchronized的锁升级的目的是什么"><a href="#synchronized的锁升级的目的是什么" class="headerlink" title="synchronized的锁升级的目的是什么"></a>synchronized的锁升级的目的是什么</h2><p><b>JDK 1.6 引入锁升级机制，核心目的就是为了提升性能，减少“用户态”到“内核态”的上下文切换开销。</b></p>
+<p><b>具体来说，它是为了适应三种不同的锁竞争场景，做到“按需分配”：</b></p>
+<p><b>第一，是为了优化“无竞争”的场景。</b></p>
+<p>统计表明，很多时候锁是被同一个线程重复获取的。</p>
+<p>目的： 引入偏向锁，就是为了让这个线程在后续获取锁时，连 CAS 操作都不用做，只需要判断一下对象头里的 ID 是不是自己就行。这几乎消除了同步操作的所有开销。</p>
+<p><b>第二，是为了优化“轻微竞争”的场景。</b></p>
+<p>当有第二个线程来竞争，或者锁被交替访问时，直接挂起线程太重了。</p>
+<p>目的： 引入轻量级锁，利用 <b>CAS 自旋</b>，让线程在“门外”多转几圈等待锁释放。只要持有锁的线程很快释放，等待的线程就不用被挂起。这样做完全<b>在用户态完成</b>，避免了操作系统级别的切换。</p>
+<p><b>第三，才是兜底的“强竞争”场景。</b></p>
+<p>如果竞争非常激烈，或者持有锁的线程执行时间很长，自旋会白白消耗 CPU 资源。</p>
+<p>目的： 这时候升级为重量级锁，将等待线程阻塞（挂起），虽然切换成本高，但能避免 CPU 资源被无意义地浪费。</p>
+<h2 id="Java并发的三大原则是什么如何理解"><a href="#Java并发的三大原则是什么如何理解" class="headerlink" title="Java并发的三大原则是什么如何理解"></a>Java并发的三大原则是什么如何理解</h2><p><b>Java 并发编程主要围绕着三大核心特性展开，它们分别是原子性、可见性和有序性。这三个特性也对应了 JMM（Java 内存模型）想要解决的核心问题。</b></p>
+<p><b>第一是原子性：</b></p>
+<p>它指的是一个操作是不可分割的，要么全做，要么全不做。</p>
+<ul>
+<li>典型案例： 就像经典的 count++ 操作，它包含读取、修改、写入三个步骤。如果在多线程环境下，这三个步骤被 CPU 调度打断，就会导致数据丢失。</li>
+<li>解决方案： 在 Java 中，我们可以通过 synchronized 关键字或者 JUC 包下的 Lock 接口来保证原子性；对于简单的数值操作，也可以用 AtomicInteger (CAS 机制) 这种轻量级方案。</li>
+</ul>
+<p><b>第二是可见性：</b></p>
+<p>它指的是当一个线程修改了共享变量，其他线程能立刻感知到。</p>
+<ul>
+<li>典型案例： 由于每个线程都有自己的“工作内存”（对应 CPU 缓存），线程修改数据后可能只是改了缓存，还没同步回主内存。导致其他线程读到的还是旧数据。</li>
+<li>解决方案： 最常用的就是 volatile 关键字，它强制将修改的值立即刷回主内存，并让其他线程的缓存失效。当然，synchronized 和 Lock 在释放锁之前也会把变量同步回主内存，也能保证可见性。</li>
+</ul>
+<p><b>第三是有序性：</b></p>
+<p>它指的是程序按照代码书写的先后顺序执行。</p>
+<ul>
+<li>典型案例： 编译器和 CPU 为了优化性能，会进行“指令重排序”。这在单线程下没问题，但在多线程下（比如单例模式的双重检查锁）可能会导致线程拿到了一个“半初始化”的对象。</li>
+<li>解决方案： Java 提供了 volatile 关键字，通过插入“内存屏障”来禁止特定类型的指令重排序。此外，synchronized 也能间接保证有序性（因为加锁后变成了串行执行）。</li>
+</ul>
+<blockquote class="notion-callout"><span>💡</span><p><b>问题根源：指令重排序</b></p>
+<p><code>instance = new Singleton()</code> 这行代码在底层并非原子操作，通常分为三步：</p>
+<ol>
+<li><b>分配内存空间</b>。</li>
+<li><b>初始化对象</b>（调用构造器、设置字段值）。</li>
+<li><b>将引用指向内存地址</b>（此时 <code>instance</code> 不再为 null）。</li>
+</ol>
+<p>在满足单线程执行结果不变的前提下，Java 编译器和处理器<b>可能将步骤 2 和 3 重排序</b>。执行顺序可能变成：分配内存 → <b>引用赋值</b> → 初始化对象。</p>
+<p><b>失效场景</b></p>
+<p>当发生上述重排序时，可能出现以下时序：</p>
+<ol>
+<li>线程 A 进入同步块，执行 <code>new</code> 操作。它完成了内存分配和引用赋值（此时 <code>instance != null</code>），但<b>尚未执行构造器初始化</b>。</li>
+<li>线程 B 恰好执行到第一次检查 <code>if (instance == null)</code>。它看到 <code>instance</code> 已经不为 null，于是<b>直接返回了这个对象</b>，没有去获取锁。</li>
+<li>线程 B 拿到的是一个<b>构造器尚未执行完毕的半成品对象</b>。如果该对象的字段依赖构造器赋值，线程 B 读到的将是默认值（如 <code>null</code> 或 <code>0</code>），而非预期值，导致程序崩溃或逻辑错误。</li>
+</ol>
+</blockquote>
+
+<h2 id="synchronized-与-ReentrantLock-的区别有哪些"><a href="#synchronized-与-ReentrantLock-的区别有哪些" class="headerlink" title="synchronized 与 ReentrantLock 的区别有哪些"></a>synchronized 与 ReentrantLock 的区别有哪些</h2><p><b>这两者都是 Java 中可重入的阻塞锁，但在实现和功能上有 4 个核心区别：</b></p>
+<p><b>第一，层级不同：</b></p>
+<ul>
+<li>synchronized 是 Java 的<b>关键字</b>，是 JVM 层面的底层实现，通过 Monitor 对象完成。</li>
+<li>ReentrantLock 是 JDK 的 <b>API 类</b>，是基于 AQS实现的软件层面的锁。</li>
+</ul>
+<blockquote class="notion-callout"><span>💡</span><p>AQS，在 Java 并发编程的语境下，全称是 <b><code>AbstractQueuedSynchronizer</code></b>（抽象队列同步器）。</p>
+<p>AQS 是一个<b>抽象类</b>，它的设计目标是为各种锁和同步器（如 <code>ReentrantLock</code>、<code>Semaphore</code>、<code>CountDownLatch</code>）提供一套通用的底层机制。你可以把它理解为构建锁的“半成品”或“基础设施”。</p>
+<p>它主要帮你处理了两件繁琐的事：</p>
+<ol>
+<li><b>管理同步状态</b>：内部维护了一个 <code>volatile int state</code> 变量。在 <code>ReentrantLock</code> 中，<code>state</code> 为 0 代表锁空闲，大于 0 代表已被占用（重入次数）。</li>
+<li><b>管理等待线程</b>：当线程竞争锁失败时，AQS 会把它包装成一个节点，放入一个 <b>FIFO（先进先出）的双向队列</b>中，并负责在锁释放时唤醒后续线程。</li>
+</ol>
+</blockquote>
+
+<p><b>第二，使用方式不同：</b></p>
+<ul>
+<li>synchronized 是<b>隐式锁</b>，自动加锁、自动解锁。即使发生异常，JVM 也会保证锁被释放，使用简单。</li>
+<li>ReentrantLock 是<b>显式锁</b>，必须手动调用 lock() 和 unlock()。<b>特别注意</b>：为了防止死锁，必须在 finally 代码块中释放锁。</li>
+</ul>
+<p><b>第三，功能丰富度不同：</b></p>
+<p>ReentrantLock 相比 synchronized 增加了三个高级功能：</p>
+<ol>
+<li><b>支持公平锁</b>：synchronized 只能是非公平的；ReentrantLock 可以通过构造参数设置为公平锁。</li>
+</ol>
+<blockquote class="notion-callout"><span>💡</span><p>&quot;公平&quot;指的是<b>多个线程竞争锁时，是否严格按照&quot;先来后到&quot;的顺序获得锁</b>。</p>
+<p><b>公平锁：排队买奶茶，先到先得</b></p>
+<ul>
+<li>线程 A 先来竞争锁，发现锁被占用，就乖乖进入等待队列排队。</li>
+<li>线程 B 后到，也必须排在 A 后面。</li>
+<li>等锁释放时，<b>队列里排在最前面的线程（A）一定先拿到锁</b>。</li>
+</ul>
+<p>这就是公平锁：<b>严格按申请锁的时间顺序分配，不会让后来的线程&quot;插队&quot;</b>。</p>
+<p><b>非公平锁：谁手快谁先抢</b></p>
+<ul>
+<li>线程 A 正在等锁（在队列里）。</li>
+<li>锁刚释放的瞬间，线程 B 恰好赶到，它<b>不管队列里有没有人，直接尝试抢锁（CAS）</b>。如果抢到了，B 就插队成功了，A 只能继续等。</li>
+<li>只有当 B 没抢到时，才会轮到队列里的 A。</li>
+</ul>
+<p>这就是非公平锁：<b>新来的线程有&quot;插队&quot;抢锁的机会</b>，不保证先来先得。</p>
+<p><b>为什么要有非公平锁？它明明&quot;不公平&quot;</b></p>
+<p>关键原因是<b>性能</b>。公平锁虽然公平，但代价是：</p>
+<ul>
+<li>每次释放锁，都必须<b>唤醒队列头的线程</b>，而这个被唤醒的线程从&quot;挂起&quot;到&quot;真正运行&quot;需要时间（线程切换开销）。</li>
+<li>在这段时间里，锁是空闲的，CPU 在白白等待。新来的线程如果此时能直接拿到锁干活，就能<b>充分利用这段空档</b>，吞吐量更高。</li>
+</ul>
+<p>所以：</p>
+<ul>
+<li><b>非公平锁</b>：吞吐量高，但可能造成某些线程&quot;饥饿&quot;（一直抢不到）。</li>
+<li><b>公平锁</b>：保证不饥饿，顺序严格，但频繁的线程唤醒带来额外开销，吞吐量较低。</li>
+</ul>
+</blockquote>
+
+<ol start="2">
+<li><b>支持等待可中断</b>： 使用 lockInterruptibly() 可以让正在等待锁的线程响应中断，放弃等待，避免死锁。</li>
+<li><b>支持多条件变量</b>：synchronized 只有一个等待队列（waitSet）；而 ReentrantLock 可以通过 newCondition() 创建多个条件队列，实现更精准的线程唤醒（比如只唤醒消费者）。</li>
+</ol>
+<p><b>第四，性能上的区别：</b></p>
+<p>在 JDK 1.6 之前，synchronized 性能很差。但 JDK 1.6 引入了偏向锁、轻量级锁等优化后，两者在性能上已经相差无几了。</p>
+<h2 id="AQS底层原理是怎样的"><a href="#AQS底层原理是怎样的" class="headerlink" title="AQS底层原理是怎样的"></a>AQS底层原理是怎样的</h2><p><b>AQS 是 Java 并发包（JUC）的核心基石，ReentrantLock、CountDownLatch、Semaphore 等工具都是基于它实现的。</b></p>
+<p>它的核心原理可以概况为三个部分：</p>
+<p><b>第一，核心状态管理：volatile int state</b></p>
+<p>AQS 内部维护了一个 volatile int state 变量，用来表示当前的同步状态。</p>
+<p>含义： 它代表了“共享资源”的状态。</p>
+<ul>
+<li>比如在 ReentrantLock 中，state&#x3D;0 表示锁空闲，state&#x3D;1 表示被占用，state&gt;1 表示重入次数。</li>
+<li>比如在 CountDownLatch 中，state 表示还需要倒数的次数。</li>
+<li>比如在 Semaphore 中，state 表示剩余的许可证数量。</li>
+</ul>
+<p><b>第二，修改机制：CAS</b></p>
+<p>因为是多线程并发抢占资源，AQS 使用 CAS 指令来保证 state 修改的原子性。只有 CAS 成功修改了 state 的线程，才算抢到了锁。</p>
+<blockquote class="notion-callout"><span>💡</span><p>CAS 是 <b>Compare And Swap</b>（比较并交换）的缩写，是一条<b>原子指令</b>，也是 Java 并发编程里最底层的&quot;无锁&quot;基石。</p>
+<p>CAS 操作包含三个值：</p>
+<ul>
+<li><b>V</b>：要操作的内存地址（变量的当前值）</li>
+<li><b>A</b>：期望的旧值（Expected）</li>
+<li><b>B</b>：要写入的新值（New）</li>
+</ul>
+<p>它的语义是一句话：<b>&quot;如果内存 V 处的值等于我期望的 A，就把它改成 B；否则什么都不做，并告诉我失败了。&quot;</b></p>
+<p>关键在于：<b>&quot;比较&quot;和&quot;交换&quot;这两步是一个不可分割的原子操作</b>，中间不会被其他线程打断。这是它区别于普通 <code>if (v == a) v = b;</code> 的根本——普通写法在比较和赋值之间可能被别的线程插一脚，CAS 不会。</p>
+</blockquote>
+
+<p><b>第三，排队机制：FIFO等待队列</b></p>
+<ul>
+<li>问题： 那些 CAS 失败、没抢到锁的线程去哪了？</li>
+<li>解决： AQS 会把它们包装成一个 Node 节点，加入到一个双向链表队列中等待。这个队列被称为 CLH 队列（的变体）。</li>
+<li>行为： 队列里的节点会挂起，直到前驱节点释放资源后唤醒它，它再去尝试 CAS 抢锁。</li>
+</ul>
+<h2 id="CountDownLatch-和-CyclicBarrier-都有等待的功能-它们有什么区别底层实现一样吗"><a href="#CountDownLatch-和-CyclicBarrier-都有等待的功能-它们有什么区别底层实现一样吗" class="headerlink" title="CountDownLatch 和 CyclicBarrier 都有等待的功能,它们有什么区别底层实现一样吗"></a>CountDownLatch 和 CyclicBarrier 都有等待的功能,它们有什么区别底层实现一样吗</h2><p><b>首先，它们的底层实现不一样。</b></p>
+<ul>
+<li>CountDownLatch 是直接基于 AQS 的共享模式实现的，它通过 AQS 的 state 变量来维护计数。</li>
+<li>CyclicBarrier 则是基于 ReentrantLock 和 Condition 条件队列实现的，它是更高层级的封装。</li>
+</ul>
+<p><b>其次，关于核心功能的区别，主要有两点：</b></p>
+<ol>
+<li><b>“等待的主体”不同</b></li>
+</ol>
+<ul>
+<li>CountDownLatch 侧重于<b>“一个（或多个）线程等待其他线程完成任务”</b>。就像火箭发射，主线程等待所有检查项完成后才能点火。</li>
+<li>CyclicBarrier 侧重于<b>“所有线程互相等待”</b>。就像朋友聚餐，所有人（线程）都到了饭店门口（同步点），才能一起进去吃饭。</li>
+</ul>
+<ol start="2">
+<li><b>“复用性”不同</b></li>
+</ol>
+<ul>
+<li>CountDownLatch 是<b>一次性</b>的。计数器减到 0 就结束了，无法重置，如果想再次使用只能 new 一个新的。</li>
+<li>CyclicBarrier 是<b>可循环</b>的。当计数器减到 0，屏障打开后，它会自动重置，适合处理分阶段的多轮计算任务。</li>
+</ul>
+<h2 id="CompletableFuture的底层是如何实现的"><a href="#CompletableFuture的底层是如何实现的" class="headerlink" title="CompletableFuture的底层是如何实现的"></a>CompletableFuture的底层是如何实现的</h2><p><b>CompletableFuture 的底层实现可以概括为：基于 CAS 的状态机 + Treiber Stack（无锁栈）维护的回调链。</b></p>
+<p><b>具体来说，它包含三个核心要素：</b></p>
+<p><b>第一，状态的原子性管理。</b></p>
+<p>它内部维护了一个 volatile 的 result 变量。</p>
+<ul>
+<li>所有的 complete 操作，本质上都是通过 CAS将这个 result 从 null 或者是 ALT（中间态）更新为具体的值。</li>
+<li>只有 CAS 成功的线程，才算真正完成了任务，这保证了状态流转的线程安全。</li>
+</ul>
+<p><b>第二，基于栈的异步回调机制。</b></p>
+<p>当我们链式调用 .thenApply 或 .thenAccept 时，底层并不会阻塞等待。</p>
+<ul>
+<li>它会将后续的任务封装成一个 Completion 对象。</li>
+<li>然后尝试判断当前任务是否已完成：<ul>
+<li>如果没完成，就通过 CAS 把这个 Completion 对象压入一个无锁栈（Treiber Stack）中挂起。</li>
+<li>如果已完成，则直接触发回调。</li>
+</ul>
+</li>
+</ul>
+<p><b>第三，触发驱动。</b></p>
+<p>当主任务执行完毕（也就是 result 被 CAS 更新后），它会执行一个 postComplete() 方法。</p>
+<ul>
+<li>这个方法会循环从栈中弹出所有等待的 Completion 对象，并依次触发它们的 tryFire() 方法。</li>
+<li>这样就实现了“一个任务做完，自动唤醒下一个任务”的链式反应。</li>
+</ul>
+<blockquote class="notion-callout"><span>💡</span><p>例子：</p>
+<pre><code class="language-py">CompletableFuture&lt;String&gt; cf = CompletableFuture.supplyAsync(() -&gt; {
+    sleep(1000);          // 模拟耗时任务
+    return &quot;hello&quot;;
+});
+
+<p>CompletableFuture&lt;Integer&gt; cf2 &#x3D; cf.thenApply(s -&gt; s.length());<br>CompletableFuture&lt;Void&gt;  cf3 &#x3D; cf2.thenAccept(len -&gt; System.out.println(&quot;长度&#x3D;&quot; + len));<br></code></pre></p>
+<p><b><code>cf</code></b><b>、</b><b><code>cf2</code></b><b>、</b><b><code>cf3</code></b><b> 是三个独立的 CompletableFuture 对象</b>，<code>thenApply/thenAccept</code> 返回的是<b>新的</b> CF，不是同一个对象。链式调用的本质是：前一个 CF 完成后，把结果&quot;推&quot;给后一个 CF。</p>
+<p><b><span color="yellow_bg">一、状态原子性：result 字段 + CAS</span></b></p>
+<p>每个 CF 内部有一个 <code>volatile Object result</code>，有两种&quot;特殊值&quot;：</p>
+<table>
+<thead>
+<tr>
+<th><b>result 取值</b></th>
+<th><b>含义</b></th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>null</code></td>
+<td>还没完成（NEW）</td>
+</tr>
+<tr>
+<td>某个静态标记对象</td>
+<td>中间态（ALT，比如某个阶段已推进）</td>
+</tr>
+<tr>
+<td>具体的值 / 异常包装</td>
+<td>已完成（NORMAL / EXCEPTIONAL）</td>
+</tr>
+</tbody></table>
+<p>以 <code>cf</code>（supplyAsync 那个）为例：</p>
+<ul>
+<li>开始时 <code>result == null</code>。</li>
+<li>异步线程算完 <code>"hello"</code> 后，执行 <code>complete("hello")</code>，内部做 <b>CAS(null → &quot;hello&quot;)</b>。</li>
+<li>只有 CAS 成功的那个线程才算&quot;真正完成了这个 CF&quot;；如果别人已经先 CAS 成功了，这次 CAS 失败，就直接返回 false，不会重复触发后续逻辑。</li>
+</ul>
+<p>这一步保证了：<b>即使多个线程同时想 complete 同一个 CF，也只有一个能成功，回调不会被触发两次。</b></p>
+<p><b><span color="yellow_bg">二、回调入栈：Completion 对象 + Treiber Stack</span></b></p>
+<p><code>thenApply</code> 被调用时发生了什么？关键看 <b>调用那一刻 </b><b><code>cf</code></b><b> 完成了没有</b>。</p>
+<p><b>场景 A：调用时 </b><b><code>cf</code></b><b> 还没完成（本例就是这样）</b></p>
+<p><code>cf.thenApply(...)</code> 执行时，<code>cf</code> 还在 sleep，<code>result == null</code>。</p>
+<ol>
+<li>创建一个 <code>Completion</code> 对象（可以理解成 <code>UniApply</code>），它内部记着：<ul>
+<li>依赖的源 CF：<code>cf</code></li>
+<li>要执行的回调：<code>s -> s.length()</code></li>
+<li>结果要写进的目标 CF：<code>cf2</code></li>
+</ul>
+</li>
+<li>尝试 <b>CAS 把这个 Completion 压入 </b><b><code>cf</code></b><b> 内部的一个无锁栈</b>（Treiber Stack，就是 <code>volatile Completion stack</code> 头指针 + 每个节点 <code>next</code> 指针，靠 CAS 改头指针实现无锁入栈）。</li>
+<li>入栈成功后，<code>thenApply</code> 立刻返回 <code>cf2</code>（此时 <code>cf2.result</code> 还是 null，什么都没发生）。</li>
+</ol>
+<p>同理，<code>cf2.thenAccept(...)</code> 时 <code>cf2</code> 也没完成，于是又一个 Completion 被压进了 <b><code>cf2</code></b><b> 自己的栈</b>里，指向 <code>cf3</code>。</p>
+<p>此刻的内存结构大致是：</p>
+<pre><code class="language-txt">cf.stack   ──&gt; [Completion: 算 length, 目标 cf2]
+cf2.stack  ──&gt; [Completion: 打印,    目标 cf3]
+</code></pre>
+<p><b>注意：每个 CF 有自己的栈，链是&quot;分散&quot;在各个 CF 里的，不是一条大链表。</b></p>
+<p><b>场景 B：调用时 </b><b><code>cf</code></b><b> 已完成（对照理解）</b></p>
+<p>如果 <code>thenApply</code> 调用时 <code>cf.result</code> 已经是 <code>"hello"</code> 了，就走另一条路：<b>不入栈，直接当场执行回调</b>（内部叫 <code>uniApply</code>），算完 <code>length</code> 直接 CAS 把结果写进 <code>cf2</code>。这就是&quot;已完成则直接触发回调&quot;。</p>
+<p><b><span color="yellow_bg">三、触发驱动：postComplete() 弹栈 + tryFire()</span></b></p>
+<p>1 秒后，sleep 结束，异步线程对 <code>cf</code> 执行 <code>complete("hello")</code>：</p>
+<p><b>CAS(null → &quot;hello&quot;) 成功</b>，<code>cf</code> 标记为完成。</p>
+<p>
+调用 <code>cf.postComplete()</code>：
+
+<ul>
+<li>循环从 <code>cf.stack</code> 里 <b>CAS 弹出</b>那个 Completion 节点（栈变空）。</li>
+<li>调用该节点的 <code>tryFire()</code>：取出源结果 <code>"hello"</code>，执行 <code>s -> s.length()</code> 得到 <code>5</code>。</li>
+<li>然后对这个 Completion 的<b>目标 CF（cf2）执行 </b><b><code>complete(5)</code></b> —— 也就是 <b>CAS(null → 5)</b>。</p></li>
+</ul>
+<p>
+<code>cf2</code> 完成的那一刻，同样触发 <code>cf2.postComplete()</code>：
+
+<ul>
+<li>从 <code>cf2.stack</code> 弹出打印那个 Completion，<code>tryFire()</code> 执行 <code>System.out.println("长度=5")</code>。</li>
+<li>打印任务的目标是 <code>cf3</code>，于是对 <code>cf3</code> 执行 complete（null → null，正常完成）。</p></li>
+</ul>
+<p><code>cf3</code> 没有后续栈，<code>postComplete</code> 循环结束。</p>
+<p>于是整条链像<b>多米诺骨牌</b>一样，一个 <code>complete</code> 引发下一个 <code>postComplete</code>，层层推进，全程没有线程阻塞等待。</p>
+</blockquote>
+
+<h2 id="ForkJoinPool是什么，和ThreadPoolExecutor区别是什么"><a href="#ForkJoinPool是什么，和ThreadPoolExecutor区别是什么" class="headerlink" title="ForkJoinPool是什么，和ThreadPoolExecutor区别是什么"></a>ForkJoinPool是什么，和ThreadPoolExecutor区别是什么</h2><p><b>ForkJoinPool 是 JDK 7 引入的，专门用于处理“分治任务”的线程池。它和普通的 ThreadPoolExecutor 主要有三个核心区别：</b></p>
+<p><b>第一，设计初衷不同：</b></p>
+<ul>
+<li>ThreadPoolExecutor 适合执行<b>互相独立的、耗时较短的任务</b>，比如处理 Web 请求或数据库查询（IO 密集型）。</li>
+<li>ForkJoinPool 适合执行<b>可以递归拆解的大型计算任务</b>，比如大数据排序或图像处理（CPU 密集型）。</li>
+</ul>
+<p><b>第二，任务队列的结构不同（底层实现）：</b></p>
+<ul>
+<li>ThreadPoolExecutor 内部维护的是一个<b>公共的阻塞队列</b>，所有线程都去这一个队列里抢任务，在并发极高时会有锁竞争。</li>
+<li>ForkJoinPool 中的每个工作线程都有<b>自己独立的双端队列（Deque）</b>，任务是分散存储的，减少了线程间的资源竞争。</li>
+</ul>
+<p><b>第三，调度算法不同（核心亮点）：</b></p>
+<p>这也是 ForkJoinPool 最著名的<b>“工作窃取算法”</b>。在 ForkJoinPool 中，线程优先处理自己队列里的任务。当某个线程把自己队列的任务做完后，它不会闲下来，而是会去其他忙碌线程的队列尾部“偷”任务来执行。这种机制能最大程度地压榨 CPU 性能，保证所有线程都在干活，不会出现“一核有难，七核围观”的现象。</p>
+<h2 id="Java中父子线程如何通信"><a href="#Java中父子线程如何通信" class="headerlink" title="Java中父子线程如何通信"></a>Java中父子线程如何通信</h2><p><b>Java 线程间的通信本质上都是基于“共享内存”模型的。在实际开发中，根据通信的目的不同，我一般把它们分为两类：</b></p>
+<p><b>第一类是基于共享变量</b></p>
+<p>这是最基础的方式。父子线程<b>共享同一个对象或变量</b>。</p>
+<p><img src="/notion-assets/47ac5d8d676842e5fc1ac994.png" alt="笔记插图"></p>
+<ul>
+<li>为了保证可见性，我们通常会用 volatile 关键字修饰共享变量。</li>
+<li>或者使用 synchronized&#x2F;Lock 锁机制来保证数据的线程安全。</li>
+<li>比如父线程修改一个配置标志位，子线程实时感知并做出反应。</li>
+</ul>
+<p><b>第二类是基于InheritableThreadLocal</b></p>
+<p>这是一种特殊的“隐式”通信，主要<b>用于全链路追踪</b>。</p>
+<p><img src="/notion-assets/cf1cf1ad89a03a2d84bb6185.png" alt="笔记插图"></p>
+<ul>
+<li>当我们使用 InheritableThreadLocal 时，子线程在创建的瞬间，会自动“继承”（拷贝）父线程中的 ThreadLocal 变量。</li>
+<li>这在微服务开发中非常有用，比如把 RequestId 或 UserID 从主线程透传给异步子线程，保证日志链路不断层。</li>
+</ul>
+<h2 id="Java中使用-InheritableThreadLocal-有什么坑吗？在线程池里好用吗？"><a href="#Java中使用-InheritableThreadLocal-有什么坑吗？在线程池里好用吗？" class="headerlink" title="Java中使用 InheritableThreadLocal 有什么坑吗？在线程池里好用吗？"></a>Java中使用 InheritableThreadLocal 有什么坑吗？在线程池里好用吗？</h2><p>这个问题的结论非常明确：<b>在线程池环境下，是严禁使用 InheritableThreadLocal 的。因为它会导致严重的“上下文污染”问题。</b></p>
+<p><b>原因主要在于它的设计机制和线程池是冲突的：</b></p>
+<ul>
+<li>InheritableThreadLocal 只有在线程创建的那一刻，才会把父线程的数据拷贝给子线程。</li>
+<li>而线程池的核心是线程复用。线程一旦创建好，就会一直留在池子里反复使用，不会重新创建。</li>
+</ul>
+<p><b>这就导致了一个具体的 Bug 场景：</b></p>
+<p>比如第一个请求进来，创建了一个核心线程，继承了“用户 A”的数据。任务结束后，线程回收到池子里，但它内部的 ThreadLocalMap 并没有清空。</p>
+<p>当第二个请求“用户 B”进来时，线程池复用了这个线程。由于没有发生线程创建动作，新的数据传不进去，这个线程依然拿着“用户 A”的数据在跑。</p>
+<p>后果就是： 用户 B 可能会看到用户 A 的数据，或者日志里的 TraceId 发生了串号，这是严重的生产事故。</p>
+<p><b>标准解决方案：</b></p>
+<p>在实际生产中，我们一般会引入阿里巴巴开源的 TransmittableThreadLocal (TTL)。</p>
+<p>它的原理是利用装饰器模式，在任务提交或者任务执行的时刻去“捕获”和“回放”上下文，而不是依赖线程创建。并在任务结束后自动“恢复”现场，从而完美解决了线程复用导致的数据不一致问题。</p>
+<ol>
+<li>Capture： 在任务提交或者封装的时候，把当前主线程的上下文抓取出来。</li>
+<li>Replay： 在子线程开始执行任务之前，把抓取到的上下文“刷”进子线程里。</li>
+<li>Restore： 任务执行完后，把子线程恢复成原本的样子（防止污染）。</li>
+</ol>
+<h2 id="Java中volatile是什么-如何理解JMM"><a href="#Java中volatile是什么-如何理解JMM" class="headerlink" title="Java中volatile是什么?如何理解JMM"></a>Java中volatile是什么?如何理解JMM</h2><p>这个问题可以分为两部分：<b>volatile 的作用和 JMM 的理解</b>。</p>
+<p><b>首先，volatile 关键字是 Java 最轻量级的同步机制，它主要解决并发中的两个核心问题：可见性和有序性。</b></p>
+<ol>
+<li>可见性：由于 JMM 的设定，每个线程都有自己的工作内存。volatile 保证了对该变量的修改会立即被同步到主内存，并且会导致其他线程缓存中的旧值失效。这样，其他线程要读取时，就必须重新从主内存获取最新值。</li>
+<li>有序性：volatile 通过在读写操作时插入内存屏障来禁止指令重排序，保证代码执行的顺序，从而避免重排序导致的并发问题。</li>
+</ol>
+<p>需要特别强调的是：<b>volatile不保证原子性，因为它只负责读写的同步，无法保证复合操作（如 i++）作为一个整体不被打断。</b></p>
+<p><b>其次，关于 JMM</b>： JMM 是一个抽象概念，它规范了 Java 虚拟机如何与计算机内存（主内存&#x2F;缓存）协同工作。它的核心思想是：<b>所有变量都存在于主内存，而线程操作的只是这些变量在自己工作内存中的副本。</b></p>
+<ul>
+<li>JMM 存在的意义，就是为了在并发场景下，明确地定义在何时、何地，一个线程对共享变量的修改对另一个线程是可见的。</li>
+<li>JMM 规范的存在，正是为了让 volatile、synchronized 等关键字，能通过底层的内存屏障等机制，解决由 CPU 缓存、指令重排带来的<b>可见性和有序性</b>问题。</li>
+</ul>
+<h2 id="什么是happens-before"><a href="#什么是happens-before" class="headerlink" title="什么是happens-before"></a>什么是happens-before</h2><p><b>Happens-Before 是 Java 内存模型中定义的一套规则，它是判断数据是否存在竞争、线程是否安全的主要依据。</b></p>
+<p>简单来说，它的核心含义是<b>“可见性保障”</b>：</p>
+<p>如果操作 A happens-before 操作 B，那么 JMM 保证 A 的操作结果对 B 是可见的，且 A 的执行顺序排在 B 之前。</p>
+<p>这里要注意，<b>它强调的是结果的可见性，而不是物理时间的先后</b>。只要结果不出错，JVM 依然可以进行指令重排序优化。</p>
+<p><b>我们在开发中经常利用这几条规则来保证线程安全：</b></p>
+<p><b>第一是“程序次序规则”</b>： 在同一个线程内，书写在前面的代码操作结果，对后面的代码是可见的。</p>
+<p><b>第二是“Volatile 规则”</b>： 对一个 volatile 变量的写操作，对于后续对这个变量的读操作是可见的。这保证了 volatile 的可见性。</p>
+<p><b>第三是“锁规则”</b>： 一个锁的解锁操作，对于后续对同一个锁的加锁操作是可见的。这就解释了为什么 synchronized 能保证可见性。</p>
+<p><b>第四是“传递性”</b>： 如果 A hb B，B hb C，那么 A hb C。</p>
+<ul>
+<li>举个例子： 利用传递性，我们可以让 volatile 变量作为一个“开关”。只要 volatile 变量写操作可见了，那么在它之前修改的所有普通变量也对后续线程可见了。</li>
+</ul>
+<p>启动规则：主线程在启动子线程之前干的所有活，子线进去后都能看到。</p>
+<p>终止规则：子线程结束后，主线程通过特定的方式发现它停止了，子线程留下的所有成果，主线程也都可以接收。</p>
+<h2 id="为什么单例模式的DCL模式需要用volatile"><a href="#为什么单例模式的DCL模式需要用volatile" class="headerlink" title="为什么单例模式的DCL模式需要用volatile"></a>为什么单例模式的DCL模式需要用volatile</h2><p><b>这主要是为了防止“指令重排序”导致的“对象半初始化”问题。</b></p>
+<p><b>具体来说，我们可以把问题拆解为三个层面：</b></p>
+<p><b>第一，对象的创建过程不是原子的。</b></p>
+<p>在 Java 中，new 一个对象在字节码层面通常包含三步：</p>
+<ol>
+<li>分配内存空间。</li>
+<li>调用构造方法初始化对象。</li>
+<li>将引用指向分配的内存地址。</li>
+</ol>
+<p><b>第二，编译器优化可能导致指令重排。</b></p>
+<p>为了优化性能，JVM 或 CPU 可能会把执行顺序调整为 1 -&gt; 3 -&gt; 2。也就是说，先把引用指向内存（此时引用不为 null），再由构造方法进行初始化。</p>
+<p><b>第三，并发场景下的隐患。</b></p>
+<p>如果发生重排序，当线程 A 执行完第 3 步（指向内存）但还没执行第 2 步（初始化）时，恰好线程 B 进来了。线程 B 在第一层 if (instance &#x3D;&#x3D; null) 判断时，发现 instance 已经不为空了，就会直接返回这个对象。但实际上，这个对象还是个“半成品”，里面的属性还没初始化。 线程 B 使用该对象就会导致程序出错。</p>
+<p>加上 volatile 关键字，就是<b>利用它的内存屏障功能，禁止这三步操作的重排序，保证 “先初始化，后指向引用” 的顺序</b>，从而保证线程安全。</p>
+<h2 id="什么是CAS-什么是ABA问题-如何解决ABA问题"><a href="#什么是CAS-什么是ABA问题-如何解决ABA问题" class="headerlink" title="什么是CAS?什么是ABA问题?如何解决ABA问题?"></a>什么是CAS?什么是ABA问题?如何解决ABA问题?</h2><p><b>CAS 是 Java 并发包底层最核心的机制，绝大多数原子类都是基于它实现的。</b></p>
+<p><b>首先，关于 CAS：</b></p>
+<p>它是一种轻量级的乐观锁机制。它不依赖操作系统层面的 Mutex 锁，而是通过 CPU 提供的原子指令来实现。</p>
+<ul>
+<li>它的核心逻辑包含三个参数：内存地址 V、预期原值 A、新值 B。</li>
+<li>只有当内存中的实际值等于预期原值 A 时，才会把内存更新为 B，否则不做任何操作或重试。</li>
+<li>这种机制避免了线程切换的开销，在低竞争下性能非常高。</li>
+</ul>
+<p><b>但是，CAS 有一个著名的漏洞，就是 ABA 问题：</b></p>
+<p>CAS 的检查机制是“只看结果，不看过程”。</p>
+<ul>
+<li>假设一个变量原本是 A，被别的线程改成了 B，又改回了 A。</li>
+<li>此时当前线程去检查，发现它还是 A，就会误认为它没有被修改过，从而执行更新操作。</li>
+<li>在处理数值运算时这通常没问题，但在处理栈或链表（涉及节点引用）时，这可能会导致严重的逻辑错误。</li>
+</ul>
+<p><b>解决 ABA 问题的标准方案是：引入版本号。</b></p>
+<p>我们可以借鉴数据库乐观锁的思想，在对比数据的同时，对比一个版本号或时间戳。</p>
+<h2 id="Java中AtomicInteger-适合高并发-但在竞争极其激烈的时候它的性能会下降-你知道为什么吗？有什么优化的方案吗？"><a href="#Java中AtomicInteger-适合高并发-但在竞争极其激烈的时候它的性能会下降-你知道为什么吗？有什么优化的方案吗？" class="headerlink" title="Java中AtomicInteger 适合高并发,但在竞争极其激烈的时候它的性能会下降,你知道为什么吗？有什么优化的方案吗？"></a>Java中AtomicInteger 适合高并发,但在竞争极其激烈的时候它的性能会下降,你知道为什么吗？有什么优化的方案吗？</h2><p><b>AtomicInteger 虽然基于 CAS 实现了无锁机制，但在高并发写场景下确实存在性能瓶颈，主要原因是“热点竞争”导致的自旋消耗。</b></p>
+<p><b>首先，分析性能下降的原因：</b></p>
+<p>AtomicInteger 内部维护着唯一的一个 volatile value。</p>
+<ul>
+<li>当有大量线程同时去更新这个值时，因为 CAS 的机制，同一时刻只能有一个线程成功。</li>
+<li>其他大量失败的线程，会进入 while 循环不断进行重试（自旋）。</li>
+<li>在竞争极其激烈时，这种高频的失败和重试，会消耗大量的 CPU 资源，导致系统性能显著下降。</li>
+</ul>
+<p><b>其次，关于优化方案：</b></p>
+<p>在 JDK 8 中，推荐使用 LongAdder 来替代 AtomicInteger 处理高并发计数场景。</p>
+<p>LongAdder 的核心优化思路是<b>“分散热点”</b>：</p>
+<p>它不再让所有线程抢一个变量，而是维护了一个 Cell[] 数组。</p>
+<ol>
+<li>当竞争不激烈时，直接通过 CAS 修改 base 基础值。</li>
+<li>一旦发生竞争，它会根据线程的 Hash 值，将线程分散到不同的 Cell（单元格）中去修改各自的值。</li>
+<li>这样就将“多线程争夺一个点”变成了“多线程对应多个点”，极大降低了 CAS 失败和自旋的概率。</li>
+</ol>
+<p><b>最后，需要注意一点区别：</b></p>
+<p>AtomicInteger 的 get() 拿到的是绝对实时的准确值。</p>
+<p>而 LongAdder 的 sum() 方法是把 base 和所有 Cell 累加起来，在统计过程中如果有新的并发更新，可能拿到的结果只是一个“最终一致”的值，但对于高并发计数来说，这是完全可以接受的。</p>
+<h2 id="实现一个生产者消费者的代码"><a href="#实现一个生产者消费者的代码" class="headerlink" title="实现一个生产者消费者的代码"></a>实现一个生产者消费者的代码</h2><p>实现这套逻辑，本质上只需要抓住三个关键点：</p>
+<p><b>独占锁（Synchronized）</b></p>
+<p>因为 LinkedList 不是线程安全的，生产者和消费者都在操作同一个 list，所以必须加锁。</p>
+<p>在 produce 和 consume 方法上加 synchronized，保证同一时刻只能有一个线程在操作仓库。</p>
+<p><b>通信机制（Wait&#x2F;Notify）</b></p>
+<ul>
+<li>等待（wait）： 当条件不满足时（比如满了不能生、空了不能吃），线程必须主动让出 CPU 并且释放锁，进入等待队列。注意，这里必须释放锁，否则别人进不来，就死锁了。</li>
+<li>通知（notifyAll）： 当我干完活（生产了一个或消费了一个），条件发生了变化，我需要喊醒等待队列里的其他人：“起来干活了”。</li>
+</ul>
+<p><b>虚假唤醒（While loop）</b></p>
+<p>这是代码中最关键的细节，也是面试官最爱盯着看的地方：判断条件必须放在 while 循环里，而不能是 if。</p>
+<ul>
+<li>原因：wait() 方法可能会在没有被通知的情况下被意外唤醒（操作系统层面的虚假唤醒），或者被唤醒后锁被别人抢走了，导致条件再次不满足。</li>
+<li>解决： 醒来后必须再次检查条件，如果条件依然不满足，继续睡。</li>
+</ul>
+<h2 id="实现DCL的代码"><a href="#实现DCL的代码" class="headerlink" title="实现DCL的代码"></a>实现DCL的代码</h2><p><b>DCL的核心在于“懒加载”和“锁粒度优化”。第一次检查是为了不加锁（提升性能），第二次检查是为了不重复创建（保证安全），而 volatile 是为了禁止指令重排（防止半初始化对象）。</b></p>
+<p>代码实现：</p>
+<figure class="highlight py"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><span class="line">public <span class="keyword">class</span> <span class="title class_">Singleton</span>&#123;</span><br><span class="line">		// <span class="number">1.</span> 必须使用volatile修饰，防止指令重排</span><br><span class="line">		private static volatile Singleton instance;</span><br><span class="line">		</span><br><span class="line">		// <span class="number">2.</span> 构造方法私有化，防止外部 new</span><br><span class="line">    private Singleton() &#123;</span><br><span class="line">    &#125;</span><br><span class="line">    </span><br><span class="line">    public static Singleton getInstance()&#123;</span><br><span class="line">		    // 第一次检查：如果已经实例化了，就不需要进同步块了，直接返回</span><br><span class="line">        // 目的：提升性能，避免每次都抢锁</span><br><span class="line">        <span class="keyword">if</span>(instance == null)&#123;</span><br><span class="line">		        synchronized (Singleton.<span class="keyword">class</span>)&#123;</span><br><span class="line">				        // 第二次检查：防止多个线程同时通过了第一次检查</span><br><span class="line">				        // 目的：保证线程安全，确保单例</span><br><span class="line">                <span class="keyword">if</span> (instance == null) &#123;</span><br><span class="line">                    instance = new Singleton();</span><br><span class="line">                &#125;</span><br><span class="line">		        &#125;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>这段代码包含三个核心逻辑：</p>
+<p><b>为什么要 Check 两遍？</b></p>
+<ul>
+<li><b>第一次 Check（外层）： 是为了性能。</b>单例对象一旦创建好，后续所有线程都不需要再加锁了，直接返回即可。如果没有这一层，所有线程都要去排队抢锁，性能会极差。</li>
+<li><b>第二次 Check（内层）： 是为了安全。</b>假设线程 A 和线程 B 同时走到了 synchronized 外面。A 抢到了锁，进去创建了对象，释放锁。此时 B 拿到锁进去，如果没有第二次检查，B 就会再创建一次对象，单例就失效了。</li>
+</ul>
+<p><b>为什么要加 volatile？</b></p>
+<p>这是面试官最想听到的点。不加 volatile，在极高并发下会出现<b>“对象半初始化”</b>的问题。</p>
+<p>instance &#x3D; new Singleton(); 这行代码在 JVM 层面其实是分三步走的：</p>
+<ol>
+<li>Allocate：分配内存空间。</li>
+<li>Initialize：调用构造方法初始化对象。</li>
+<li>Assign：将引用指向内存地址。</li>
+</ol>
+<p>问题在于： CPU 和编译器为了优化，可能会把 2 和 3 的顺序颠倒（<b>指令重排序</b>），变成 1 -&gt; 3 -&gt; 2。</p>
+<ul>
+<li>如果线程 A 执行了 1 和 3（此时 instance 已经不是 null 了，但还没初始化），这就叫<b>半初始化状态</b>。</li>
+<li>此时线程 B 进来，在第一次 Check 时发现 instance !&#x3D; null，直接就把这个“半成品”拿去用了，结果程序就会报错。</li>
+</ul>
+<p><b>volatile 的作用就是插入内存屏障，禁止这种重排序，保证 1 -&gt; 2 -&gt; 3 的顺序。</b></p>
+<h2 id="实现三个线程交替打印ABC的代码"><a href="#实现三个线程交替打印ABC的代码" class="headerlink" title="实现三个线程交替打印ABC的代码"></a>实现三个线程交替打印ABC的代码</h2><p><b>核心在于构建一个“状态机”，配合“精确唤醒”机制。让线程 A 唤醒 B，B 唤醒 C，C 再唤醒 A，形成一个闭环。</b></p>
+<p>代码实现：</p>
+<p>使用 ReentrantLock 来保证互斥，配合三个 Condition 来实现点对点的精确唤醒。</p>
+<figure class="highlight py"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> java.util.concurrent.locks.Condition;</span><br><span class="line"><span class="keyword">import</span> java.util.concurrent.locks.Lock;</span><br><span class="line"><span class="keyword">import</span> java.util.concurrent.locks.ReentrantLock;</span><br><span class="line"></span><br><span class="line">public <span class="keyword">class</span> <span class="title class_">ABCPrinter</span>&#123;</span><br><span class="line">		// <span class="number">1.</span> 核心状态：<span class="number">0</span>代表A，<span class="number">1</span>代表B，<span class="number">2</span>代表C</span><br><span class="line">		private <span class="built_in">int</span> state = <span class="number">0</span>;</span><br><span class="line">		// <span class="number">2.</span> 打印次数</span><br><span class="line">    private static final <span class="built_in">int</span> PRINT_COUNT = <span class="number">10</span>;</span><br><span class="line">    </span><br><span class="line">    private final Lock lock = new ReentrantLock();</span><br><span class="line">    // <span class="number">3.</span> 三个精准的“信号枪”</span><br><span class="line">    private final Condition conditionA = lock.newCondition();</span><br><span class="line">    private final Condition conditionB = lock.newCondition();</span><br><span class="line">    private final Condition conditionC = lock.newCondition();</span><br><span class="line">    </span><br><span class="line">    public void printA() &#123;</span><br><span class="line">        <span class="built_in">print</span>(<span class="string">&quot;A&quot;</span>, <span class="number">0</span>, conditionA, conditionB);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    public void printB() &#123;</span><br><span class="line">        <span class="built_in">print</span>(<span class="string">&quot;B&quot;</span>, <span class="number">1</span>, conditionB, conditionC);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    public void printC() &#123;</span><br><span class="line">        <span class="built_in">print</span>(<span class="string">&quot;C&quot;</span>, <span class="number">2</span>, conditionC, conditionA);</span><br><span class="line">    &#125;</span><br><span class="line">    </span><br><span class="line">    /**</span><br><span class="line">     * 通用打印逻辑</span><br><span class="line">     * @param name 打印内容</span><br><span class="line">     * @param targetState 目标状态（轮到谁了）</span><br><span class="line">     * @param current 现在的等待队列</span><br><span class="line">     * @param <span class="built_in">next</span> 下一个要唤醒的队列</span><br><span class="line">     */</span><br><span class="line">     private void <span class="built_in">print</span>(String name, <span class="built_in">int</span> targetState, Condition current, Condition <span class="built_in">next</span>)&#123;</span><br><span class="line">		     <span class="keyword">for</span>(<span class="built_in">int</span> i = <span class="number">0</span>; i &lt; PRINT_COUNT; i++)&#123;</span><br><span class="line">				     lock.lock();</span><br><span class="line">				     <span class="keyword">try</span>&#123;</span><br><span class="line">						     // 核心逻辑：如果不该我打印，我就去休息（释放锁）</span><br><span class="line">                // 必须用 <span class="keyword">while</span> 防止虚假唤醒</span><br><span class="line">                <span class="keyword">while</span> (state % <span class="number">3</span> != targetState) &#123;</span><br><span class="line">                    current.<span class="keyword">await</span>();</span><br><span class="line">                &#125;</span><br><span class="line"></span><br><span class="line">                // 干活</span><br><span class="line">                System.out.<span class="built_in">print</span>(name);</span><br><span class="line">                </span><br><span class="line">                // 修改状态，把接力棒传给下一个人</span><br><span class="line">                state++;</span><br><span class="line">                </span><br><span class="line">                // 精准唤醒下一个线程</span><br><span class="line">                <span class="built_in">next</span>.signal();</span><br><span class="line">				     &#125; catch (InterruptedException e) &#123;</span><br><span class="line">                e.printStackTrace();</span><br><span class="line">             &#125; <span class="keyword">finally</span> &#123;</span><br><span class="line">                lock.unlock();</span><br><span class="line">             &#125;</span><br><span class="line">		     &#125;</span><br><span class="line">     &#125;</span><br><span class="line">     </span><br><span class="line">     public static void main(String[] args) &#123;</span><br><span class="line">        ABCPrinter printer = new ABCPrinter();</span><br><span class="line"></span><br><span class="line">        new Thread(printer::printA, <span class="string">&quot;Thread-A&quot;</span>).start();</span><br><span class="line">        new Thread(printer::printB, <span class="string">&quot;Thread-B&quot;</span>).start();</span><br><span class="line">        new Thread(printer::printC, <span class="string">&quot;Thread-C&quot;</span>).start();</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p><b>为什么用 ReentrantLock 而不用 synchronized？</b></p>
+<p>虽然 synchronized 配合 wait&#x2F;notify 也能做，但它有个致命弱点：notify() 是随机唤醒，或者 notifyAll() 是全员唤醒（效率低）。</p>
+<ul>
+<li>ReentrantLock 的优势： 它可以生成多个 Condition（条件队列）。</li>
+<li>效果： 我们可以明确指定“A 唤醒 B”，而不是“A 唤醒所有人，大家起来抢”。这叫<b>精确唤醒</b>。</li>
+</ul>
+<p><b>状态机设计 (state % 3)</b></p>
+<p>这是控制顺序的灵魂。</p>
+<ul>
+<li>state 初始为 0。</li>
+<li>线程 A 发现 0 % 3 &#x3D;&#x3D; 0，通过检查，执行打印，state 变成 1，唤醒 B。</li>
+<li>线程 B 发现 1 % 3 &#x3D;&#x3D; 1，通过检查，执行打印，state 变成 2，唤醒 C。</li>
+<li>线程 C 发现 2 % 3 &#x3D;&#x3D; 2，通过检查，执行打印，state 变成 3，唤醒 A。</li>
+<li>线程 A 发现 3 % 3 &#x3D;&#x3D; 0… 循环继续。</li>
+</ul>
+<p><b>While 循环等待</b></p>
+<p>这依然是<b>防范虚假唤醒</b>的标准动作。虽然我们用了精确唤醒，但在并发编程中，养成“永远在 while 中 await”的习惯是绝对正确的。</p>
+<h2 id="实现顺序打印数字N个线程"><a href="#实现顺序打印数字N个线程" class="headerlink" title="实现顺序打印数字N个线程"></a>实现顺序打印数字N个线程</h2><p>这道题是“三个线程交替打印 ABC”的升级版。从固定的 3 个变成了动态的 N 个，打印内容变成了连续数字。</p>
+<p>简单一句话总结：<b>核心在于“取模运算（%）”构建的状态判断，加上 notifyAll 的广播机制。</b> 第 i 号线程只认 currentNumber % N &#x3D;&#x3D; i 这一种情况，其他的都靠边站。</p>
+<p>代码实现：</p>
+<p>这里我们使用最基础的 synchronized 配合 wait&#x2F;notifyAll 来实现，因为它对于处理 N 个线程的通用逻辑最简洁，不需要创建 N 个 Condition 对象。</p>
+<figure class="highlight py"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br></pre></td><td class="code"><pre><span class="line">public <span class="keyword">class</span> <span class="title class_">NumberPrinter</span> &#123;</span><br><span class="line">    </span><br><span class="line">    // <span class="number">1.</span> 共享资源：当前要打印的数字</span><br><span class="line">    private volatile <span class="built_in">int</span> currentNumber = <span class="number">0</span>;</span><br><span class="line">    // <span class="number">2.</span> 停止目标</span><br><span class="line">    private final <span class="built_in">int</span> limit;</span><br><span class="line">    // <span class="number">3.</span> 线程总数</span><br><span class="line">    private final <span class="built_in">int</span> threadCount;</span><br><span class="line"></span><br><span class="line">    public NumberPrinter(<span class="built_in">int</span> limit, <span class="built_in">int</span> threadCount) &#123;</span><br><span class="line">        this.limit = limit;</span><br><span class="line">        this.threadCount = threadCount;</span><br><span class="line">    &#125;</span><br><span class="line">    </span><br><span class="line">    public void <span class="built_in">print</span>(<span class="built_in">int</span> threadId) &#123;</span><br><span class="line">        <span class="keyword">while</span> (currentNumber &lt;= limit) &#123;</span><br><span class="line">            synchronized (this) &#123;</span><br><span class="line">                // double-check：防止获锁后数字已经超标</span><br><span class="line">                <span class="keyword">if</span> (currentNumber &gt; limit) &#123;</span><br><span class="line">                    <span class="keyword">return</span>;</span><br><span class="line">                &#125;</span><br><span class="line">                </span><br><span class="line">                // 核心逻辑：判断是不是轮到我了？</span><br><span class="line">                // 比如 <span class="number">3</span>个线程，数字是<span class="number">5</span>。 <span class="number">5</span> % <span class="number">3</span> = <span class="number">2</span>。那么 ID为<span class="number">2</span>的线程干活。</span><br><span class="line">                <span class="keyword">if</span> (currentNumber % threadCount == threadId) &#123;</span><br><span class="line">                    System.out.println(<span class="string">&quot;线程-&quot;</span> + threadId + <span class="string">&quot; 打印: &quot;</span> + currentNumber);</span><br><span class="line">                    currentNumber++;</span><br><span class="line">                    </span><br><span class="line">                    // 广播唤醒所有在睡觉的线程，让它们起来重新算一下是不是轮到自己了</span><br><span class="line">                    this.notifyAll();</span><br><span class="line">                &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">                    <span class="keyword">try</span> &#123;</span><br><span class="line">                        // 不是我的活，释放锁，睡觉</span><br><span class="line">                        this.wait();</span><br><span class="line">                    &#125; catch (InterruptedException e) &#123;</span><br><span class="line">                        e.printStackTrace();</span><br><span class="line">                    &#125;</span><br><span class="line">                &#125;</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">    </span><br><span class="line">    public static void main(String[] args) &#123;</span><br><span class="line">        <span class="built_in">int</span> N = <span class="number">3</span>; // 线程数</span><br><span class="line">        <span class="built_in">int</span> <span class="built_in">max</span> = <span class="number">20</span>; // 打印到多少</span><br><span class="line">        NumberPrinter printer = new NumberPrinter(<span class="built_in">max</span>, N);</span><br><span class="line"></span><br><span class="line">        // 启动 N 个线程</span><br><span class="line">        <span class="keyword">for</span> (<span class="built_in">int</span> i = <span class="number">0</span>; i &lt; N; i++) &#123;</span><br><span class="line">            final <span class="built_in">int</span> threadId = i;</span><br><span class="line">            new Thread(() -&gt; printer.<span class="built_in">print</span>(threadId), <span class="string">&quot;Thread-&quot;</span> + i).start();</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p><b>取模运算（Modulo）</b></p>
+<p>怎么确定当前数字该给哪个线程打印？</p>
+<p>最简单的数学规律就是：数字 % 线程数 &#x3D; 线程ID。</p>
+<ul>
+<li>假设有 3 个线程（ID 分别为 0, 1, 2）。</li>
+<li>数字 0：0 % 3 &#x3D; 0 -&gt; 线程 0 打印。</li>
+<li>数字 1：1 % 3 &#x3D; 1 -&gt; 线程 1 打印。</li>
+<li>数字 2：2 % 3 &#x3D; 2 -&gt; 线程 2 打印。</li>
+<li>数字 3：3 % 3 &#x3D; 0 -&gt; 又回到了 线程 0。</li>
+<li>这个公式天然形成了一个“闭环”，无需复杂的 if-else 跳转。</li>
+</ul>
+<p><b>为什么必须用 notifyAll？</b></p>
+<p>这是 N 线程场景下最大的坑。</p>
+<ul>
+<li>如果使用 notify()（随机唤醒一个）：假设当前是线程 0 打印完了，变成了 1。它随机唤醒了线程 2。线程 2 醒来一看 1 % 3 !&#x3D; 2，又睡过去了。此时线程 1 还在睡，没人唤醒它，程序就死锁了。</li>
+<li>使用 notifyAll()（广播）：线程 0 打印完，把 1 和 2 都喊醒。2 一看不是自己，继续睡；1 一看是自己，干活。虽然多了一次无效唤醒（上下文切换），但保证了程序的活性。</li>
+</ul>
+<h2 id="实现一个死锁产生示例"><a href="#实现一个死锁产生示例" class="headerlink" title="实现一个死锁产生示例"></a>实现一个死锁产生示例</h2><p>简单来说：<b>死锁就是两个（或多个）线程各自持有一个资源，同时又在等待对方手里的资源，结果谁也动不了。</b></p>
+<p>代码实现：</p>
+<p>我们创建两个共享资源（锁），线程 A 先锁住资源 1，再尝试锁资源 2；而线程 B 先锁住资源 2，再尝试锁资源 1。为了确保它们都能先拿到第一把锁，我们在中间加一个短暂的 sleep。</p>
+<figure class="highlight py"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br></pre></td><td class="code"><pre><span class="line">public <span class="keyword">class</span> <span class="title class_">DeadLockDemo</span> &#123;</span><br><span class="line">		// <span class="number">1.</span> 定义两个资源（锁）</span><br><span class="line">    private static final Object resourceA = new Object();</span><br><span class="line">    private static final Object resourceB = new Object();</span><br><span class="line">    </span><br><span class="line">     public static void main(String[] args) &#123;</span><br><span class="line">		     // <span class="number">2.</span> 线程<span class="number">1</span>：试图按照A -&gt; B的顺序获取锁</span><br><span class="line">		     new Thread(() -&gt; &#123;</span><br><span class="line">            synchronized (resourceA) &#123;</span><br><span class="line">                System.out.println(Thread.currentThread().getName() + <span class="string">&quot; 获取到了资源 A，准备获取资源 B&quot;</span>);</span><br><span class="line">                <span class="keyword">try</span> &#123;</span><br><span class="line">                    // 关键点：休息一下，保证线程 <span class="number">2</span> 有时间先把资源 B 抢走</span><br><span class="line">                    Thread.sleep(<span class="number">100</span>); </span><br><span class="line">                &#125; catch (InterruptedException e) &#123;</span><br><span class="line">                    e.printStackTrace();</span><br><span class="line">                &#125;</span><br><span class="line"></span><br><span class="line">                synchronized (resourceB) &#123;</span><br><span class="line">                    System.out.println(Thread.currentThread().getName() + <span class="string">&quot; 获取到了资源 B&quot;</span>);</span><br><span class="line">                &#125;</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;, <span class="string">&quot;线程-1&quot;</span>).start();</span><br><span class="line">        </span><br><span class="line">        // <span class="number">3.</span> 线程 <span class="number">2</span>：试图按照 B -&gt; A 的顺序获取锁</span><br><span class="line">        new Thread(() -&gt; &#123;</span><br><span class="line">            synchronized (resourceB) &#123;</span><br><span class="line">                System.out.println(Thread.currentThread().getName() + <span class="string">&quot; 获取到了资源 B，准备获取资源 A&quot;</span>);</span><br><span class="line">                <span class="keyword">try</span> &#123;</span><br><span class="line">                    Thread.sleep(<span class="number">100</span>);</span><br><span class="line">                &#125; catch (InterruptedException e) &#123;</span><br><span class="line">                    e.printStackTrace();</span><br><span class="line">                &#125;</span><br><span class="line"></span><br><span class="line">                synchronized (resourceA) &#123;</span><br><span class="line">                    System.out.println(Thread.currentThread().getName() + <span class="string">&quot; 获取到了资源 A&quot;</span>);</span><br><span class="line">                &#125;</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;, <span class="string">&quot;线程-2&quot;</span>).start();</span><br><span class="line">     &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>造成上述代码死锁必须具备四个条件（这也是操作系统的基础），代码中体现了：</p>
+<ol>
+<li><b>互斥条件</b>：synchronized 保证了同一时间只有一个线程能拿到锁。</li>
+<li><b>请求与保持条件</b>： 线程 1 拿着资源 A 不放，同时去请求资源 B。</li>
+<li><b>不剥夺条件</b>： 线程 1 拿不到资源 B 时，只能干等，不能强行把资源 B 从线程 2 手里抢过来。</li>
+<li><b>循环等待条件（核心）</b>：<ol>
+<li>线程 1 等待：A -&gt; 想拿 -&gt; B</li>
+<li>线程 2 等待：B -&gt; 想拿 -&gt; A</li>
+<li>这就形成了一个死循环链路。</li>
+</ol>
+</li>
+</ol>
+<p>关于 Thread.sleep(100) 的作用：</p>
+<p>这是为了“必现”死锁。如果不加 sleep，线程 1 执行得太快，瞬间把 A 和 B 都拿完又释放了，线程 2 还没来得及启动，死锁就演示不出来了。加了 sleep 就是为了让它们“各拿一个”，进入僵局。</p>
+<h1 id="JVM"><a href="#JVM" class="headerlink" title="JVM"></a>JVM</h1><h2 id="Java是编译型还是解释型"><a href="#Java是编译型还是解释型" class="headerlink" title="Java是编译型还是解释型?"></a>Java是编译型还是解释型?</h2><p><b>Java是一种“半编译、半解释”的混合型语言。它的执行过程可以分为两个阶段：</b></p>
+<p><b>第一阶段是编译：</b></p>
+<p>我们写好的 .java 源代码，必须先通过 javac 编译器，编译成 .class 字节码。这个过程是编译型的特征，生成的字节码与平台无关。</p>
+<p><b>第二阶段是运行：</b></p>
+<p>字节码是不能直接在 CPU 上跑的，需要由 JVM 加载。在运行时，JVM 采用的是<b>“解释 + 编译”</b>的混合模式：</p>
+<ul>
+<li>解释执行： JVM 的解释器会将字节码逐行翻译成机器码执行。</li>
+<li>JIT 编译执行： 为了提高性能，JVM 内部的 JIT 会把热点代码直接编译成操作系统对应的本地机器码并缓存起来。</li>
+</ul>
+<p>所以，Java 的源代码是通过编译生成的字节码，而字节码在运行时主要是通过解释器执行，同时配合 JIT 编译器优化性能。所以它结合了两者的特点。</p>
+<h2 id="什么是JIT？"><a href="#什么是JIT？" class="headerlink" title="什么是JIT？"></a>什么是JIT？</h2><p><b>JIT 的全称是 Just-In-Time Compiler，它是 JVM 运行时的性能优化核心。</b></p>
+<p>我们可以把它理解为 Java 性能的加速器。</p>
+<p>它的主要作用是解决 Java 解释执行效率低的问题。</p>
+<p><b>具体的工作流程如下：</b></p>
+<ol>
+<li><b>解释与编译并存</b>： 当 Java 程序启动时，为了响应速度，JVM 主要是通过解释器逐行解释执行字节码的。</li>
+<li><b>热点探测</b>： 在运行过程中，JVM 会通过计数器监控代码的执行频率。一旦发现某个方法或循环执行特别频繁（达到了设定的阈值），就会把它认定为“热点代码”。</li>
+<li><b>即时编译</b>： 针对这些热点代码，JIT 编译器会介入，在后台将它们直接编译成操作系统对应的本地机器码，并保存在内存的 Code Cache 中。</li>
+<li><b>性能优化</b>： 之后再执行这些代码时，直接跑机器码，不需要再解释，性能可以媲美 C++。</li>
+</ol>
+<p>总结一下：</p>
+<p>JIT 的核心策略就是<b>“二八定律”</b>：对只运行一次的代码用解释器，对高频运行的代码用编译器。并且 JIT 在编译时还会进行方法内联、逃逸分析等高级优化，这是 Java 能够适应高并发场景的关键。</p>
+<blockquote class="notion-callout"><span>💡</span><p><b>JIT 的优化</b></p>
+<p>JIT 不仅仅是“翻译”，它还会对代码进行激进的优化，这是 javac（静态编译器）做不到的：</p>
+<ul>
+<li><b>方法内联</b>： 把小方法的代码直接复制到调用者内部，省去方法调用的入栈出栈开销（这是提升最大的优化）。</li>
+<li><b>死代码消除</b>： 如果一段代码算出来的结果从来没被用到，JIT 直接把它删了。</li>
+<li><b>逃逸分析</b>： 如果发现一个对象只在方法内部使用，不出方法，可能就不在堆上分配了，直接在栈上分配，减轻 GC 压力。</li>
+</ul>
+</blockquote>
+
+<h2 id="如何理解JVM的内存逃逸？"><a href="#如何理解JVM的内存逃逸？" class="headerlink" title="如何理解JVM的内存逃逸？"></a>如何理解JVM的内存逃逸？</h2><p><b>内存逃逸分析是 JVM 在 JIT 即时编译阶段进行的一项非常重要的优化技术。</b></p>
+<p><b>它的核心目的只有一点：减少 Java 堆内存的分配压力，从而减少 GC 的频率。</b></p>
+<p><b>我们可以从三个层面来理解它：</b></p>
+<p><b>第一，什么是逃逸？</b></p>
+<p>简单来说，就是分析一个对象的作用域。</p>
+<p>当我们在一个方法内部创建一个对象后，如果这个对象被作为返回值返回，或者被赋值给全局静态变量，导致其他方法或线程也能访问它，这就叫对象逃逸。反之，如果这个对象只在当前方法内部使用，方法结束后它就无用了，这就叫未逃逸。</p>
+<p><b>第二，基于“未逃逸”的优化手段：</b></p>
+<p>如果 JIT 分析出对象没有逃逸，它会进行三个关键优化：</p>
+<ol>
+<li><b>栈上分配</b>： 打破了“对象只能分配在堆上”的铁律。JVM 会尝试把对象直接分配在栈帧中。这样方法结束时对象就自动销毁了，根本不需要垃圾回收器（GC）介入，极大提升了系统性能。</li>
+<li><b>标量替换</b>： 这是 HotSpot 虚拟机目前的具体实现方式。它不会真的在栈上创建对象，而是把对象拆解成若干个基础类型的成员变量（标量），直接在寄存器或栈上读写。</li>
+<li><b>同步消除</b>： 如果对象没逃逸，说明它肯定不会被多线程共享，JVM 就会自动去掉代码中针对这个对象的 synchronized 锁。</li>
+</ol>
+<p>总结一下，逃逸分析它通过让局部对象在栈上“自生自灭”，避免了大量的堆内存占用和 GC 开销。这也是为什么我们在写代码时，推荐尽量使用局部变量的原因。</p>
+<h2 id="JVM的运行内存区域是怎样的？"><a href="#JVM的运行内存区域是怎样的？" class="headerlink" title="JVM的运行内存区域是怎样的？"></a>JVM的运行内存区域是怎样的？</h2><p><b>JVM 的运行时数据区通常被我们划分为 5 大块，我把它们分为“线程共享”和“线程私有”两类。</b></p>
+<p><b>第一类是线程共享的区域，主要包含两块：</b></p>
+<ol>
+<li><b>堆</b>：这是 JVM 管理的最大一块内存。我们创建的<b>对象实例和数组</b>都存放在这里。同时，这里也是垃圾回收器管理的主要区域，所以有时也被称为“GC 堆”。</li>
+<li><b>方法区</b>：它主要存储已经被虚拟机加载的<b>类信息、常量、静态变量</b>等数据。</li>
+</ol>
+<ul>
+<li>这里有个关键细节： 在 JDK 8 以前它叫永久代，JDK 8 以后它的实现变成了元空间，使用的是本地内存。</li>
+<li>永久代和元空间最核心的区别在于<b>内存归属</b>：永久代属于 JVM 堆内存的一部分，受 JVM 参数严格限制；而元空间使用<b>本地内存</b>（Native Memory），默认仅受物理机器内存限制。</li>
+</ul>
+<p><b>第二类是线程私有的区域，包含三块：</b></p>
+<ol>
+<li><b>虚拟机栈</b>：这是描述 Java 方法执行的内存模型。每个方法在执行时都会创建一个<b>栈帧</b>，里面存了局部变量表、操作数栈等信息。我们平时遇到的 StackOverflowError 异常就发生在这里（通常是因为递归过深）。</li>
+<li><b>本地方法栈</b>：跟虚拟机栈很像，只不过它是为 native 方法（C语言或者C++写的底层原生方法）服务的。</li>
+<li><b>程序计数器</b>：它是当前线程所执行的字节码的行号指示器。它的特点是内存很小，而且是 JVM 中<b>唯一一个不会发生内存溢出的区域</b>。</li>
+</ol>
+<h2 id="JVM中堆和栈有什么区别？"><a href="#JVM中堆和栈有什么区别？" class="headerlink" title="JVM中堆和栈有什么区别？"></a>JVM中堆和栈有什么区别？</h2><p><b>堆和栈是 JVM 内存模型中最重要的两个区域，它们的职责截然不同。简单来说：栈是运行时的单位，而堆是存储的单位。</b></p>
+<p><b>具体来说，我有以下 4 点理解：</b></p>
+<p><b>第一，存储的内容不同：</b></p>
+<ul>
+<li>栈主要存储<b>局部变量和对象引用</b>。比如 User u &#x3D; new User();，这个 u 这个引用是放在栈里的。</li>
+<li>堆主要存储<b>真正的对象实例</b>。刚才那个 new User() 生成的实体对象，是放在堆里的。</li>
+</ul>
+<p><b>第二，资源管理的机制不同：</b></p>
+<ul>
+<li>栈的生命周期是跟随方法的，方法调用结束，栈帧弹出，<b>内存自动释放</b>，不需要 GC 介入，速度非常快。</li>
+<li>堆的生命周期<b>由 GC管理</b>。对象的创建和回收涉及到复杂的算法（如标记清除、分代回收），所以开销比栈大得多。</li>
+</ul>
+<p><b>第三，线程可见性不同：</b></p>
+<ul>
+<li>栈是线程<b>私有</b>的，每个线程有自己的栈，互不干扰，所以栈里没有线程安全问题。</li>
+<li>堆是线程<b>共享</b>的，所有线程都能访问堆内存，所以在多线程并发下需要考虑同步问题。</li>
+</ul>
+<p><b>第四，抛出的异常不同：</b></p>
+<ul>
+<li>如果栈不够用了（比如递归太深），会抛出 <b>StackOverflowError</b>。</li>
+<li>如果堆不够用了（对象太多塞满了），会抛出 <b>OutOfMemoryError</b>。</li>
+</ul>
+<h2 id="Java-对象的内存布局是怎样的"><a href="#Java-对象的内存布局是怎样的" class="headerlink" title="Java 对象的内存布局是怎样的"></a>Java 对象的内存布局是怎样的</h2><p><b>在 HotSpot 虚拟机中，对象在内存中的布局主要由三部分组成：对象头、实例数据和对齐填充。</b></p>
+<p><b>第一部分是对象头，这是最复杂的区域，通常包含两类信息：</b></p>
+<ul>
+<li>一是 Mark Word。它存储了对象运行时的状态数据，比如哈希码、GC 分代年龄、锁状态标志（偏向锁&#x2F;轻量级锁&#x2F;重量级锁）、线程持有的锁、偏向线程 ID 等。Mark Word 的结构是不固定的，它会随着锁状态的改变而改变（比如升级为重量级锁时，里面存的就是指向 Monitor 的指针）。</li>
+<li>二是 Klass Pointer。对象通过它指向方法区中的类元数据，从而确定自己属于哪个类。</li>
+<li>另外，如果这个对象是数组，对象头里还会多出一个字段来记录数组长度。</li>
+</ul>
+<p><b>第二部分是实例数据：</b></p>
+<p>这里存储的是我们在代码中定义的各种成员变量的内容，包括从父类继承下来的。 JVM 为了节省空间，会进行字段重排序。通常相同宽度的字段会被分配在一起（比如 long 和 double 放一起，int 放一起），且父类定义的变量会出现在子类之前。</p>
+<p><b>第三部分是对齐填充：</b></p>
+<p>这不是必须的。因为 HotSpot 规定对象的总大小必须是 8 字节的整数倍。如果前两部分加起来不是 8 的倍数，就需要通过 Padding 来补齐。</p>
+<h2 id="永久代为什么要改成元空间"><a href="#永久代为什么要改成元空间" class="headerlink" title="永久代为什么要改成元空间"></a>永久代为什么要改成元空间</h2><p><b>这个变化主要发生在 JDK 8。核心原因是解决内存管理的痛点。</b></p>
+<p>在旧版本中，永久代的大小是固定的，通过 -XX:MaxPermSize 设置。</p>
+<p>但在现在的 Java 开发中，我们大量使用 Spring、Hibernate 等框架，它们底层会利用 CGLib 生成大量的动态代理类。这很容易导致永久代被填满，进而导致程序崩溃。</p>
+<p>虽然可以调大参数，但这个“度”很难把握。</p>
+<p>改成元空间后，类的元数据不再存放在 JVM 堆里，而是存放在本地内存中。这意味着它不再受限于 JVM 设置的内存上限，只受限于操作系统的物理内存，实现了“自动扩容”，极大降低了 OOM 的概率。</p>
+<h2 id="JVM类加载的过程是怎样的"><a href="#JVM类加载的过程是怎样的" class="headerlink" title="JVM类加载的过程是怎样的"></a>JVM类加载的过程是怎样的</h2><p>JVM 的类加载过程，简单来说就是<b>把 .class 字节码文件加载到内存中，并生成 Class 对象的过程</b>。</p>
+<p><b>严谨来说，它分为三个大阶段，五个小步骤：</b></p>
+<p><b>第一阶段是“加载”：</b></p>
+<p>这一步主要是做IO操作。JVM通过类加载器根据类的全限定名，读取二进制字节流，并在堆内存中生成一个 java.lang.Class 对象，作为后续访问的入口。</p>
+<p><b>第二阶段是“连接”，它包含三个关键步骤：</b></p>
+<ol>
+<li><b>验证</b>：主要是为了安全，检查字节码是否符合 JVM 规范，防止恶意代码破坏虚拟机。</li>
+<li><b>准备</b>：这一步会为类的静态变量分配内存，并设置默认零值。<ol>
+<li>比如 public static int a &#x3D; 10;，在这一步 a 的值会被设为 0，而不是 10。但如果加上final修饰，就会被设为10。</li>
+</ol>
+</li>
+<li><b>解析</b>： 将常量池中的符号引用（字符串）替换为直接引用（内存里真正的地址指针）。</li>
+</ol>
+<p><b>第三阶段是“初始化”：</b></p>
+<p>这是类加载的最后一步。到了这一步，JVM 才会真正执行类中定义的 Java 代码。</p>
+<ul>
+<li>本质上就是执行类构造器 &lt;clinit&gt; 方法的过程。</li>
+<li>它会执行所有的静态代码块，并<b>对静态变量进行真正的赋值</b>。比如刚才那个 a，在这一步才会被赋值为 10。</li>
+</ul>
+<h2 id="双亲委派的过程是怎样的？目的是什么？"><a href="#双亲委派的过程是怎样的？目的是什么？" class="headerlink" title="双亲委派的过程是怎样的？目的是什么？"></a>双亲委派的过程是怎样的？目的是什么？</h2><p><b>双亲委派模型是 JVM 类加载的核心机制，简单来说就是“向上委托，向下加载”。</b></p>
+<p><b>关于它的加载过程，可以描述为：</b></p>
+<p>当一个类加载器收到类加载请求时，它不会立即自己去加载，而是把这个请求层层向上委托给父类加载器，直到最顶层的Bootstrap ClassLoader（启动类加载器）。只有当父加载器在自己的搜索范围内找不到该类时，子加载器才会尝试自己去执行加载逻辑。</p>
+<p><b>这么设计的目的主要有两个：</b></p>
+<p><b>第一是安全性：</b></p>
+<p>它可以防止 Java 的核心 API 被篡改。</p>
+<p>举个例子，如果我们自己定义了一个 java.lang.String 类。如果没有双亲委派，这个类可能会覆盖 JDK 原生的 String 类，导致系统崩溃或安全漏洞。</p>
+<p>但有了双亲委派，Bootstrap ClassLoader 会优先加载 JDK 自带的 rt.jar 中的 String 类，从而保证了核心类的唯一性和安全性。</p>
+<p><b>第二是避免重复加载：</b></p>
+<p>通过委派机制，确保了一个类在内存中只会被加载一次。无论哪个加载器请求加载 String，最终都是由 Bootstrap 加载的，保证了内存中 String 类的唯一性。</p>
+<blockquote class="notion-callout"><span>💡</span><p>
+ Java 的三个核心类加载器：
+</p>
+
+<ol>
+<li>Bootstrap ClassLoader（启动类加载器）： 最顶层，由 C++ 实现，负责加载 JDK 核心类库（如 rt.jar，也就是 String、Object 所在的包）。</li>
+<li>Extension ClassLoader（扩展类加载器）： 负责加载 JDK 的扩展目录（jre/lib/ext）。</li>
+<li>Application ClassLoader（应用类加载器）： 负责加载我们自己写的代码（Classpath 下的类）。</li>
+</ol>
+</blockquote>
+
+<h2 id="什么情况下需要打破双亲委派"><a href="#什么情况下需要打破双亲委派" class="headerlink" title="什么情况下需要打破双亲委派"></a>什么情况下需要打破双亲委派</h2><p>双亲委派模型<b>虽然保证了 Java 核心类的安全性，但在某些特定业务场景下，它的“单向可见性”和“全局唯一性”会成为限制</b>，这时候就需要打破它。</p>
+<p>主要有两种经典场景：</p>
+<p><b>第一种是 JNDI&#x2F;JDBC 等 SPI 机制（解决基础层调用用户层的问题）：</b></p>
+<ul>
+<li>像 JDBC 的接口定义在 JDK 的核心库中，由启动类加载器（Bootstrap）加载。</li>
+<li>但具体的数据库驱动（如 MySQL Driver）是第三方厂商提供的，存在于 Classpath 下，由应用类加载器（AppClassLoader）加载。</li>
+<li>根据双亲委派，父加载器是看不到子加载器的类的。</li>
+<li>如何打破： Java 引入了线程上下文类加载器。核心类通过获取当前线程的上下文加载器，“逆向”去加载用户路径下的代码，从而打通了接口与实现。</li>
+</ul>
+<p><b>第二种是 Tomcat 等 Web 容器的部署：</b></p>
+<ul>
+<li>一个 Web 容器通常需要部署多个应用程序，这些应用可能依赖同一个第三方库的不同版本（比如一个用 Spring 4，一个用 Spring 5）。</li>
+<li>如果严格遵循双亲委派，内存中同一个类只能有一份，会导致版本冲突。</li>
+<li>如何打破： Tomcat 自定义了 WebAppClassLoader。它的加载逻辑是“优先加载本地”（即优先在当前应用的 &#x2F;WEB-INF&#x2F;lib 下找），只有本地找不到时，才向上委托。这样就实现了不同应用之间的类隔离。</li>
+</ul>
+<p><img src="/notion-assets/0321c3c35a3ab666d9701213.png" alt="笔记插图"></p>
+<p>总结一下：打破双亲委派并不是说这个模型不好，而是为了<b>满足“父类调用子类”或者“依赖版本隔离”的实际需求</b>，对原生机制的一种补充。</p>
+<h2 id="JVM是如何判断一个对象是可回收的"><a href="#JVM是如何判断一个对象是可回收的" class="headerlink" title="JVM是如何判断一个对象是可回收的"></a>JVM是如何判断一个对象是可回收的</h2><p><b>JVM判断对象是否存活，主要依赖的是“可达性分析算法”。</b></p>
+<p>虽然历史上存在过“引用计数法”，但现代 JVM 并不使用它。</p>
+<p>引用计数法虽然简单（有个计数器，引用一次加一，断开减一），但它无法解决“循环引用”的问题。比如 A 和 B 互相引用，但外界谁也不理它们，计数器不为 0，导致内存泄漏。</p>
+<p><b>所以JVM采用的是“可达性分析算法”。</b></p>
+<p><b>它的核心思想是图论。</b></p>
+<ul>
+<li>JVM 会选取一系列对象作为起点，我们称之为 GC Roots。</li>
+<li>从这些起点开始向下搜索，搜索过的路径称为引用链。</li>
+<li>如果一个对象到 GC Roots 没有任何引用链相连（即不可达），那么这个对象就可以判定为“可回收”。</li>
+</ul>
+<p>在Java中，可以作为GC Roots的对象主要包含这几类：</p>
+<ol>
+<li><b>虚拟机栈中引用的对象</b>： 也就是我们在方法中定义的局部变量。</li>
+<li><b>方法区中类静态属性引用的对象</b>： 也就是 static 修饰的变量。</li>
+<li><b>方法区中常量引用的对象</b>： 比如 static final 修饰的变量。</li>
+<li><b>本地方法栈中 Native 方法引用的对象</b>。</li>
+</ol>
+<h2 id="Java-中的强引用、软引用、弱引用、虚引用有什么区别？"><a href="#Java-中的强引用、软引用、弱引用、虚引用有什么区别？" class="headerlink" title="Java 中的强引用、软引用、弱引用、虚引用有什么区别？"></a>Java 中的强引用、软引用、弱引用、虚引用有什么区别？</h2><p><b>这四种引用的主要区别在于：当垃圾回收发生时，JVM对它们的回收策略不同。这是Java为了让我们能更灵活地控制对象的生命周期而设计的。</b></p>
+<p>具体来说，它们的强度依次递减：</p>
+<p><b>第一是强引用：</b></p>
+<figure class="highlight py"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line">public <span class="keyword">class</span> <span class="title class_">Main</span> &#123;</span><br><span class="line">    public static void main(String[] args) &#123;</span><br><span class="line">        User user = new User(<span class="string">&quot;张三&quot;</span>);</span><br><span class="line"></span><br><span class="line">        System.gc();</span><br><span class="line"></span><br><span class="line">        System.out.println(user.name);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">class</span> <span class="title class_">User</span> &#123;</span><br><span class="line">    String name;</span><br><span class="line"></span><br><span class="line">    User(String name) &#123;</span><br><span class="line">        this.name = name;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>这是最常见的普通对象引用，比如 Object o &#x3D; new Object()。只要强引用指向一个对象，GC 绝对不会回收它。哪怕内存不足，JVM 宁愿抛出 OOM 异常，也不会动它。</p>
+<p><b>第二是软引用：</b></p>
+<figure class="highlight py"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> java.lang.ref.SoftReference;</span><br><span class="line"></span><br><span class="line">public <span class="keyword">class</span> <span class="title class_">Main</span> &#123;</span><br><span class="line">    public static void main(String[] args) &#123;</span><br><span class="line"></span><br><span class="line">        // 假设这是一张 10MB 的图片</span><br><span class="line">        byte[] image = new byte[<span class="number">10</span> * <span class="number">1024</span> * <span class="number">1024</span>];</span><br><span class="line"></span><br><span class="line">        // 创建软引用</span><br><span class="line">        SoftReference&lt;byte[]&gt; cache =</span><br><span class="line">                new SoftReference&lt;&gt;(image);</span><br><span class="line"></span><br><span class="line">        // 删除原来的强引用</span><br><span class="line">        image = null;</span><br><span class="line"></span><br><span class="line">        // 尝试从缓存中获取图片</span><br><span class="line">        byte[] cachedImage = cache.get();</span><br><span class="line"></span><br><span class="line">        <span class="keyword">if</span> (cachedImage != null) &#123;</span><br><span class="line">            System.out.println(<span class="string">&quot;缓存命中&quot;</span>);</span><br><span class="line">        &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">            System.out.println(<span class="string">&quot;缓存已被 GC 回收，需要重新加载&quot;</span>);</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>它描述的是“有用但非必须”的对象。GC 策略是只有当堆内存不足、即将发生 OOM 时，GC 才会回收软引用对象。如果内存充足，它就会一直存在。因为这个特性，它非常适合用来做对内存敏感的缓存。</p>
+<p><b>第三是弱引用：</b></p>
+<figure class="highlight py"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> java.util.WeakHashMap;</span><br><span class="line"><span class="keyword">import</span> java.util.Map;</span><br><span class="line"></span><br><span class="line">public <span class="keyword">class</span> <span class="title class_">Main</span> &#123;</span><br><span class="line">    public static void main(String[] args) &#123;</span><br><span class="line"></span><br><span class="line">        Map&lt;User, String&gt; cache = new WeakHashMap&lt;&gt;();</span><br><span class="line"></span><br><span class="line">        User user = new User(<span class="string">&quot;张三&quot;</span>);</span><br><span class="line"></span><br><span class="line">        cache.put(user, <span class="string">&quot;用户附加信息&quot;</span>);</span><br><span class="line"></span><br><span class="line">        System.out.println(cache.size()); // <span class="number">1</span></span><br><span class="line"></span><br><span class="line">        // 移除业务代码中的强引用</span><br><span class="line">        user = null;</span><br><span class="line"></span><br><span class="line">        // 请求 JVM 执行 GC</span><br><span class="line">        System.gc();</span><br><span class="line"></span><br><span class="line">        System.out.println(cache.size()); // 可能变为 <span class="number">0</span></span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>它的强度比软引用更低。GC 策略是只要发生 GC，无论当前内存是否充足，弱引用关联的对象都会被回收。最典型的应用是 ThreadLocal 中的 Key，以及 WeakHashMap。利用这个特性，可以使键值对在不再被外部强引用时自动被回收，防止内存泄漏。</p>
+<p><b>第四是虚引用：</b></p>
+<figure class="highlight py"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> java.lang.ref.PhantomReference;</span><br><span class="line"><span class="keyword">import</span> java.lang.ref.ReferenceQueue;</span><br><span class="line"></span><br><span class="line">public <span class="keyword">class</span> <span class="title class_">Main</span> &#123;</span><br><span class="line">    public static void main(String[] args) throws Exception &#123;</span><br><span class="line"></span><br><span class="line">        ReferenceQueue&lt;Object&gt; queue = new ReferenceQueue&lt;&gt;();</span><br><span class="line"></span><br><span class="line">        Object obj = new Object();</span><br><span class="line"></span><br><span class="line">        PhantomReference&lt;Object&gt; phantom =</span><br><span class="line">                new PhantomReference&lt;&gt;(obj, queue);</span><br><span class="line"></span><br><span class="line">        // 虚引用无法获取对象</span><br><span class="line">        System.out.println(phantom.get()); // null</span><br><span class="line"></span><br><span class="line">        // 删除强引用</span><br><span class="line">        obj = null;</span><br><span class="line"></span><br><span class="line">        // 请求执行 GC</span><br><span class="line">        System.gc();</span><br><span class="line"></span><br><span class="line">        // 等待一小段时间</span><br><span class="line">        Thread.sleep(<span class="number">1000</span>);</span><br><span class="line"></span><br><span class="line">        // 检查虚引用是否进入队列</span><br><span class="line">        <span class="keyword">if</span> (queue.poll() != null) &#123;</span><br><span class="line">            System.out.println(<span class="string">&quot;虚引用进入引用队列&quot;</span>);</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>它是最弱的。我们甚至无法通过虚引用获取到对象实例。它唯一的作用是跟踪对象的回收状态。当对象被回收时，它会被放入引用队列中。这通常用于管理堆外内存的释放与清理。</p>
+<h2 id="常见的垃圾收集算法有哪些"><a href="#常见的垃圾收集算法有哪些" class="headerlink" title="常见的垃圾收集算法有哪些"></a>常见的垃圾收集算法有哪些</h2><p>JVM的垃圾收集算法主要有三种基础思想，以及一种综合性的分代策略。它们本质上都是在“时间”和“空间”之间做权衡。</p>
+<p><b>第一种是“标记-清除”算法：</b></p>
+<p>它的逻辑最简单，标记出垃圾后直接清除。</p>
+<p>缺点是： 会产生大量的内存碎片。可能导致明明有内存，但塞不下大对象，从而频繁触发 GC。</p>
+<p><b>第二种是“标记-复制”算法：</b></p>
+<p>为了解决碎片问题，它把内存分为两半，将存活对象复制到另一半，然后清空当前这一半。</p>
+<p>优点是： 运行高效，且没有碎片。</p>
+<p>缺点是： 内存利用率低，浪费了一半空间。</p>
+<p>应用场景： 因为新生代的对象 98% 都是“朝生夕死”的，复制成本很低（内存分配比例：80%Eden区新对象，10%S0搬家，10%S1搬家），所以新生代普遍采用这种算法。</p>
+<p><b>第三种是“标记-整理”算法：</b></p>
+<p>它是为了解决老年代存活率高的问题。在标记后，让所有存活对象向一端移动，然后直接清理掉边界以外的内存。</p>
+<p>优点是： 没有碎片，内存利用率高。</p>
+<p>缺点是： 移动对象需要暂停应用，效率相对较低。</p>
+<p><b>最后是“分代收集”算法：</b></p>
+<p>这是目前 JVM 的主流策略。</p>
+<p>在<b>新生代</b>，由于存活率低，选用<b>复制算法</b>（配合 Eden 和 Survivor 区）。</p>
+<p>在<b>老年代</b>，由于存活率高且没有额外空间担保，选用<b>标记-清除或者标记-整理</b>。</p>
+<h2 id="什么是STW"><a href="#什么是STW" class="headerlink" title="什么是STW"></a>什么是STW</h2><p><b>Stop The World 是 JVM 在垃圾回收（GC）过程中产生的一种特殊状态。</b></p>
+<p><b>简单来说，STW 就是全局暂停。</b></p>
+<p>当 GC 发生时，JVM 会强制暂停所有的用户线程，整个应用程序看起来就像“卡死”了一样，只有 GC 线程在执行垃圾回收的工作。</p>
+<p><b>为什么必须要有 STW 呢？主要是为了保证“引用关系的准确性”。</b></p>
+<p>我们可以把 GC 的标记过程想象成统计人数。如果大家一直在走动（线程在运行，引用关系在变化），你是永远数不准的，甚至可能把活着的对象误判为垃圾给清理掉，导致程序崩溃。</p>
+<p>所以，在进行可达性分析（尤其是根节点枚举和最终标记）时，必须冻结当前的内存状态，这就需要 STW。</p>
+<p><b>STW 的影响和演进：</b></p>
+<p>STW 是导致 Java 应用出现延迟、卡顿、超时的主要原因。</p>
+<p>JVM 垃圾收集器的演进史，也体现出对于STW的优化思路：</p>
+<ul>
+<li>从最早的 Serial&#x2F;Parallel（完全 STW，停顿长）。</li>
+<li>到 CMS（并发收集，只有初始&#x2F;最终标记 STW，停顿短）。</li>
+<li>再到现在的 G1（可预测停顿时间）。</li>
+<li>以及最新的 ZGC（几乎并发，停顿控制在亚秒级）。</li>
+<li>它们的目标都不是消除 STW（目前还做不到），而是尽可能地缩短 STW 的时间，提升用户体验。</li>
+</ul>
+<blockquote class="notion-callout"><span>💡</span><p>Serial GC：一个人清理垃圾，其他人全部停下</p>
+<p><img src="/notion-assets/83dab3a5a0551a82d8160fb9.png" alt="笔记插图"></p>
+<p>Parallel GC：多个人一起清理，但业务仍然暂停</p>
+<p><img src="/notion-assets/2acbc609804fb64cb8e8d5d1.png" alt="笔记插图"></p>
+<p>CMS：业务不停，GC 在后台同时工作</p>
+<p><img src="/notion-assets/2e4abcdb7a9031215095ab25.png" alt="笔记插图"></p>
+<p>G1：把内存分成很多小块，优先回收垃圾最多的区域</p>
+<p><img src="/notion-assets/66db96f9c74ab443b411833b.png" alt="笔记插图"></p>
+</blockquote>
+
+<h2 id="常见的垃圾收集器有哪些"><a href="#常见的垃圾收集器有哪些" class="headerlink" title="常见的垃圾收集器有哪些"></a>常见的垃圾收集器有哪些</h2><p>我们主要关注以下三类主流组合：</p>
+<p><b>第一类是 Parallel 系列（Parallel Scavenge + Parallel Old）：</b></p>
+<p>这是 JDK 8 的默认收集器。</p>
+<p>核心特点是： <b>关注吞吐量</b>。它使用多线程并行回收，适合后台运算、科学计算等不需要太多交互的场景。它的策略是“宁愿一次停顿时间长点，也要让 CPU 总的利用率最高”。</p>
+<p><b>第二类是 CMS 系列（ParNew + CMS）：</b></p>
+<p>这是这类收集器是很多老系统的首选，也是并发收集的开山之作。</p>
+<p>核心特点是： <b>关注低延迟</b>。它引入了“并发标记”和“并发清除”，让 GC 线程和用户线程同时工作，极大缩短了 STW 时间，适合 Web 服务器等对响应速度要求高的应用。</p>
+<p><b>第三类是 G1 收集器：</b></p>
+<p>这是 JDK 9 之后的默认收集器，也是目前的主流。</p>
+<p>核心特点是：<b>可预测停顿</b>。它引入了 Region（分区）的概念，不再物理隔离新生代和老年代。它可以让用户指定期望的停顿时间（比如 200ms），然后智能选择回收收益最高的区域，非常适合大内存的服务端应用。</p>
+<h2 id="G1对比CMS优势在哪"><a href="#G1对比CMS优势在哪" class="headerlink" title="G1对比CMS优势在哪"></a>G1对比CMS优势在哪</h2><p><b>G1 收集器的出现，本质上就是为了在大内存场景下解决 CMS 的遗留问题。我认为 G1 相比 CMS 的优势主要体现在三个方面：</b></p>
+<p><b>第一，彻底解决了内存碎片问题：</b></p>
+<ul>
+<li>CMS 使用的是“标记-清除”算法，回收后会产生大量的内存碎片。当碎片过多时，分配大对象就会触发 Full GC，导致长时间停顿。</li>
+<li>而 G1 在整体上采用“标记-整理”算法，在局部（Region 之间）采用“复制”算法。这意味着 G1 在运行期间能确保存活对象是连续存放的，天然没有碎片，从而极大降低了 Full GC 的频率。</li>
+</ul>
+<p><b>第二，建立了“可预测的停顿时间模型”：</b></p>
+<ul>
+<li>CMS 的停顿时间是不可控的，随着堆内存变大，GC 时间会线性增长。</li>
+<li>G1 允许用户通过参数指定期望的停顿时间。G1 会根据这个目标，智能选择回收收益最高的 Region 进行回收，做到了“想停多久停多久”，这点非常适合对延迟敏感的业务。</li>
+</ul>
+<p><b>第三，内存布局的灵活性：</b></p>
+<ul>
+<li>CMS 仍然严格区分物理上的新生代和老年代，扩展能力有限。</li>
+<li>G1 引入了 Region 的概念，打破了物理隔离，使得堆内存的管理更加灵活，也更容易支持超大堆内存（比如 6G-8G 以上）的回收。</li>
+</ul>
+<h2 id="Java-中什么是三色标记算法"><a href="#Java-中什么是三色标记算法" class="headerlink" title="Java 中什么是三色标记算法"></a>Java 中什么是三色标记算法</h2><p><b>三色标记算法是并发 GC（如 CMS、G1）的核心逻辑，主要为了解决在“并发标记”阶段，如何准确追踪对象引用的问题。</b></p>
+<p><b>它的核心思想是把对象分为三种状态：</b></p>
+<ul>
+<li><b>白色</b>：还没被扫描到的对象（最终是垃圾）。</li>
+<li><b>灰色</b>：被扫描到了，但它的子引用还没扫描完（正在处理中）。</li>
+<li><b>黑色</b>：自己和子引用都扫描完了（确认存活）。</li>
+</ul>
+<p><b>这个算法最大的挑战在于“并发性”：</b></p>
+<p>当 GC 线程在扫描时，用户线程也在运行，可能会修改引用关系。这会导致“对象消失”的严重 Bug：即一个黑色对象引用了一个白色对象，同时灰色对象切断了对该白色对象的引用，导致这个活着的白色对象被误判为垃圾。</p>
+<p><b>为了解决这个问题，JVM 引入了“写屏障”技术，有两种主流实现：</b></p>
+<p><b>第一种是 CMS 使用的“增量更新”：</b></p>
+<p>它的逻辑是：一旦黑色对象引用了白色对象，就把黑色变成灰色，下次重新扫描。宁可多扫描，绝不漏掉。</p>
+<p><b>第二种是 G1 使用的“原始快照（SATB）”：</b></p>
+<p>它的逻辑是：在引用被切断之前，把引用关系记录下来。无论引用怎么变，GC 都按照刚开始时的快照进行扫描。虽然可能会产生一点浮动垃圾，但效率更高。</p>
+<h2 id="GC频繁有可能是什么原因造成的"><a href="#GC频繁有可能是什么原因造成的" class="headerlink" title="GC频繁有可能是什么原因造成的"></a>GC频繁有可能是什么原因造成的</h2><p><b>通常可以从代码层面和配置层面这两个维度来分析。</b></p>
+<p><b>第一类是代码层面的问题：</b></p>
+<ol>
+<li><b>大对象直接进入老年代</b>：如果在代码中创建了超大的数组、List，或者加载了大文件，导致 Eden 区放不下，这些对象会直接晋升到老年代。一旦老年代被塞满，就会频繁触发 Full GC。</li>
+<li><b>内存泄漏</b>：这是最隐蔽的原因。比如 static 的 Map 只存不删，或者 ThreadLocal 没有 remove，导致大量对象无法被回收。老年代的可用空间越来越小，GC 就会越来越频繁，直到 OOM。</li>
+<li><b>不必要的对象创建</b>：比如在高频循环里创建复杂的对象，或者由 System.gc() 显式调用。</li>
+</ol>
+<p><b>第二类是JVM配置层面的问题：</b></p>
+<ol>
+<li><b>堆内存设置过小</b>：物理内存给的太少了，无法满足应用运行时的基本需求，导致对象稍微一多就得回收。</li>
+<li><b>新生代设置过小</b>：如果 -Xmn 设置得太小，或者 Survivor 区太小，会导致“对象过早晋升”。也就是说，很多本该在新生代就死掉的对象，因为没地方放，被迫提前进入了老年代。老年代压力剧增，从而导致频繁的 Full GC。</li>
+<li><b>元空间不足</b>：如果系统使用了大量的动态代理（如 Spring, CGLib），会生成很多动态类。如果元空间设置得太小，也会触发 Full GC 来清理类元数据。</li>
+</ol>
+<blockquote class="notion-callout"><span>💡</span><p>例子：</p>
+<p><b>1. 大对象分配：上传大文件、创建超大数组</b></p>
+<p>假设开发了一个 Spring Boot 文件上传接口，用户上传文件时，把整个文件一次性读取到内存。每个用户上传的文件大小为 100MB，同时有 10 个用户上传。那么仅文件内容的 <code>byte[]</code>，就可能占用：<span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mn>100</mn><mi>M</mi><mi>B</mi><mo>×</mo><mn>10</mn><mo>=</mo><mn>1000</mn><mi>M</mi><mi>B</mi></mrow><annotation encoding="application/x-tex">100MB \times 10=1000MB</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.7667em;vertical-align:-0.0833em;"></span><span class="mord">100</span><span class="mord mathnormal" style="margin-right:0.109em;">M</span><span class="mord mathnormal" style="margin-right:0.0502em;">B</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">×</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:0.6444em;"></span><span class="mord">10</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:0.6833em;"></span><span class="mord">1000</span><span class="mord mathnormal" style="margin-right:0.109em;">M</span><span class="mord mathnormal" style="margin-right:0.0502em;">B</span></span></span></span>。</p>
+<p>以 G1 垃圾收集器为例，假设每个 Region 大小为 4MB，那么大小达到 2MB 的对象就属于 Humongous Object（巨型对象）。这种对象会直接分配到老年代的特殊 Region 中，而不经过普通的 Eden 分配过程。大量巨型对象可能导致老年代占用快速上升，甚至提前触发并发标记或 Full GC。</p>
+<p>解决办法是尽可能使用流式处理，不要一次性将整个文件加载进堆内存。</p>
+<p><b>2. 内存泄漏：static Map 一直保存对象</b></p>
+<p>假设开发一个用户信息查询系统，为了提高访问速度，使用静态 Map  UserCache缓存用户信息。业务中一直往Map中存储信息。</p>
+<p><code>cache</code> 是静态字段，只要它所在的类仍然可达，通常就会一直持有这个 Map。</p>
+<p>Map 又通过 Value 强引用大量 User 对象。</p>
+<p>所以即使用户早就退出系统，这些 User 对象仍然可能被缓存引用，无法被 GC 回收。</p>
+<p>解决办法是给缓存设置最大容量和过期时间，例如使用 Caffeine 缓存，而不是让 HashMap 无限增长。</p>
+<p><b>3. 频繁创建对象：大量临时对象导致 Young GC 频繁</b></p>
+<p>假设你在高频循环中不断创建对象，每次循环创建一个 1KB 数组，10 万次循环理论上累计分配约 100MB 的数组数据。</p>
+<p>因为这些数组如果没有被长期引用，就会很快变成垃圾。</p>
+<p>假设新生代只有 32MB，那么对象不断创建，就可能多次填满 Eden，触发 Young GC。</p>
+<p>过程是：<code>大量创建对象 → Eden 很快被填满 → Young GC → 清理短命对象 → 再次填满 Eden → 再次 Young GC</code></p>
+<p>解决办法是减少不必要的分配，例如在适当情况下复用缓冲区、优化循环逻辑或减少中间对象。</p>
+<p><b>4. 堆内存太小：业务正常，但 JVM 装不下</b></p>
+<p>假设你有一个 Spring Boot 项目，需要在内存中长期保存大约 300MB 的业务数据，但是启动时只给 JVM 256MB 堆内存。</p>
+<p><b>5. 新生代或 Survivor 太小：对象过早进入老年代</b></p>
+<p>假设你为 JVM 配置了 2GB 堆，但是把新生代固定为 128MB。</p>
+<p>假设你的系统每秒产生 200MB 的临时对象，而且有部分对象会存活几秒钟。</p>
+<p>此时会发生什么？</p>
+<p>首先，大量新对象进入 Eden，导致新生代很快被填满，频繁发生 Young GC。</p>
+<p>其次，假设每次 Young GC 后仍有 50MB 对象存活，但是 Survivor 区容纳不了这么多对象，那么部分存活对象就可能提前晋升到老年代。</p>
+<p><b>6. 元空间不足：动态生成了太多 Class</b></p>
+<p>前面讨论的对象都是 User、Order、数组等，它们主要存储在 Java 堆中。</p>
+<p>但 JVM 还需要保存类的元数据，需要保存这个类的结构信息，例如字段、方法、父类关系等。HotSpot JVM 将相关类元数据主要存放在 Metaspace（元空间） 中，使用的是本地内存，而不是普通 Java 堆。</p>
+<p>当元空间使用量达到相应阈值时，JVM 可能尝试触发 GC 和类卸载。如果类及其类加载器始终无法卸载，元空间占用继续增长，最终可能发生java.lang.OutOfMemoryError: Metaspace。</p>
+</blockquote>
+
+<h2 id="如果线上出现了频繁GC的告警应该如何排查"><a href="#如果线上出现了频繁GC的告警应该如何排查" class="headerlink" title="如果线上出现了频繁GC的告警应该如何排查"></a>如果线上出现了频繁GC的告警应该如何排查</h2><p><b>排查线上频繁 GC 问题，我会按照“观测—隔离—分析—解决”这四步法来进行。</b></p>
+<p><b>第一步是“观测与区分”：</b></p>
+<p>首先，我会查看监控平台。</p>
+<p>核心是要区分是 Young GC 频繁还是 Full GC 频繁。</p>
+<ul>
+<li>如果只是 Young GC 频繁但回收很快，通常是因为并发量高，可以通过扩容或调整新生代比例解决。</li>
+<li>如果是 Full GC 频繁（比如几分钟一次），且回收后老年代内存没有明显下降，这通常意味着内存泄漏或大对象积压，这是需要重点排查的。</li>
+</ul>
+<p><b>第二步是“命令行初步诊断”：</b></p>
+<p>我会登录服务器，使用 jstat -gcutil &lt;pid&gt; 1000 命令实时查看内存分区的使用情况。</p>
+<p>重点观察老年代的占比。如果老年代持续维持在 90% 以上，且每次 FG 后都降不下来，基本可以确诊是内存泄漏。</p>
+<p><b>第三步是“保留现场与 Dump”：</b></p>
+<p>为了找到根因，我需要导出堆内存快照。</p>
+<p>但在操作前，我会先将该节点从负载均衡中摘除，避免 Dump 过程中的 STW 导致线上服务超时。</p>
+<p>然后使用 jmap -dump:format&#x3D;b,file&#x3D;dump.hprof &lt;pid&gt; 导出堆文件。</p>
+<p><b>第四步是“离线分析”：</b></p>
+<p>我会将 Dump 文件下载到本地，使用 MAT进行分析。</p>
+<ul>
+<li>通过 Dominator Tree（支配树） 找到占用内存最大的对象。</li>
+<li>查看 Path to GC Roots，定位是哪段代码、哪个静态变量或线程一直在引用这些对象，从而定位到具体的业务代码问题。</li>
+</ul>
+<h2 id="ZGC是什么什么情况下考虑选择"><a href="#ZGC是什么什么情况下考虑选择" class="headerlink" title="ZGC是什么什么情况下考虑选择"></a>ZGC是什么什么情况下考虑选择</h2><p><b>ZGC 是 Java 在 JDK 11 引入，并在 JDK 15 正式发布的一款低延迟垃圾收集器。我们可以把它看作是 G1 的继任者，也是 JVM 目前最前沿的收集器。</b></p>
+<p>关于ZGC，它的核心特性主要有两点：</p>
+<p><b>第一，极致的低延迟：</b></p>
+<p>ZGC 的设计目标是无论堆内存有多大（从几 G 到几 T），GC 带来的停顿时间都限制在 10ms 以内。这是因为它做到了并发整理，打破了堆大小和停顿时间的线性关系。</p>
+<p><b>第二，底层使用了“染色指针”和“读屏障”技术：</b></p>
+<ul>
+<li>染色指针利用 64 位指针的高位 bits 来存储对象的 GC 状态，而不是存放在对象头中。</li>
+<li>读屏障则在应用线程读取对象引用时生效，如果发现对象被移动了，它会利用“指针自愈”能力自动修正地址。这使得 ZGC 可以在应用运行的同时移动对象，而不需要像 G1 那样暂停所有线程。</li>
+</ul>
+<p><b>关于选择 ZGC 的场景，我认为主要考虑以下情况：</b></p>
+<ol>
+<li><b>超大堆内存场景</b>： 如果系统堆内存在 32G 以上甚至 TB 级别，G1 的停顿时间可能已经无法满足，这时候 ZGC 是一个优秀的选择。</li>
+<li><b>对延迟零容忍的业务</b>： 比如金融交易或即时通讯系统。这些系统看重的是“响应时间的稳定性”，宁愿牺牲一点吞吐量也要保证不卡顿。</li>
+<li><b>使用较新 JDK 版本的项目</b>： 由于 ZGC 在 JDK 17 之后才成熟，特别是 JDK 21 推出了分代 ZGC，大幅提升了吞吐量。</li>
+</ol>
+<h1 id="Spring"><a href="#Spring" class="headerlink" title="Spring"></a>Spring</h1><h2 id="什么是Spring框架"><a href="#什么是Spring框架" class="headerlink" title="什么是Spring框架"></a>什么是Spring框架</h2><p><b>Spring 是 Java 企业级开发事实上的标准。它不仅仅是一个框架，更是一个庞大的技术生态。它的核心使命只有一句话：简化 Java 开发。</b></p>
+<p>具体可以从三个维度来理解：</p>
+<p><b>第一，核心层面：</b></p>
+<p>这是Spring最根本的两大基石。</p>
+<ul>
+<li><b>IoC（控制反转）</b>：Spring 作为一个容器，接管了对象的创建和管理权。它通过<b>依赖注入（DI）</b>，让我们不需要手动 new 对象，而是由容器自动组装。这极大地降低了组件之间的耦合度。</li>
+<li><b>AOP（面向切面编程）</b>：它允许我们将日志、事务、权限等“非业务逻辑”从核心业务代码中剥离出来，统一管理。其中最经典的应用就是<b>声明式事务</b>，让我们只需加一个注解就能控制事务，而不用写繁琐的 try-catch 代码。</li>
+</ul>
+<p><b>第二，特性层面：</b></p>
+<p>Spring 是一个非侵入式的框架，它被被称为 Java 界的“胶水”。它可以非常轻松地<b>集成各种第三方框架</b>，比如 MyBatis、Redis、RabbitMQ 等，让这些技术能无缝地协同工作。</p>
+<p><b>第三，生态层面：</b></p>
+<p>现在的 Spring 已经发展为一个全家桶。</p>
+<ul>
+<li>Spring Boot 通过“约定优于配置”，让我们可以零配置快速启动项目。</li>
+<li>Spring Cloud 则提供了完整的微服务解决方案。</li>
+</ul>
+<p><b>总结一下：</b></p>
+<p>Spring 本质上是一个管理 Bean 的容器，它通过 IoC 和 AOP 实现了代码的解耦，并以此为基础衍生出了 Spring Boot 等强大的生态，极大地提高了我们的开发效率。</p>
+<h2 id="如何理解IOC"><a href="#如何理解IOC" class="headerlink" title="如何理解IOC"></a>如何理解IOC</h2><p><b>IOC 是 Spring 框架最核心的设计思想。可以总结为一句话：IOC 是为了解耦，将对象的创建权移交给容器。</b></p>
+<p>具体来说，可以从以下三个层面来理解：</p>
+<p><b>第一，“谁控制谁，控制什么”</b></p>
+<p>在传统的 Java 开发中，如果 A 类依赖 B 类，我们需要在 A 类里手动通过 new 关键字来创建 B 的实例。这时候，依赖对象的创建和生命周期是由程序员在代码里主动控制的。</p>
+<p>而在 Spring 中，我们不再手动 new 对象，而是把对象交给 Spring 容器去管理。这就是“控制”。</p>
+<p><b>第二，什么是“反转”</b></p>
+<p>所谓的反转，就是对象的创建权和依赖关系的维护权发生了转移。</p>
+<p>以前是我们主动去“找”资源，现在变成了被动等待容器把资源“送”过来。</p>
+<p><b>第三，为什么要这么做</b></p>
+<p>这么做的最大好处就是解耦。</p>
+<h2 id="Bean的作用域有哪些"><a href="#Bean的作用域有哪些" class="headerlink" title="Bean的作用域有哪些"></a>Bean的作用域有哪些</h2><p><b>Spring 中 Bean 的作用域主要决定了 Bean 实例的生命周期和可见范围。最常用的主要有 5 种，我可以把它们分为两类。</b></p>
+<p><b>第一类是基础作用域，也是最常用的：</b></p>
+<ol>
+<li>Singleton（单例）<ol>
+<li>这是Spring的默认作用域。</li>
+<li>在整个Spring容器中，这个Bean只有一个实例。所有的请求都共享这一个对象。<ol>
+<li>注意点： 因为是共享的，所以我们通常只把无状态的类（比如 Service、Dao）定义为 Singleton，以避免线程安全问题。</li>
+</ol>
+</li>
+</ol>
+</li>
+<li>Prototype（多例）<ol>
+<li>每次向容器获取Bean时（比如getBean），都会创建一个全新的实例。<ol>
+<li>注意点： Spring 容器只负责创建它，不负责销毁它，资源的释放需要开发者自己处理。</li>
+</ol>
+</li>
+</ol>
+</li>
+</ol>
+<p><b>第二类是Web环境下的特有作用域：</b></p>
+<ol>
+<li><b>Request</b>： 每一次 HTTP 请求都会产生一个新的 Bean，请求结束 Bean 就销毁。</li>
+<li><b>Session</b>： 同一个 HTTP Session 共享同一个 Bean，通常用来存储用户会话数据。</li>
+<li><b>Application</b>： 在整个 Web 应用的生命周期内共享一个 Bean。</li>
+</ol>
+<blockquote class="notion-callout"><span>💡</span><p>Spring 中 Bean 的 5 种作用域，可以通过一个电商系统来理解：系统中有订单服务、订单导出任务、请求日志、用户购物车以及全站统计信息，它们分别适合不同的 Bean 作用域。</p>
+<p><b>1. Singleton（单例）——订单服务</b></p>
+<p>应用场景：OrderService 订单服务。整个 Spring 容器只需要一个订单服务实例，所有用户共享。</p>
+<pre><code class="language-java">@Service
+@Scope(&quot;singleton&quot;) // 默认作用域，可以不写
+public class OrderService {
+
+<pre><code>public void createOrder(Long userId) {
+    System.out.println(&amp;quot;用户 &amp;quot; + userId + &amp;quot; 创建订单&amp;quot;);
+}
+</code></pre>
+<p>}</p>
+<p>OrderService service1 &#x3D; context.getBean(OrderService.class);<br>OrderService service2 &#x3D; context.getBean(OrderService.class);</p>
+<p>System.out.println(service1 &#x3D;&#x3D; service2); &#x2F;&#x2F; true<br></code></pre></p>
+<p>无论调用多少次 <code>getBean()</code>，获取的都是同一个对象。</p>
+<p>为什么适合 Singleton？ 因为 OrderService 通常不需要保存每个用户的独立状态，只负责执行业务逻辑。这样既节省内存，又减少了对象创建开销。</p>
+<p>注意：单例 Bean 不代表线程安全。如果在 OrderService 中定义共享的可变成员变量，多个线程同时修改时仍然可能产生线程安全问题。</p>
+<p><b>2. Prototype（多例）——订单导出任务</b></p>
+<p>应用场景：每次导出订单时，创建一个独立的导出任务，避免不同任务之间的数据相互干扰。</p>
+<pre><code class="language-java">@Component
+@Scope(&quot;prototype&quot;)
+public class OrderExportTask {
+
+<pre><code>private Long userId;
+
+public void setUserId(Long userId) {
+    this.userId = userId;
+}
+
+public void export() {
+    System.out.println(&amp;quot;导出用户 &amp;quot; + userId + &amp;quot; 的订单&amp;quot;);
+}
+</code></pre>
+<p>}</p>
+<p>OrderExportTask task1 &#x3D; context.getBean(OrderExportTask.class);<br>OrderExportTask task2 &#x3D; context.getBean(OrderExportTask.class);</p>
+<p>task1.setUserId(1001L);<br>task2.setUserId(1002L);</p>
+<p>System.out.println(task1 &#x3D;&#x3D; task2); &#x2F;&#x2F; false</p>
+<p>task1.export(); &#x2F;&#x2F; 导出用户 1001 的订单<br>task2.export(); &#x2F;&#x2F; 导出用户 1002 的订单<br></code></pre></p>
+<p>为什么适合 Prototype？ 因为每个导出任务都有自己的 <code>userId</code> 等状态，使用不同对象可以避免互相干扰。</p>
+<p>注意两个细节：Spring 创建和初始化 Prototype Bean 后，通常不会自动执行其销毁回调；另外，如果直接将 Prototype Bean 注入 Singleton Bean，默认只会在注入时创建一次，而不会在每次方法调用时创建。需要动态创建时，可以使用 <code>ObjectProvider<OrderExportTask></code>。</p>
+<p><b>3. Request（请求级）——请求追踪信息</b></p>
+<p>应用场景：每次 HTTP 请求生成一个独立的 TraceId，用来追踪日志。</p>
+<pre><code class="language-java">@Component
+@RequestScope
+public class RequestContext {
+
+<pre><code>private final String traceId = UUID.randomUUID().toString();
+
+public String getTraceId() {
+    return traceId;
+}
+</code></pre>
+<p>}</p>
+<p>@RestController<br>public class OrderController {</p>
+<pre><code>@Autowired
+private RequestContext requestContext;
+
+@GetMapping(&amp;quot;/order&amp;quot;)
+public String getOrder() {
+    return requestContext.getTraceId();
+}
+</code></pre>
+<p>}<br></code></pre></p>
+<p>假设两个用户分别发送 HTTP 请求，同一个 HTTP 请求中，无论哪个业务组件获取 RequestContext，得到的都是属于当前请求的同一个 Bean 实例；不同 HTTP 请求之间则会创建新的实例。</p>
+<p>为什么适合 Request？ 因为 TraceId 只属于当前 HTTP 请求，请求结束后不需要继续保留。</p>
+<p><b>4. Session（会话级）——用户购物车</b></p>
+<p>应用场景：每个用户维护自己的购物车，在同一个 HTTP Session 中多次请求时购物车数据能够保留。</p>
+<pre><code class="language-java">@Component
+@SessionScope
+public class ShoppingCart {
+
+<pre><code>private final List&amp;lt;String&amp;gt; products = new ArrayList&amp;lt;&amp;gt;();
+
+public void addProduct(String product) {
+    products.add(product);
+}
+
+public List&amp;lt;String&amp;gt; getProducts() {
+    return products;
+}
+</code></pre>
+<p>}</p>
+<p>@RestController<br>public class CartController {</p>
+<pre><code>@Autowired
+private ShoppingCart shoppingCart;
+
+@GetMapping(&amp;quot;/cart/add&amp;quot;)
+public List&amp;lt;String&amp;gt; add(@RequestParam String product) {
+    shoppingCart.addProduct(product);
+    return shoppingCart.getProducts();
+}
+</code></pre>
+<p>}<br></code></pre></p>
+<p>假设用户 A 和用户 B 分别拥有自己的 Session：</p>
+<table>
+<thead>
+<tr>
+<th>操作</th>
+<th>用户 A 的购物车</th>
+<th>用户 B 的购物车</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>A 添加苹果</td>
+<td>[苹果]</td>
+<td>[]</td>
+</tr>
+<tr>
+<td>B 添加香蕉</td>
+<td>[苹果]</td>
+<td>[香蕉]</td>
+</tr>
+<tr>
+<td>A 添加牛奶</td>
+<td>[苹果, 牛奶]</td>
+<td>[香蕉]</td>
+</tr>
+<tr>
+<td>B 再次访问</td>
+<td>[苹果, 牛奶]</td>
+<td>[香蕉]</td>
+</tr>
+</tbody></table>
+<p>为什么适合 Session？ 因为购物车需要在用户的多次 HTTP 请求之间保留状态，但不同 Session 之间的数据必须隔离。</p>
+<p>需要注意：Session 并不严格等于用户，一个用户可以有多个 Session。实际电商系统通常还会使用 Redis 或数据库持久化购物车，而不是只保存在服务器内存中。</p>
+<p><b>5. Application（应用级）——全站访问统计</b></p>
+<p>应用场景：统计整个 Web 应用接收过多少次访问，所有用户共享同一个统计对象。</p>
+<pre><code class="language-java">@Component
+@ApplicationScope
+public class VisitCounter {
+
+<pre><code>private final AtomicInteger count = new AtomicInteger(0);
+
+public int increment() {
+    return count.incrementAndGet();
+}
+
+public int getCount() {
+    return count.get();
+}
+</code></pre>
+<p>}</p>
+<p>@RestController<br>public class VisitController {</p>
+<pre><code>@Autowired
+private VisitCounter visitCounter;
+
+@GetMapping(&amp;quot;/visit&amp;quot;)
+public int visit() {
+    return visitCounter.increment();
+}
+</code></pre>
+<p>}<br></code></pre></p>
+<p>假设三个用户先后访问 <code>/visit</code>，不管是哪个用户访问，计数都会不断累加，因为大家共享同一个 Application 作用域的 Bean。</p>
+<p>为什么适合 Application？ 因为访问次数是整个 Web 应用共享的信息，而不是某个用户或者某次请求单独拥有的信息。</p>
+<p>这里还要注意，Application 和 Singleton 很相似，但它们并不完全相同：</p>
+<ul>
+<li>Singleton：一个 Spring IoC 容器中，同一个 Bean 定义通常只有一个实例。</li>
+<li>Application：一个 <code>ServletContext</code> 中，同一个 Bean 定义只有一个实例。</li>
+</ul>
+<p>如果一个 Web 应用中存在多个 Spring 容器，它们的 Singleton Bean 可能不同，而 Application Bean 可以通过同一个 <code>ServletContext</code> 共享。另外，上面的计数只适用于当前应用实例，不是多服务器部署下的全局访问量。</p>
+<p><img src="/notion-assets/af1392735761e4c52d2f4b3f.png" alt="笔记插图"></p>
+</blockquote>
+
+<h2 id="Bean的生命周期是怎样的"><a href="#Bean的生命周期是怎样的" class="headerlink" title="Bean的生命周期是怎样的"></a>Bean的生命周期是怎样的</h2><p><b>Spring Bean 的生命周期非常复杂，源码中有几十个步骤。但为了方便理解，我通常把它拆解为“四个核心阶段”：</b></p>
+<p><b>第一阶段是“实例化”：</b></p>
+<p>这是生命周期的开始。Spring 会通过反射机制调用类的构造器，在内存中创建出一个对象实例。</p>
+<p>注意： 此时它还只是一个空壳对象，属性都是空的。</p>
+<p><b>第二阶段是“属性赋值”：</b></p>
+<p>也就是依赖注入的过程。Spring 会解析 @Autowired 或 XML 配置，将该 Bean 依赖的其他 Bean 注入到它的属性中。</p>
+<p><b>第三阶段是“初始化”：</b></p>
+<p>这是最关键的一步，也是 Spring 扩展性最强的地方。它内部又可以细分为三个小步骤：</p>
+<ol>
+<li><b>处理 Aware 接口</b>： 如果 Bean 实现了 BeanNameAware 等接口，Spring 会把 Bean 的名字或容器实例注入进去。</li>
+<li><b>执行 BeanPostProcessor 的前置处理</b>： 这是一个全局的扩展点。</li>
+<li><b>执行初始化方法</b>： 这里会执行我们自定义的 init-method 或者 @PostConstruct 标注的方法，完成业务上的初始化逻辑。</li>
+<li><b>执行 BeanPostProcessor 的后置处理</b>： 这里的 postProcessAfterInitialization 是 Spring AOP 的发生地。如果 Bean 需要被代理，Spring 就会在这里生成代理对象，并替换掉原始对象。</li>
+</ol>
+<p><b>第四阶段是“销毁”：</b></p>
+<p>当容器关闭时，Spring 会调用 DisposableBean 接口或自定义的 destroy-method，让我们有机会去释放资源（比如关闭线程池、断开连接）。</p>
+<blockquote class="notion-callout"><span>💡</span><p>我们可以通过一个非常简单的例子来理解 Spring Bean 的完整生命周期：<b>创建一个 UserService，注入 UserDao，初始化时打印日志，最后在容器关闭时销毁 Bean。</b></p>
+<p>整个过程是：</p>
+<p><b>实例化 → 属性赋值 → Aware 接口 → BeanPostProcessor 前置处理 → 初始化 → BeanPostProcessor 后置处理 → 销毁。</b></p>
+<p><b>一、先定义两个 Bean</b></p>
+<p><b>1. UserDao：负责查询用户</b></p>
+<pre><code class="language-java">@Repository
+public class UserDao {
+
+<pre><code>public void query() {
+    System.out.println(&amp;quot;查询用户&amp;quot;);
+}
+</code></pre>
+<p>}<br></code></pre></p>
+<p><b>2. UserService：演示 Bean 生命周期</b></p>
+<pre><code class="language-java">@Service
+public class UserService implements BeanNameAware, DisposableBean {
+
+<pre><code>@Autowired
+private UserDao userDao;
+
+// ① 实例化
+public UserService() {
+    System.out.println(&amp;quot;1. 实例化：调用构造方法&amp;quot;);
+}
+
+// ③ Aware 接口
+@Override
+public void setBeanName(String name) {
+    System.out.println(&amp;quot;3. Aware：Bean名称为 &amp;quot; + name);
+}
+
+// ⑤ 初始化
+@PostConstruct
+public void init() {
+    System.out.println(&amp;quot;5. 初始化：UserDao是否注入成功？&amp;quot;
+            + (userDao != null));
+}
+
+public void queryUser() {
+    userDao.query();
+}
+
+// ⑦ 销毁
+@Override
+public void destroy() {
+    System.out.println(&amp;quot;7. 销毁：释放资源&amp;quot;);
+}
+</code></pre>
+<p>}<br></code></pre></p>
+<p>这里需要注意，<code>@PostConstruct</code> 在 Spring Boot 3 中应使用 <code>jakarta.annotation.PostConstruct</code>，旧版本可能使用 <code>javax.annotation.PostConstruct</code>。</p>
+<p><b>二、定义 BeanPostProcessor</b></p>
+<p>BeanPostProcessor 可以理解为 Spring 提供的一个扩展接口，允许我们在 Bean 初始化前后执行一些操作。</p>
+<pre><code class="language-java">@Component
+public class MyBeanPostProcessor implements BeanPostProcessor {
+
+<pre><code>@Override
+public Object postProcessBeforeInitialization(
+        Object bean, String beanName) {
+
+    if (beanName.equals(&amp;quot;userService&amp;quot;)) {
+        System.out.println(&amp;quot;4. BeanPostProcessor 前置处理&amp;quot;);
+    }
+
+    return bean;
+}
+
+@Override
+public Object postProcessAfterInitialization(
+        Object bean, String beanName) {
+
+    if (beanName.equals(&amp;quot;userService&amp;quot;)) {
+        System.out.println(&amp;quot;6. BeanPostProcessor 后置处理&amp;quot;);
+    }
+
+    return bean;
+}
+</code></pre>
+<p>}<br></code></pre></p>
+<p>这两个方法的区别是：</p>
+<ul>
+<li><code>postProcessBeforeInitialization()</code>：在初始化回调之前执行。</li>
+<li><code>postProcessAfterInitialization()</code>：在初始化回调之后执行，也是 Spring AOP 创建代理对象的一个重要扩展点。</li>
+</ul>
+<p>注意：BeanPostProcessor 可以返回原始 Bean，也可以返回包装后的对象，比如代理对象。</p>
+<p><b>三、启动 Spring 容器</b></p>
+<p>使用一个简单的 Java 程序：</p>
+<pre><code class="language-txt">@SpringBootApplication
+public class DemoApplication {
+
+<pre><code>public static void main(String[] args) {
+
+    ConfigurableApplicationContext context =
+            SpringApplication.run(DemoApplication.class, args);
+
+    UserService service = context.getBean(UserService.class);
+    service.queryUser();
+
+    context.close();
+}
+</code></pre>
+<p>}<br></code></pre></p>
+<p><b>输出结果</b></p>
+<pre><code class="language-txt">1. 实例化：调用构造方法
+3. Aware：Bean名称为 userService
+4. BeanPostProcessor 前置处理
+5. 初始化：UserDao是否注入成功？true
+6. BeanPostProcessor 后置处理
+
+<p>查询用户</p>
+<ol start="7">
+<li>销毁：释放资源<br></code></pre></li>
+</ol>
+<p>你可能注意到，为什么没有输出第二步？</p>
+<p>因为属性赋值是由 Spring 容器完成的，我们的代码没有在注入操作本身添加打印日志。</p>
+<p>但通过第五步：</p>
+<pre><code class="language-txt">UserDao是否注入成功？true
+</code></pre>
+<p>就可以验证在初始化方法执行之前，<code>UserDao</code> 已经注入成功。</p>
+<p><img src="/notion-assets/2443fd3b1508172189df3301.png" alt="笔记插图"></p>
+</blockquote>
+
+<h2 id="单例Bean的线程安全如何理解"><a href="#单例Bean的线程安全如何理解" class="headerlink" title="单例Bean的线程安全如何理解"></a>单例Bean的线程安全如何理解</h2><p><b>关于单例 Bean 的线程安全问题，我的理解是：Spring 框架本身并没有对单例 Bean 做任何线程安全的处理。</b></p>
+<p><b>这个问题的答案取决于这个 Bean 是“有状态”的还是“无状态”的：</b></p>
+<p><b>第一，对于“无状态”的 Bean：</b></p>
+<p>这是我们在项目中使用的绝大多数场景，比如常用的 Controller、Service、Dao。</p>
+<p>这些 Bean 虽然是单例的，但它们内部通常只注入了其他单例 Bean，没有定义可修改的成员变量。方法的局部变量是存在虚拟机栈中的，线程私有。所以，这类 Bean 是天然线程安全的。</p>
+<p><b>第二，对于“有状态”的 Bean：</b></p>
+<p>如果我们在单例 Bean 中定义了可修改的成员变量（比如定义了一个全局的 count 计数器），那么在多线程并发访问时，就会出现线程安全问题。因为所有线程操作的都是堆内存中同一个对象的数据。</p>
+<p><b>第二，对于“有状态”的 Bean：</b></p>
+<p>如果我们在单例 Bean 中定义了可修改的成员变量（比如定义了一个全局的 count 计数器），那么在多线程并发访问时，就会出现线程安全问题。因为所有线程操作的都是堆内存中同一个对象的数据。</p>
+<p><b>第三，解决方案：</b></p>
+<p>如果确实需要在一个 Bean 中维护状态，通常有三种做法：</p>
+<ol>
+<li><b>使用 ThreadLocal（最推荐）</b>： 将变量保存在 ThreadLocal 中，实现线程间的数据隔离。</li>
+<li><b>使用并发原子类</b>： 比如 AtomicInteger，或者加锁（但会影响性能）。</li>
+<li><b>改变作用域</b>： 将 Bean 的 Scope 改为 Prototype（多例），每次请求生成新对象，但这样会增加 GC 压力，一般不推荐。</li>
+</ol>
+<h2 id="单例Bean的循环依赖问题是如何解决的"><a href="#单例Bean的循环依赖问题是如何解决的" class="headerlink" title="单例Bean的循环依赖问题是如何解决的"></a>单例Bean的循环依赖问题是如何解决的</h2><p><b>Spring 是通过“三级缓存”机制来解决单例 Bean 的循环依赖问题的。</b></p>
+<p>首先，我们要明确它能解决的前提：它只能解决单例模式下，通过Setter或字段注入产生的循环依赖。如果是构造器注入，还是会抛出异常。</p>
+<p><b>具体的解决流程，以 A、B 两个类相互依赖为例：</b></p>
+<ol>
+<li><b>实例化A</b>：Spring 先将 A 实例化（只是 new 了一个空对象）。此时，Spring 会利用 三级缓存，提前将 A 的 ObjectFactory 暴露出来。</li>
+<li><b>属性赋值</b>：A 在填充属性时发现依赖 B，于是去尝试获取 B。</li>
+<li><b>实例化B</b>：容器发现 B 不存在，就开始实例化 B。B 在填充属性时发现依赖 A。</li>
+<li><b>获取A</b>：B 去容器里找 A。它在一级、二级缓存中都没找到，但在 三级缓存 中找到了 A 的工厂对象。</li>
+<li><b>提前引用</b>：B 调用这个工厂方法，拿到了 A 的早期引用（如果 A 需要 AOP，这里拿到的就是 A 的代理对象），并把它放入二级缓存。</li>
+<li><b>闭环</b>：B 拿到了 A，顺利完成初始化，放入一级缓存。A 接着拿到 B，也完成初始化，放入一级缓存。</li>
+</ol>
+<p><b>关于为什么需要三级缓存：</b></p>
+<p>这主要是为了处理AOP 代理的情况。</p>
+<p>假如直接将原始 A 注入 B，而 Spring 最终又为 A 创建了一个代理对象，那么就可能出现：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">B.a = 原始A对象;</span><br><span class="line">容器中的A = A的代理对象;</span><br></pre></td></tr></table></figure>
+
+<p>这就带来了引用不一致的问题。B 通过原始 A 调用方法时，还可能绕过 AOP 增强，例如事务拦截。</p>
+<p>三级缓存的作用，就是推迟决定需要暴露什么引用。</p>
+<p>当 B 真正需要 A 时，Spring 才调用 <code>getEarlyBeanReference()</code>，让相关的 BeanPostProcessor 有机会提前创建 AOP 代理。</p>
+<p>Spring 的设计原则是尽可能在 Bean 生命周期的最后阶段才创建代理。</p>
+<blockquote class="notion-callout"><span>💡</span><p>Spring 在 <code>DefaultSingletonBeanRegistry</code> 中定义了三个 Map：</p>
+<table>
+<thead>
+<tr>
+<th>缓存</th>
+<th>源码变量</th>
+<th>存储内容</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>一级缓存</td>
+<td><code>singletonObjects</code></td>
+<td>已经完成初始化的单例 Bean</td>
+</tr>
+<tr>
+<td>二级缓存</td>
+<td><code>earlySingletonObjects</code></td>
+<td>提前暴露的 Bean 早期引用</td>
+</tr>
+<tr>
+<td>三级缓存</td>
+<td><code>singletonFactories</code></td>
+<td>可以生成 Bean 早期引用的 <code>ObjectFactory</code></td>
+</tr>
+</tbody></table>
+<p>可以这样理解：</p>
+<ul>
+<li>一级缓存：成品区。 Bean 已经完成初始化，可以直接使用。</li>
+<li>二级缓存：半成品区。 Bean 还没有完全初始化，但已经可以被其他 Bean 提前引用。这里的对象也可能是 AOP 代理对象。</li>
+<li>三级缓存：工厂区。 不直接存放 Bean，而是存放一个能够获取早期引用的工厂。通过它，可以在必要时生成普通对象的早期引用，或者提前获得 AOP 代理对象。</li>
+</ul>
+</blockquote>
+
+<p><b>如果我非要在构造器里使用循环依赖，有没有办法解决</b></p>
+<ul>
+<li><b>使用 @Lazy 注解</b>： 在构造器参数上加 @Lazy。Spring 会生成一个代理对象传进去，等真正调用该对象方法时，再去容器里找真实的 Bean。</li>
+<li><b>改为 Setter 注入</b>： 修改代码结构（治标治本）。</li>
+</ul>
+<h2 id="什么是AOP-有什么应用场景"><a href="#什么是AOP-有什么应用场景" class="headerlink" title="什么是AOP?有什么应用场景?"></a>什么是AOP?有什么应用场景?</h2><p>AOP 是对 OOP的一种补充。OOP 擅长封装纵向的业务逻辑（比如用户模块、订单模块），但在处理横向的通用逻辑时（比如每个模块都要记录日志、都要开启事务），OOP 会导致大量重复代码，侵入业务逻辑。</p>
+<p><b>AOP的核心作用：</b></p>
+<p>就是将这些与核心业务无关、但又影响多个模块的“横切关注点”单独抽取出来，封装成切面。然后通过动态代理的方式，在运行时将这些逻辑动态地“织入”到业务代码中。</p>
+<p><b>它的核心优势是：</b></p>
+<p>实现了非业务逻辑与业务逻辑的完全解耦，让业务代码更加纯粹，同时减少了代码冗余。</p>
+<p><b>常见的应用场景主要有3个：</b></p>
+<ol>
+<li><b>日志与监控</b>： 比如统一记录接口的调用耗时、入参出参。</li>
+<li><b>声明式事务管理</b>： 也就是 Spring 的 @Transactional。我们不需要在代码里写 commit 和 rollback，AOP 会自动在方法执行前开启事务，成功后提交，失败后回滚。</li>
+<li><b>权限控制</b>： 在方法执行前拦截，判断用户是否有权限操作。</li>
+</ol>
+<h2 id="AOP的实现原理是怎样的"><a href="#AOP的实现原理是怎样的" class="headerlink" title="AOP的实现原理是怎样的"></a>AOP的实现原理是怎样的</h2><p><b>Spring AOP 的底层原理非常明确，一句话总结就是：动态代理。</b></p>
+<p>Spring 会在运行期间，为目标对象动态生成一个代理对象。我们调用方法时，实际上是先调到了代理对象，由代理对象执行完切面逻辑（比如开启事务、记录日志）后，再通过反射去调用真正的业务方法。</p>
+<p><b>具体的实现方式主要有两种，Spring 会根据情况自动切换：</b></p>
+<p>第一种是<b>JDK动态代理</b>，这是Java核心库自带的机制。</p>
+<ul>
+<li><b>适用场景</b>： 针对实现了接口的类。</li>
+<li><b>原理</b>： 它通过反射机制，在运行时创建一个实现了相同接口的代理类。</li>
+<li><b>局限性</b>： 既然是基于接口的，那么如果一个类没有实现任何接口，JDK 动态代理就无法使用了。</li>
+</ul>
+<p>第二种是<b>CGLIB代理</b>，是一个基于字节码操作的第三方库。</p>
+<ul>
+<li><b>适用场景</b>： 针对没有实现接口的类。</li>
+<li><b>原理</b>： 它是通过继承的方式实现的。它会在运行时动态生成一个目标类的子类，并重写其中的方法进行增强。</li>
+<li><b>局限性</b>： 因为是基于继承，所以目标类不能被 final 修饰，目标方法也不能是 final&#x2F;private 的，否则无法被重写。</li>
+</ul>
+<p><b>Spring 的选择策略</b></p>
+<ul>
+<li>经典策略： 如果目标对象实现了接口，默认用 JDK 动态代理；如果没有接口，强制用 CGLIB。</li>
+<li>Spring Boot 2.x 之后的变化： 为了避免“类型转换异常”等坑，Spring Boot 默认会将配置 proxy-target-class 设为 true，也就是默认强制使用 CGLIB（除非你显式配置要用 JDK）。</li>
+</ul>
+<h2 id="拦截器和过滤器有什么区别"><a href="#拦截器和过滤器有什么区别" class="headerlink" title="拦截器和过滤器有什么区别"></a>拦截器和过滤器有什么区别</h2><p>这两个组件虽然都是用来拦截请求的，但它们的作用域和底层机制完全不同。</p>
+<p>简单来说，<b>Filter 是 Servlet 规范层面的，而 Interceptor 是 Spring 框架层面的。</b></p>
+<p><b>第一，执行时机和范围不同</b></p>
+<ul>
+<li>Filter 运行在 Web 容器中，它拦截在请求进入 DispatcherServlet 之前。它的范围非常大，几乎可以<b>拦截所有进入容器的请求</b>。</li>
+<li>Interceptor 运行在 Spring MVC 框架内部，它拦截在 DispatcherServlet 到 Controller 之间。它只<b>拦截分发给 Spring Controller 的请求</b>。</li>
+</ul>
+<p><b>第二，依赖的容器不同</b></p>
+<ul>
+<li>Filter 依赖于 Servlet 容器（如 Tomcat），是<b>基于函数回调实现</b>的。</li>
+<li>Interceptor 不依赖 Servlet 容器，而是依赖于 Spring 容器，是<b>基于 Java 反射机制实现</b>的。</li>
+</ul>
+<p><b>第三，访问内部资源的能力不同</b></p>
+<ul>
+<li>Filter 因为执行得太早，通常<b>很难直接注入 Spring 的 Bean（Service 等）</b>，往往只能处理像字符编码、跨域配置这种通用的、与业务逻辑解耦的工作。</li>
+<li>Interceptor 是 Spring 的一部分，<b>可以完美支持依赖注入</b>，能轻松访问 Service 层，甚至能直接获取到即将执行的 Controller 方法信息，适合做权限校验、日志审计等业务相关的逻辑。</li>
+</ul>
+<p>如果要做通用的字符过滤、安全检查，用 Filter；如果要做跟具体业务逻辑相关、或者需要读取 Spring 上下文的判断，用 Interceptor。</p>
+<h2 id="Spring的事务管理是怎样的"><a href="#Spring的事务管理是怎样的" class="headerlink" title="Spring的事务管理是怎样的"></a>Spring的事务管理是怎样的</h2><p><b>Spring 的事务管理核心目的就是为了解耦，让我们不需要在业务代码里去处理繁琐的事务提交和回滚逻辑。</b></p>
+<p>虽然 Spring 支持编程式事务，但我们在实际开发中，大部分情况下都是使用基于 AOP 的声明式事务（即 @Transactional 注解）。</p>
+<p><b>它的原理是：</b></p>
+<ul>
+<li>Spring 会为目标 Bean 生成一个代理对象。</li>
+<li>当方法被调用时，代理对象会在目标方法执行前开启事务（关闭自动提交）。</li>
+<li>在目标方法执行后，如果一切正常则提交事务；如果抛出了异常，则执行回滚。</li>
+</ul>
+<p><b>在使用 @Transactional 时，我们重点关注三个配置：</b></p>
+<ol>
+<li><b>传播行为</b>： 这是 Spring 特有的概念，用来解决业务方法互相调用时，事务如何传递的问题。最常用的是 REQUIRED（如果有事务就加入，没有就新建）和 REQUIRES_NEW（挂起当前事务，自己新开一个）。</li>
+<li><b>隔离级别</b>： 通常我们跟随数据库的默认设置。</li>
+<li><b>回滚规则</b>： 这里有个坑，Spring 默认只在遇到 RuntimeException 时才回滚。如果是Checked Exception，需要我们手动配置 rollbackFor &#x3D; Exception.class。</li>
+</ol>
+<h2 id="声明式事务什么情况会失效"><a href="#声明式事务什么情况会失效" class="headerlink" title="声明式事务什么情况会失效"></a>声明式事务什么情况会失效</h2><p>Spring 声明式事务失效的场景在实际开发中非常常见。究其根本原因，大多数都是<b>因为我们不小心绕过了 Spring 的 AOP 代理机制，或者是异常处理不当造成的</b>。</p>
+<p><b>根据我的经验，主要可以归纳为以下 4 种最典型的情况：</b></p>
+<p><b>第一种是“方法自调用”</b></p>
+<p>比如在同一个 Service 类中，一个没有事务的方法 A，去调用了另一个有事务的方法 B。</p>
+<ul>
+<li>原因： Spring 事务是基于动态代理实现的。类内部调用使用的是 this 关键字，直接调用了目标对象本身的方法，完全绕过了代理对象。既然没经过代理，事务切面逻辑自然就失效了。</li>
+<li>解决： 这种情况下，一般要把方法 B 抽离到另一个 Service 中，或者通过 AopContext 拿到当前代理对象去调用。</li>
+</ul>
+<p><b>第二种是“异常被业务代码吞掉了”</b></p>
+<p>如果我们在 @Transactional 标注的方法内部，手写了 try-catch 块，并且 catch 住异常后没有再 throw 出来。</p>
+<ul>
+<li>原因： Spring AOP 必须捕捉到异常才会触发回滚。异常被我们自己处理了，代理对象认为方法执行成功，就会提交事务。</li>
+</ul>
+<p><b>第三种是“异常类型不匹配”</b></p>
+<p>如果抛出的异常是 checked exception，但我们没有做配置。</p>
+<ul>
+<li>原因是Spring 默认的策略是：只有遇到 RuntimeException 或 Error 时才回滚。</li>
+<li>解决方案就是必须在注解上显式配置 @Transactional(rollbackFor &#x3D; Exception.class)。</li>
+</ul>
+<p><b>第四种是“方法的修饰符不对”</b></p>
+<p>如果我们将 @Transactional 加在了 private、final 或者 static 方法上。</p>
+<ul>
+<li>原因： 无论是 JDK 动态代理还是 CGLIB，本质上都需要重写或实现方法来做增强。如果是 private 的，代理类根本无法访问或重写该方法，导致事务失效。</li>
+</ul>
+<h2 id="事务的传播规则是怎样的"><a href="#事务的传播规则是怎样的" class="headerlink" title="事务的传播规则是怎样的"></a>事务的传播规则是怎样的</h2><p>Spring 的传播行为主要是为了解决“业务方法之间互相调用”时，事务应该如何传递和管理的问题。</p>
+<p>Spring 一共定义了 7 种传播行为，但在实际开发中，我们最常用的主要是前 3 种：</p>
+<p><b>第一种是REQUIRED（这是默认值）</b></p>
+<p>它的逻辑是<b>“有就加入，没有就新建”</b></p>
+<ul>
+<li>如果当前已经存在事务，新加入的方法就会成为该事务的一部分；如果当前没有事务，就开启一个新的。</li>
+<li>特点是： 只要发生回滚，大家是一起回滚的，因为它本质上是同一个物理事务。这是我们 90% 的业务场景下的选择。</li>
+</ul>
+<p><b>第二种是REQUIRES_NEW</b></p>
+<p>它的逻辑是<b>“自立门户”</b></p>
+<ul>
+<li>特点是： 内外两个事务是物理隔离的，互不影响。</li>
+<li>典型场景： 比如记录日志。不管外面的核心业务是成功还是失败，日志记录这个操作本身必须成功并持久化，不能跟着业务逻辑回滚。</li>
+</ul>
+<p><b>第三种是NESTED</b></p>
+<p>它的逻辑是<b>“嵌套执行”</b></p>
+<ul>
+<li>如果当前存在事务，它会在当前事务中创建一个保存点运行。</li>
+<li>特点是： 如果子事务（内部）回滚，只会回滚到保存点，不会影响父事务（外部）；但如果父事务回滚，子事务会跟着一起回滚。它建立的是一种“父子关系”。</li>
+</ul>
+<p>其他 4 种（简单了解）</p>
+<ul>
+<li>SUPPORTS： 有事务就用，没有就拉倒（非事务运行）。</li>
+<li>NOT_SUPPORTED： 必须非事务运行。如果有事务，先挂起它。</li>
+<li>MANDATORY： 必须有事务，如果没有就报错。</li>
+<li>NEVER： 必须非事务运行，如果有事务就报错。</li>
+</ul>
+<h2 id="SpringMVC怎么理解"><a href="#SpringMVC怎么理解" class="headerlink" title="SpringMVC怎么理解"></a>SpringMVC怎么理解</h2><p>Spring MVC是Spring框架中用于构建Web应用的模块，它是基于Java Servlet API创建的。</p>
+<p>Spring MVC 的核心架构是基于前端控制器模式设计的。它主要<b>由一个核心调度器和四个辅助组件组成</b>。</p>
+<p><b>我可以从“架构设计”和“执行流程”两个层面来回答这个问题：</b></p>
+<p><b>第一，在架构设计上：</b></p>
+<ul>
+<li><b>DispatcherServlet（前端控制器）</b>：它是整个流程的核心，本质上是一个 Servlet。它负责接收所有进入的 HTTP 请求，并统筹调度其他组件来完成处理，起到了“总调度”的作用。</li>
+<li><b>HandlerMapping（处理器映射器）</b>：负责建立请求 URL 和 Controller 方法之间的映射关系。它解析请求，告诉调度器“这个 URL 应该由哪个 Controller 来处理”。</li>
+<li><b>HandlerAdapter（处理器适配器）</b>：负责调用具体的 Controller 方法。因为 Controller 的写法多种多样（实现接口、注解等），适配器用来消除差异，统一调用接口。</li>
+<li><b>Controller（处理器）</b>： 开发者编写的业务逻辑入口，负责调用 Service 层业务，处理数据。</li>
+<li><b>ViewResolver（视图解析器）</b>：负责将逻辑视图名称（String）转换成物理视图（如 JSP、Thymeleaf 模板），并进行渲染。</li>
+</ul>
+<p>它采用了标准的 MVC设计模式，并核心运用了 “前端控制器” 模式。</p>
+<p>也就是说，它提供了一个核心的 DispatcherServlet 作为统一的入口，由它来分发所有的请求。这样做的好处是<b>将“请求分发”、“业务处理”和“视图渲染”彻底解耦，职责分明</b>。</p>
+<p><b>第二，在核心执行流程上：</b></p>
+<p>当一个HTTP请求到达服务器时，会严格遵循以下步骤：</p>
+<ol>
+<li><b>请求接收</b>： 用户发送 HTTP 请求，请求首先到达 DispatcherServlet。</li>
+<li><b>查找 Handler</b>：DispatcherServlet 调用 HandlerMapping，根据 URL 查找对应的 Handler（即 Controller），此时会返回一个执行链（包含 Controller 和拦截器）。</li>
+<li><b>适配执行</b>：DispatcherServlet 调用 HandlerAdapter，通过适配器执行 Controller 中的业务方法。</li>
+<li><b>业务处理</b>： Controller 执行业务逻辑，返回 ModelAndView 对象（包含模型数据和视图名称）。</li>
+<li><b>视图解析</b>：DispatcherServlet 将视图名称传给 ViewResolver，解析出具体的 View 对象。</li>
+<li><b>渲染响应</b>：DispatcherServlet 将模型数据填充到 View 中，生成最终页面响应给用户。</li>
+</ol>
+<blockquote class="notion-callout"><span>💡</span><p>Spring MVC 的拦截器（Interceptor）位于 HandlerMapping 找到 Controller 之后、HandlerAdapter 执行 Controller 方法之前。</p>
+<p>HandlerMapping 负责找到 Controller 和对应拦截器，DispatcherServlet 负责组织拦截器的执行，HandlerAdapter 负责调用 Controller。</p>
+<p>具体来说，拦截器有三个核心方法：<code>preHandle()</code>、<code>postHandle()</code> 和 <code>afterCompletion()</code>，它们分别在不同阶段执行。</p>
+<p><img src="/notion-assets/a1724b705b4d1f7e0355a22a.png" alt="笔记插图"></p>
+</blockquote>
+
+<h2 id="SpringBoot对比Spring有何区别"><a href="#SpringBoot对比Spring有何区别" class="headerlink" title="SpringBoot对比Spring有何区别"></a>SpringBoot对比Spring有何区别</h2><p>Spring Boot 是 Spring 框架的扩展，它本身并不提供新的功能，而是<b>专门用于简化 Spring 应用的配置、搭建和运行</b>。</p>
+<p>具体的区别主要体现在以下三个方面：</p>
+<p><b>第一，在配置方式上：</b></p>
+<ul>
+<li>Spring 需要我们编写大量的 XML 或 Java 配置类来组装 Bean，配置非常繁琐，容易出错。</li>
+<li>而 Spring Boot 遵循 “约定优于配置” 的理念。它通过 “自动配置” 机制，根据我们引入的依赖自动推断并配置好相应的组件。比如引入了 Web 依赖，它就自动配置好 Tomcat 和 Spring MVC，让我们能零配置快速启动。</li>
+</ul>
+<p><b>第二，在依赖管理上：</b></p>
+<ul>
+<li>Spring 项目需要我们需要手动管理各种第三方库的版本，容易产生版本冲突。</li>
+<li>Spring Boot 提供了 “起步依赖”。我们只需要引入一个父级 starter，它就会把相关的几十个 jar 包一次性打包引入，并且由 Spring Boot 统一管理版本，彻底解决了依赖冲突问题。</li>
+</ul>
+<p><b>第三，在部署和运行模式上：</b></p>
+<ul>
+<li>传统的 Spring Web 项目通常需要打包成 WAR 包，并部署到外置的 Tomcat 中运行。</li>
+<li>Spring Boot 默认 内嵌了 Tomcat 容器，可以将项目打包成一个可执行的 JAR 包。我们只需要运行 main 方法或者 java -jar 命令就能启动服务，这非常契合微服务架构下快速部署的需求。</li>
+</ul>
+<h2 id="BeanFactory和FactroyBean的关系"><a href="#BeanFactory和FactroyBean的关系" class="headerlink" title="BeanFactory和FactroyBean的关系"></a>BeanFactory和FactroyBean的关系</h2><p>用一句话总结：<b>BeanFactory是Spring容器的顶层接口（它是工厂），而FactoryBean是一个可以生产对象的特殊Bean（它是产品）。</b></p>
+<p>具体区别主要体现在以下三点：</p>
+<p><b>第一，定位不同：</b></p>
+<ul>
+<li><b>BeanFactory</b>： 是 Spring IoC 容器的<b>核心接口</b>。它负责管理所有 Bean 的生命周期（实例化、初始化、依赖注入）。它是 Spring 框架的“基础设施”。</li>
+<li><b>FactoryBean</b>： 是 Spring 提供的一种<b>扩展接口</b>。它本质上还是一个 Bean，也归 BeanFactory 管理。但它的作用是允许开发者通过代码去定制化地生成复杂的 Bean。</li>
+</ul>
+<p><b>第二，作用不同：</b></p>
+<ul>
+<li><b>BeanFactory</b> 提供的是<b>标准的 Bean 创建流程</b>（基于 XML 或注解）。</li>
+<li><b>FactoryBean</b> 提供的是<b>个性化的创建流程</b>。当我们创建一个对象的过程非常复杂（例如 MyBatis 的 SqlSessionFactory，或者创建 RPC 代理对象），无法简单地用 XML 描述时，我们就会实现 FactoryBean 接口，在 getObject() 方法里写 Java 代码来构建这个对象。</li>
+</ul>
+<p><b>第三，获取方式不同：</b></p>
+<p>假设我们在 Spring 中定义了一个 id 为 demo 的 FactoryBean：</p>
+<ul>
+<li>当我们调用 context.getBean(“demo”) 时，Spring 返回的是这个 FactoryBean <b>生产出来的对象</b>（即 getObject() 的返回值）。</li>
+<li>如果我们真的想获取 FactoryBean <b>这个工厂对象本身</b>，需要在 id 前面加一个 &amp; 符号，即 context.getBean(“&amp;demo”)。</li>
+</ul>
+<h2 id="Spring中用到了哪些设计模式"><a href="#Spring中用到了哪些设计模式" class="headerlink" title="Spring中用到了哪些设计模式"></a>Spring中用到了哪些设计模式</h2><p>最典型的有以下6种：</p>
+<p><b>第一种是工厂模式</b>：这是 Spring IoC 的核心。Spring 使用 BeanFactory 和 ApplicationContext 来创建和管理对象。通过工厂模式，我们将对象的创建和使用分离，彻底解耦了代码。</p>
+<p><b>第二种是代理模式</b>：这是 Spring AOP 的基础。当我们使用 @Transactional 控制事务或做日志监控时，Spring 会在底层通过 JDK 动态代理 或 CGLIB 生成代理对象。我们在代码中拿到的 Bean，其实往往是 Spring 生成的代理类。</p>
+<p><b>第三种是单例模式</b>：Spring Bean 的默认作用域就是 Singleton，一个 Bean 只有一个实例，这大大节省了内存和对象创建的开销。</p>
+<p><b>第四种是模板方法模式</b>：这体现了 Spring 对重复代码的封装。比如 JdbcTemplate 和 RestTemplate。Spring 把开启连接、关闭资源、异常处理这些“固定流程”封装在父类模板中，而让我们只需要关注具体的 SQL 或业务逻辑。</p>
+<p><b>第五种是适配器模式</b>：这主要体现在 Spring MVC 中。HandlerAdapter 负责将不同写法的 Controller适配为统一的接口，让 DispatcherServlet 可以统一调度，极大地提升了 MVC 的扩展性。</p>
+<p><b>第六种是观察者模式</b>：主要体现在Spring Event中。Spring的事件驱动模型就是典型的观察者模式。它允许我们在业务状态发生变化时（比如用户注册成功），发布事件通知所有监听者，实现业务的解耦。</p>
+<h2 id="Springboot是如何实现自动配置的"><a href="#Springboot是如何实现自动配置的" class="headerlink" title="Springboot是如何实现自动配置的"></a>Springboot是如何实现自动配置的</h2><p>Spring Boot自动配置的核心原理，可以总结为八个字：<b>SPI加载，条件筛选</b>。</p>
+<p>整个流程<b>从启动类的@SpringBootApplication注解开始，具体分为三个步骤</b>：</p>
+<p><b>第一步是“开启自动配置”：</b></p>
+<p>@SpringBootApplication 是一个复合注解，其中最核心的是 @EnableAutoConfiguration。它显式地开启了自动配置功能，并利用 @Import 导入了 AutoConfigurationImportSelector 类。</p>
+<p><b>第二步是“加载候选配置”：</b></p>
+<p>AutoConfigurationImportSelector 会扫描所有 Jar 包类路径下的特定文件。</p>
+<p>这些文件中列出了所有可能的自动配置类。Spring Boot 会先把这几百个配置类全部读取出来作为候选者。</p>
+<p><b>第三步是“条件筛选”（@Conditional）：</b></p>
+<p>这是最关键的一步。这几百个配置类并不会全部生效，因为它们上面都标注了 @Conditional 系列注解。</p>
+<ul>
+<li>比如 @ConditionalOnClass：判断当前类路径下有没有某个 Jar 包（例如，只有引入了 Redis 的依赖，Redis 的自动配置才会生效）。</li>
+<li>比如 @ConditionalOnMissingBean：判断容器中是否已经有了用户自定义的 Bean。如果用户自己配了，Spring Boot 就不生效；如果用户没配，Spring Boot 就自动配置。</li>
+</ul>
+<h2 id="Springboot的starter是什么-有什么应用场景"><a href="#Springboot的starter是什么-有什么应用场景" class="headerlink" title="Springboot的starter是什么?有什么应用场景"></a>Springboot的starter是什么?有什么应用场景</h2><p>用一句话概括：<b>它就是一组预定义好的依赖集合，目的是为了让我们“一站式”地引入某种功能，而不需要手动去管理复杂的Jar包版本和依赖关系。</b></p>
+<p>具体来说，可以从以下两个方面来理解：</p>
+<p><b>第一，解决了什么问题</b></p>
+<p>在以前的 Spring 开发中，如果我们想做一个 Web 项目，需要在 Maven 中引入 Spring MVC、Tomcat、Jackson 等五六个依赖，还要仔细核对它们的版本是否兼容，非常容易出错。</p>
+<p>而 Starter 把这些相关的 Jar 包打包成了一个整体。比如引入 spring-boot-starter-web，它就会自动把 Tomcat、Spring MVC、Json 处理库全部引入进来。</p>
+<p>它本质上就是一个 Maven 的 BOM，帮我们完成了“依赖聚合”和“版本锁定”。</p>
+<p><b>第二，有什么应用场景</b></p>
+<p>Starter 的应用场景主要分为两类：</p>
+<ol>
+<li><b>官方提供的通用场景</b><p>
+这是我们最常用的。比如：
+</p>
+
+<ul>
+<li>开发 Web 接口，用 spring-boot-starter-web。</li>
+<li>操作数据库，用 spring-boot-starter-data-jpa 或 jdbc。</li>
+<li>做单元测试，用 spring-boot-starter-test。</li>
+<li>做缓存，用 spring-boot-starter-data-redis。</li>
+</ul>
+</li>
+<li><b>自定义Starter</b><p>
+这也是在项目中经常用到的。我们会把公司内部通用的中间件逻辑封装成 Starter。
+</p>
+
+<ul>
+<li>比如：统一的日志收集 Starter、统一的鉴权 Starter、或者自定义的短信发送 Starter。</li>
+<li>各个微服务只需要引入这个 Starter，配置几个参数，就能直接拥有这些功能，极大地减少了重复代码，实现了公司技术标准的统一。</li>
+</ul>
+</li>
+</ol>
+<h2 id="Spring框架有多线程吗（比如同一个controller被多个用户同时访问）？底层原理是怎样的？"><a href="#Spring框架有多线程吗（比如同一个controller被多个用户同时访问）？底层原理是怎样的？" class="headerlink" title="Spring框架有多线程吗（比如同一个controller被多个用户同时访问）？底层原理是怎样的？"></a>Spring框架有多线程吗（比如同一个controller被多个用户同时访问）？底层原理是怎样的？</h2><p>首先，明确结论：<b>Spring MVC本身并不为每个请求创建新的线程。线程的维护和调度是由底层的Web容器来完成的。</b></p>
+<p><b>具体的底层执行流程是这样的：</b></p>
+<p><b>第一，线程池分发：</b></p>
+<p>当多个用户同时发起请求时，Tomcat 会从自带的线程池中分配出多个线程。每个请求对应一个独立的线程。</p>
+<p><b>第二，单例Bean的并发访问：</b></p>
+<p>这些线程会进入 Spring 容器内部进行处理。</p>
+<p>在 Spring 中，Controller 和 Service 默认都是 单例的。这意味着在 JVM 的堆内存中，这个 Controller 对象只有一份。</p>
+<p>所以，实际上是多条线程同时在访问同一个 Controller 对象的方法。</p>
+<p><b>第三，如何保证线程安全：</b></p>
+<p>既然是多线程访问同一个对象，为什么没出问题呢？</p>
+<p>是因为我们的 Controller 通常设计为“无状态”的。我们在 Controller 里通常只定义 Service 等不可变的依赖，这些是线程安全的。</p>
+<h2 id="Spring-Task是什么？实现原理是怎样的？"><a href="#Spring-Task是什么？实现原理是怎样的？" class="headerlink" title="Spring Task是什么？实现原理是怎样的？"></a>Spring Task是什么？实现原理是怎样的？</h2><p>Spring Task 是 <b>Spring 框架提供的一种轻量级的定时任务解决方案</b>。</p>
+<p>相比于 Quartz 这种重量级的分布式调度框架，Spring Task 非常简单，<b>通常只需要在方法上加上 @Scheduled 注解就能使用</b>。</p>
+<p>关于它的实现原理，主要可以分为“扫描”和“执行”两个阶段：</p>
+<p><b>第一阶段是“扫描与注册”：</b></p>
+<p>当我们在启动类上加上 @EnableScheduling 注解后，Spring 会向容器中注册一个核心的后置处理器，叫做 ScheduledAnnotationBeanPostProcessor。</p>
+<p>在 Spring 启动过程中，这个后置处理器会扫描所有的 Bean，查看它们的方法上是否有 @Scheduled 注解。</p>
+<p>如果有，它就会解析 Cron 表达式或定时参数，将该方法封装成一个具体的 Task 对象。</p>
+<p><b>第二阶段是“调度与执行”：</b></p>
+<p>封装好的任务会被提交给 TaskScheduler，Spring 底层本质上是利用了 JDK 原生的ScheduledExecutorService（也就是 JDK 的定时线程池）来实现具体的调度逻辑的。</p>
+<p>这里有一个非常重要的细节，<b>Spring Task 默认配置的线程池大小是 1</b>。</p>
+<p>这意味着，如果系统中有多个定时任务，它们是串行执行的。如果其中一个任务执行时间过长甚至阻塞，会直接导致后续的其他任务无法准时执行。</p>
+<p>所以在生产环境中，我们通常会自定义一个线程池来替换掉默认的单线程池，从而支持多任务并发执行。</p>
+<h1 id="MyBatis"><a href="#MyBatis" class="headerlink" title="MyBatis"></a>MyBatis</h1><h2 id="什么是Mybatis-什么是ORM框架"><a href="#什么是Mybatis-什么是ORM框架" class="headerlink" title="什么是Mybatis?什么是ORM框架?"></a>什么是Mybatis?什么是ORM框架?</h2><p><b>首先，讲一下ORM：</b></p>
+<p>它的全称是Object Relational Mapping。</p>
+<p>在Java开发中，我们操作的是对象，而数据库存储的是关系型数据（表），ORM 的作用就是充当一座桥梁，建立起 Java 对象和数据库表之间的映射关系。</p>
+<p>它的核心价值在于解放生产力：让我们不再需要手写繁琐的 JDBC 代码，而是通过操作对象就能间接操作数据库。</p>
+<p><b>其次，关于MyBatis：</b></p>
+<p>MyBatis 本质上是一个 Java 持久层框架，但我更愿意称它为“半自动化的 ORM 框架”。</p>
+<p><b>为什么叫“半自动”呢？这是它的核心特点：</b></p>
+<ul>
+<li>像 Hibernate 这种全自动 ORM，它会帮我们自动生成 SQL，开发者甚至不需要懂 SQL。</li>
+<li>而 MyBatis 仅仅帮我们做了“输入参数映射”和“输出结果映射”，但具体的 SQL 语句还是需要我们自己编写的（通常写在 XML 里）。</li>
+</ul>
+<p>虽然需要手写 SQL 听起来麻烦，但它给了开发者对 SQL 的绝对控制权。在复杂的业务场景下，我们可以轻松地对 SQL 进行手动优化，而不用去研究框架底层生成了什么奇怪的语句。</p>
+<h2 id="和-的区别是什么？什么情况必须用"><a href="#和-的区别是什么？什么情况必须用" class="headerlink" title="#和$的区别是什么？什么情况必须用$"></a>#和$的区别是什么？什么情况必须用$</h2><p>它们的核心区别在于“处理机制”和“安全性”。</p>
+<p><b>首先，关于它们的区别：</b></p>
+<ol>
+<li>处理机制不同：</li>
+</ol>
+<ul>
+<li>#{} 是预编译处理： MyBatis 在处理它时，会将 SQL 中的 #{} 替换为 JDBC 的占位符 ?。接着调用 PreparedStatement 的 set 方法来赋值。</li>
+<li>${} 是字符串替换： MyBatis 在处理它时，就是做纯粹的字符串拼接。它会把参数的值直接拼接到 SQL 语句中，不会自动添加引号。</li>
+</ul>
+<ol start="2">
+<li>安全性不同（最关键点）：</li>
+</ol>
+<ul>
+<li>#{} 因为使用了预编译，能够有效防止 SQL 注入，所以我们在传递查询参数（如 where id &#x3D; #{id}）时，绝大多数情况都必须用这个。</li>
+<li>${} 因为是直接拼接，如果接收前端传入的不可信数据，极易引发 SQL 注入风险。</li>
+</ul>
+<p><b>其次，在什么情况下必须用$：</b></p>
+<p>JDBC的预编译问号占位符，在数据库底层有严格的使用限制。它只能用来代表数据值，不能用来代表数据库的元数据或者语法关键字。</p>
+<p>典型场景：动态排序，如ORDER BY ${create_time}；分表查询。</p>
+<p><b>如何保证$的安全：</b></p>
+<p>配合严格的安全防御措施。在业务层维护一份合法的字段白名单，或者用枚举类型进行严格匹配。只要前端传进来的列名不在白名单中，就直接拒绝请求，或者回退到默认的安全字段。</p>
+<h2 id="Mybatis插件是什么？运行原理是怎样的？"><a href="#Mybatis插件是什么？运行原理是怎样的？" class="headerlink" title="Mybatis插件是什么？运行原理是怎样的？"></a>Mybatis插件是什么？运行原理是怎样的？</h2><p>简单来说，<b>MyBatis 插件本质上就是一个“拦截器”</b>。</p>
+<p>我可以从<b>“拦截范围”和“底层原理”</b>两个方面来解释：</p>
+<p><b>第一，拦截范围：</b></p>
+<p>MyBatis 允许我们拦截 SQL 执行过程中最核心的四大接口：</p>
+<ol>
+<li>Executor（执行器）：拦截 SQL 的执行过程。它是总指挥。拦截它，可以拦截到具体的增删改查操作（update, query, commit, rollback）。</li>
+<li>StatementHandler（语句处理器）：它是 SQL 构建者。这是最常用的，比如大名鼎鼎的 PageHelper 分页插件，就是拦截这个接口，通过修改 SQL 语句添加 LIMIT 来实现的。</li>
+<li>ParameterHandler（参数处理器）：它是参数设置者。拦截参数的设置。拦截它，可以修改传给 SQL 的参数。</li>
+<li>ResultSetHandler（结果集处理器）：它是结果集处理者。拦截结果集的封装。拦截它，可以修改返回的结果（比如对敏感数据加密&#x2F;解密）。</li>
+</ol>
+<p><b>第二，底层原理：</b></p>
+<p>它的底层完全基于 JDK 动态代理 和 责任链模式。</p>
+<ul>
+<li>初始化阶段： 当 MyBatis 在创建上面那 4 个核心对象时，不是直接返回原对象，而是会调用 pluginAll 方法去遍历所有的插件。</li>
+<li>代理包装： 如果发现有插件需要拦截当前对象，MyBatis 就会利用 Proxy.newProxyInstance 生成一个代理对象，把原对象包裹起来。 如果有多个插件，就会生成“代理的代理”。就像洋葱一样，一层包一层。</li>
+<li>执行阶段： 当我们发起 SQL 请求时，实际上调用的是这个代理链。请求会先进入插件的 intercept 方法，我们可以在这里通过 invocation.proceed() 把控制权交给下一层插件，直到剥开所有洋葱皮，最后才执行真正的 JDBC 逻辑。</li>
+<li>返回结果：当数据库返回结果后，控制权又会沿着代理链从内向外一层层返回。在返回的逆向链路中，每个插件同样可以获取到底层返回的结果，执行自己的后置逻辑，最后将结果交付给业务层。</li>
+</ul>
+<blockquote class="notion-callout"><span>💡</span><p>为什么MyBatis插件只用JDK动态代理，而不用CGLIB代理？</p>
+<p>因为MyBatis官方严格限定了插件只能拦截四大组件，而这四大组件在框架内部一开始就设计成了纯粹的顶层接口。既然目标对象本来就是面向接口编程的，那么使用Java原生的JDK动态代理就是最轻量、最自然的选择。</p>
+<p>插件的执行顺序是什么？</p>
+<p>取决于插件在配置或容器中的注册加载顺序。先被加载的插件会先包裹原始对象，从而处于靠里的位置。因此在前置请求阶段，后注册的插件会先执行；在结果返回的后置阶段，后注册的插件会后执行。</p>
+<p>工程取舍：</p>
+<p>多层动态代理和反射调用在极高并发的场景下会带来一定的开销，此外，四大组件的内部状态直接关系到底层数据库连接和事务的正确性。如果在拦截器里直接用反射强行修改内部私有属性，很容易破坏MyBatis的内部状态，甚至引发连接未释放或者事务异常。</p>
+</blockquote>
+
+<h2 id="Mybatis的缓存机制是怎样的"><a href="#Mybatis的缓存机制是怎样的" class="headerlink" title="Mybatis的缓存机制是怎样的"></a>Mybatis的缓存机制是怎样的</h2><p>MyBatis 的缓存分为一级缓存和二级缓存，它们的作用域和应用场景完全不同。</p>
+<p><b>第一，关于一级缓存：</b></p>
+<p>它是 <b>SqlSession 级别的缓存</b>，默认是<b>开启</b>的，而且无法关闭。</p>
+<ul>
+<li>原理： 在同一个数据库会话中，如果我们执行了两次完全相同的 SQL，第一次查询后，MyBatis 会将结果存入内部的一个 HashMap 中；第二次查询直接返回缓存对象，不再查询数据库。</li>
+<li>失效条件： 一旦在当前 Session 中执行了增删改操作，或者调用了 commit&#x2F;rollback&#x2F;close，一级缓存就会被清空，以保证数据准确性。</li>
+<li>生命周期：伴随SqlSession的创建而创建，销毁而销毁。</li>
+</ul>
+<blockquote class="notion-callout"><span>💡</span><p><b>既然一级缓存默认开启，为什么我们在日常SpringBoot整合MyBatis开发时，连续调两次Mapper的相同查询，有时候在日志里能看到打了两次SQL呢？</b></p>
+<p>因为在没有加事务注解的情况下，SpringBoot整合MyBatis，会为每一次Mapper方法的调用自动开启一个新的SqlSession，执行完立刻自动关闭。</p>
+<p>只有把两个查询放在同一个加了事务注解的方法里，它们共享一个底层的SqlSession，一级缓存的命中效果才会真正显现出来。</p>
+</blockquote>
+
+<p><b>第二，关于二级缓存：</b></p>
+<p>它是 <b>Mapper级别的缓存</b>，默认是<b>关闭</b>的。</p>
+<ul>
+<li>原理： 它是跨 Session 的。只要多个 Session 操作的是同一个 Mapper 文件，它们就可以共享缓存。开启它需要在 XML 中配置 &lt;cache&#x2F;&gt; 标签，且实体类必须实现序列化接口。</li>
+<li>局限性（重点）： 在实际生产中，我们很少使用 MyBatis 的二级缓存。</li>
+<li>流程： 数据先从 DB 出来 -&gt; 放入一级缓存 -&gt; Session 关闭后 -&gt; 数据才会转移到二级缓存。</li>
+</ul>
+<p><b>第三，为什么我们不用二级缓存：</b></p>
+<p>主要原因是脏读问题： 二级缓存是基于 Namespace 隔离的。如果是多表关联查询，在一个 Mapper 中更新了数据，另一个 Mapper 的缓存可能无法感知，导致读取到脏数据。</p>
+<p>例子：假设 StudentMapper 做了一个多表查询（查学生带出了班级信息）。此时，通过 ClassMapper 修改了班级信息。StudentMapper 的缓存并不知道 ClassMapper 更新了，它还在傻傻地返回旧的班级信息。这就是脏读。因为二级缓存是基于 Namespace 隔离的，它们互不通气。</p>
+<p><b>在真实工程实践中：</b></p>
+<p>各司其职。ORM框架层面，保留一级缓存在事务内部的查询复用能力，不能把它当作跨会话一致性保证；二级缓存直接关掉不用；真正跨请求、跨会话的业务缓存，由我们在业务服务层显式地通过Redis来统一管理。在服务层，我们清楚地知道哪次更新会影响哪些实体，用旁路缓存等策略去精准淘汰，既安全又可控。</p>
+<h2 id="Mybatis的动态SQL是怎样的"><a href="#Mybatis的动态SQL是怎样的" class="headerlink" title="Mybatis的动态SQL是怎样的"></a>Mybatis的动态SQL是怎样的</h2><p>它解决的核心问题是：<b>摆脱了在 Java 代码中手动拼接 SQL 字符串的痛苦，让我们能像写代码一样，在 XML 中根据条件动态构建 SQL。</b></p>
+<p>在实际开发中，我常用的标签主要分为以下 4 类：</p>
+<p><b>第一是“条件判断标签”：主要是 &lt;if&gt;。</b></p>
+<p>这是最基础的。比如在多条件搜索时，如果前端传了 userId，我就拼接到 WHERE 子句中；如果没传，我就不拼。这避免了硬编码。</p>
+<p><b>第二是“分支选择标签”：主要是 &lt;choose&gt;、&lt;when&gt;、&lt;otherwise&gt;。</b></p>
+<p>这类似于 Java 中的 switch-case。当我有多个查询条件，但只希望其中一个生效时，我会用这个组合。</p>
+<p><b>第三是“智能处理标签”：主要是 &lt;where&gt; 和 &lt;set&gt;。</b></p>
+<p>这是 MyBatis 最人性化的设计。</p>
+<ul>
+<li>&lt;where&gt; 标签 会自动识别标签内部是否有内容。如果没有任何条件，根本不会生成where关键字。如果有，它会自动插入 WHERE 关键字，并且智能去除开头的 “AND” 或 “OR”。</li>
+<li>&lt;set&gt; 标签 用于 Update 语句，它会自动插入set关键字，并去除最后多余的逗号。</li>
+</ul>
+<p><b>第四是“循环标签”：主要是 &lt;foreach&gt;。</b></p>
+<p>它主要用于构建 IN 查询（比如 select * from user where id in (1, 2, 3)）或者批量插入。它能帮我们自动处理开闭的圆括号和分隔符逗号。</p>
+<blockquote class="notion-callout"><span>💡</span><p>动态SQL的边界和潜在坑点：</p>
+<ol>
+<li><b>空集合异常</b>：在用循环标签做范围查询的时候，如果业务层传进来的列表是一个空集合，并且外层没有做判空拦截，框架在解析时就会生成一个括号里没有任何内容的非法语法。解决：要么在业务层提前校验集合长度，要么在外层配合判断标签明确空集合应该返回空结果还是拒绝请求。不能因为省略条件而意外查询或更新全部数据。</li>
+<li><b>参数安全与防注入</b>：虽然动态SQL帮我们做了字符串组装，但并不代表可以无视安全规则。在这些动态标签内部，对于动态传入的变量，必须严格使用占位符参数语法，由框架底层转为预编译参数处理，而不能直接使用字符串拼接替换语法。一旦拼接了外部不可信输入，依然会产生注入风险。</li>
+<li><b>复杂度和维护性的权衡</b>：动态SQL本质上是一种在配置中嵌入微型逻辑的手段。如果一个业务查询极其复杂，嵌套了多层条件判断和循环，整个配置长达几百行。不仅运行时动态解析有开销，后续的阅读、排查问题和数据库执行计划调优都会很复杂。在实际项目中，对于极端复杂的动态报表，更建议根据业务主路径拆分成几个相对独立的专用查询，而不是把所有逻辑都塞进同一个动态语句中。</li>
+</ol>
+</blockquote>
+
+<h2 id="Mybatis如何实现分页查询"><a href="#Mybatis如何实现分页查询" class="headerlink" title="Mybatis如何实现分页查询"></a>Mybatis如何实现分页查询</h2><p>MyBatis 实现分页主要有三种常见的手段，从原理上可以归纳为<b>“逻辑分页”和“物理分页”</b>两类。</p>
+<p><b>第一种是使用 RowBounds 进行逻辑分页：</b></p>
+<p>它的用法很简单，在 Mapper 方法中传入一个 RowBounds 对象即可。</p>
+<p>但是它的底层原理是 “全量查询”。它默认不会给SQL自动增加分页限制，会把所有数据查出来加载到内存中，再在结果集处理时通过游标截取我们需要的那一部分（跳过offset条读取limit条）。</p>
+<p>它不等于把所有行都构造成Java对象，具体网络拉取和缓冲行为取决于JDBC驱动和结果集配置。如果驱动采用全量缓冲，仍然可能将大量结果加载到 JVM 内存，造成 OOM；如果启用了流式获取，内存压力会降低，但数据库查询和跳过记录的开销依然存在。</p>
+<p>数据库没有得到分页限制，深偏移仍可能带来大量扫描和传输。如果数据量达到百万级，会瞬间导致应用内存溢出，且严重浪费数据库 IO 资源。生产中大结果集一般优先使用物理分页。</p>
+<p><b>第二种是手写 SQL 进行物理分页：</b></p>
+<p>也就是在 XML 文件中，直接在 SQL 语句后面拼接 LIMIT #{offset}, #{size}。</p>
+<p>这种方式性能是最好的，因为是数据库层面的过滤，数据库只返回这一页的数据。</p>
+<p>但缺点也很明显：硬编码导致 SQL 与具体的数据库方言强耦合，后续维护和迁移非常麻烦。</p>
+<p><b>第三种是使用分页插件：</b></p>
+<p>这是目前企业级开发中的标准方案。例如PageHelper 或 MyBatis-Plus。</p>
+<p>使用方式： 我们只需要在代码中调用 PageHelper.startPage(pageNum, pageSize)，后面的查询就会自动分页。</p>
+<p>底层原理： 它是<b>基于 MyBatis 的 拦截器机制实现</b>的。插件会拦截 StatementHandler 的 prepare 方法，在 SQL 执行之前，动态地解析 SQL 并在末尾拼接上数据库对应的分页语句。它还会自动再执行一条 SELECT COUNT(*) 语句来计算总条数。</p>
+<p>优势：代码完全解耦，对业务代码无侵入，性能也是物理分页的性能。</p>
+<blockquote class="notion-callout"><span>💡</span><p><b>线程安全与内存泄漏的风险：</b></p>
+<p>像PageHelper这类插件强依赖于ThreadLocal来传递分页状态，如果代码在调用了开启分页之后、还没来得及执行数据库查询之前，由于参数校验不通过或者空指针异常提前报错退出了，这个分页参数会一直残留在当前线程的上下文中。</p>
+<p>由于线程是被线程池复用的，如果这个线程下次被分配去执行不需要分页的查询，就会被莫名其妙加上LIMIT，造成数据缺失或者异常。</p>
+<p>所以在使用时，一定要确保分页语句与查询语句在同一个紧凑的代码块内，并在可能跳过查询的异常路径中用finally显式清理，不能只依赖查询完成后的自动清理。</p>
+<p><b>深分页与COUNT查询的性能瓶颈：</b></p>
+<p>插件在面对大表分页时，自动生成的统计总数语句可能会全表扫描，拖慢整体响应。在海量数据的场景下，工程上往往需要对COUNT语句进行单独优化，在无需精确展示总页数的场景下主动关闭COUNT执行。</p>
+<p>另外，即便是在数据库层面执行LIMIT偏移量很大的深分页查询时，数据库底层依然需要扫描大量的前置记录，这时通常需要配合延迟关联子查询，基于上一页最大主键记录的滚动查询等手段来进行针对性的架构重构。</p>
+<pre><code class="language-java">基于上一页最大主键记录的滚动查询：
+
+<p>不再使用 LIMIT offset, size 跳过前面的数据<br>而是记住上一页最后一条记录的主键 ID<br>下一页直接从这个 ID 之后开始查询<br></code></pre></p>
+</blockquote>
+
+<h2 id="Mybatis-Plus是什么"><a href="#Mybatis-Plus是什么" class="headerlink" title="Mybatis-Plus是什么"></a>Mybatis-Plus是什么</h2><p>MyBatis-Plus 是 MyBatis 的一个增强工具库。它的理念是<b>“只做增强不做改变”</b>。它让我们在做单表基础增删改查时不需要写任何 XML 和 SQL，通过继承 BaseMapper 就能直接调用方法；同时它提供了强大的条件构造器来通过 Java 代码构建查询逻辑。</p>
+<p>具体来说，它的核心价值体现在以下三个方面：</p>
+<p><b>第一，无侵入的通用 CRUD：</b></p>
+<p>我们只需要创建一个 Mapper 接口并继承 BaseMapper，不需要编写任何 XML 文件，就能直接使用单表的增删改查功能。这帮我们节省了大量编写重复 SQL 的时间。</p>
+<p><b>第二，强大的条件构造器：</b></p>
+<p>当我们需要进行复杂的条件搜索时，MP 提供了 QueryWrapper。允许我们使用 Java 的 Lambda 表达式来引用实体类的字段，而不是手写 “name” 字符串。这不仅避免了拼写错误，还让代码重构变得非常安全。</p>
+<p><b>第三，丰富的内置插件：</b></p>
+<p>MP 内置了很多开箱即用的插件。</p>
+<p>比如分页插件，配置后直接调用 selectPage 就能实现物理分页。只需要在配置类里把它注册成MyBatis的拦截器。在代码里创建一个分页参数对象，直接调用BaseMapper里的分页查询方法，底层插件就会自动拦截当前执行的SQL，根据配置的数据源方言追加物理分页语法，并自动执行一次查总条数的语句。把繁琐的多步操作浓缩成一个Java方法调用。</p>
+<blockquote class="notion-callout"><span>💡</span><p>MyBatis-Plus 在系统启动并初始化应用上下文时，它的核心组件SQL注入器就会开始介入，它会扫描继承了BaseMapper的接口，识别对应的实体类结构，通过实体类上的注解或者约定的字段映射规则，在内存中动态生成这些通用的增删改查语句，然后把这些SQL注册到原生MyBatis的全局配置当中。</p>
+<p>初始化 Mapper 时，大致完成以下流程：</p>
+<p><img src="/notion-assets/a742286bf507dcbd2d48098d.png" alt="笔记插图"></p>
+<p><b>工程上的边界和架构权衡：</b></p>
+<p>MyBatis Plus的核心舒适区在单表操作，一旦业务逻辑变得复杂，涉及多表的多条件关联查询、深层次的分组聚合或者是需要DBA专门做索引优化的核心报表SQL，这个时候如果非要强行用条件构造器拼装，代码可读性反而会急剧下降，后期维护和调优成本会变高。</p>
+<p>成熟的做法是：“单表用增强，复杂表回流”。</p>
+</blockquote>
+</div>
+    <footer class="article-footer"><a href="/archives/">继续阅读</a></footer>
+  </article>
+  <aside class="article-toc" aria-label="文章目录"><h2>文章目录</h2><ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#JUC"><span class="toc-text">JUC</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#Java%E7%BA%BF%E7%A8%8B%E6%9C%89%E5%93%AA%E4%BA%9B%E7%8A%B6%E6%80%81"><span class="toc-text">Java线程有哪些状态</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#Java%E4%B8%AD%E5%A4%9A%E7%BA%BF%E7%A8%8B%E7%9A%84%E7%9B%AE%E7%9A%84%E6%98%AF%E4%BB%80%E4%B9%88"><span class="toc-text">Java中多线程的目的是什么</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#Java%E7%9A%84%E5%A4%9A%E7%BA%BF%E7%A8%8B%E5%BC%80%E5%8F%91%E4%B8%AD%EF%BC%8C%E7%BA%BF%E7%A8%8B%E6%95%B0%E6%98%AF%E4%B8%8D%E6%98%AF%E8%B6%8A%E5%A4%9A%E8%B6%8A%E5%A5%BD%EF%BC%9F%E4%B8%80%E8%88%AC%E6%80%8E%E4%B9%88%E8%AE%BE%E7%BD%AE%EF%BC%9F"><span class="toc-text">Java的多线程开发中，线程数是不是越多越好？一般怎么设置？</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#Java%E4%B8%AD-%E4%BB%80%E4%B9%88%E6%98%AF%E7%BA%BF%E7%A8%8B%E6%B1%A0"><span class="toc-text">Java中,什么是线程池</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#Stream-API%E4%B8%AD%E7%9A%84%E5%B9%B6%E8%A1%8C%E6%B5%81%E6%98%AF%E5%A6%82%E4%BD%95%E5%B7%A5%E4%BD%9C%E7%9A%84-%E5%AE%83%E9%BB%98%E8%AE%A4%E4%BD%BF%E7%94%A8%E4%BB%80%E4%B9%88%E7%BA%BF%E7%A8%8B%E6%B1%A0"><span class="toc-text">Stream API中的并行流是如何工作的?它默认使用什么线程池?</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E8%99%9A%E6%8B%9F%E7%BA%BF%E7%A8%8B%E4%B8%8E%E4%BC%A0%E7%BB%9F%E7%BA%BF%E7%A8%8B%E7%9A%84%E5%8C%BA%E5%88%AB%E6%98%AF%E4%BB%80%E4%B9%88-%E5%AE%83%E5%A6%82%E4%BD%95%E6%94%B9%E5%8F%98%E9%AB%98%E5%B9%B6%E5%8F%91%E7%BC%96%E7%A8%8B%E6%A8%A1%E5%9E%8B"><span class="toc-text">虚拟线程与传统线程的区别是什么?它如何改变高并发编程模型?</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#Java%E4%B8%AD%E7%BA%BF%E7%A8%8B%E6%B1%A0%E7%9A%84%E6%A0%B8%E5%BF%83%E5%8F%82%E6%95%B0%E6%9C%89%E5%93%AA%E4%BA%9B"><span class="toc-text">Java中线程池的核心参数有哪些</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E7%BA%BF%E7%A8%8B%E6%B1%A0%E7%9A%84%E5%B7%A5%E4%BD%9C%E6%B5%81%E7%A8%8B%E6%98%AF%E6%80%8E%E6%A0%B7%E7%9A%84"><span class="toc-text">线程池的工作流程是怎样的</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E7%BA%BF%E7%A8%8B%E6%B1%A0%E4%B8%BA%E4%BB%80%E4%B9%88%E8%A6%81%E5%88%86%E5%88%AB%E8%AE%BE%E8%AE%A1%E6%A0%B8%E5%BF%83%E7%BA%BF%E7%A8%8B%E5%92%8C%E9%9D%9E%E6%A0%B8%E5%BF%83%E7%BA%BF%E7%A8%8B"><span class="toc-text">线程池为什么要分别设计核心线程和非核心线程</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#Java%E7%BA%BF%E7%A8%8B%E6%B1%A0%E7%9A%84%E6%8B%92%E7%BB%9D%E7%AD%96%E7%95%A5%E6%9C%89%E5%93%AA%E4%BA%9B"><span class="toc-text">Java线程池的拒绝策略有哪些</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%88%9B%E5%BB%BA%E7%BA%BF%E7%A8%8B%E6%9C%89%E5%93%AA%E4%BA%9B%E6%96%B9%E5%BC%8F"><span class="toc-text">创建线程有哪些方式</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#Runnable-%E5%92%8C-Callable-%E5%85%B7%E4%BD%93%E6%9C%89%E4%BB%80%E4%B9%88%E5%8C%BA%E5%88%AB"><span class="toc-text">Runnable 和 Callable 具体有什么区别</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#Java%E4%B8%AD%E7%9A%84%E7%BA%BF%E7%A8%8B%E6%B1%A0%E6%9C%89%E5%93%AA%E4%BA%9B%E7%B1%BB%E5%9E%8B"><span class="toc-text">Java中的线程池有哪些类型</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%BA%E4%BB%80%E4%B9%88%E9%98%BF%E9%87%8C%E5%BC%80%E5%8F%91%E6%89%8B%E5%86%8C%E7%A6%81%E6%AD%A2%E7%9B%B4%E6%8E%A5%E4%BD%BF%E7%94%A8JDK%E8%87%AA%E5%B8%A6%E7%9A%84%E7%BA%BF%E7%A8%8B%E6%B1%A0"><span class="toc-text">为什么阿里开发手册禁止直接使用JDK自带的线程池</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%BB%80%E4%B9%88%E6%98%AFThreadLocal%EF%BC%9F%E5%A6%82%E4%BD%95%E5%AE%9E%E7%8E%B0%E7%9A%84%EF%BC%9F"><span class="toc-text">什么是ThreadLocal？如何实现的？</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#synchronized%E6%98%AF%E6%80%8E%E4%B9%88%E5%AE%9E%E7%8E%B0%E7%9A%84"><span class="toc-text">synchronized是怎么实现的</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#synchronized%E7%9A%84%E9%94%81%E5%8D%87%E7%BA%A7%E7%9A%84%E7%9B%AE%E7%9A%84%E6%98%AF%E4%BB%80%E4%B9%88"><span class="toc-text">synchronized的锁升级的目的是什么</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#Java%E5%B9%B6%E5%8F%91%E7%9A%84%E4%B8%89%E5%A4%A7%E5%8E%9F%E5%88%99%E6%98%AF%E4%BB%80%E4%B9%88%E5%A6%82%E4%BD%95%E7%90%86%E8%A7%A3"><span class="toc-text">Java并发的三大原则是什么如何理解</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#synchronized-%E4%B8%8E-ReentrantLock-%E7%9A%84%E5%8C%BA%E5%88%AB%E6%9C%89%E5%93%AA%E4%BA%9B"><span class="toc-text">synchronized 与 ReentrantLock 的区别有哪些</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#AQS%E5%BA%95%E5%B1%82%E5%8E%9F%E7%90%86%E6%98%AF%E6%80%8E%E6%A0%B7%E7%9A%84"><span class="toc-text">AQS底层原理是怎样的</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#CountDownLatch-%E5%92%8C-CyclicBarrier-%E9%83%BD%E6%9C%89%E7%AD%89%E5%BE%85%E7%9A%84%E5%8A%9F%E8%83%BD-%E5%AE%83%E4%BB%AC%E6%9C%89%E4%BB%80%E4%B9%88%E5%8C%BA%E5%88%AB%E5%BA%95%E5%B1%82%E5%AE%9E%E7%8E%B0%E4%B8%80%E6%A0%B7%E5%90%97"><span class="toc-text">CountDownLatch 和 CyclicBarrier 都有等待的功能,它们有什么区别底层实现一样吗</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#CompletableFuture%E7%9A%84%E5%BA%95%E5%B1%82%E6%98%AF%E5%A6%82%E4%BD%95%E5%AE%9E%E7%8E%B0%E7%9A%84"><span class="toc-text">CompletableFuture的底层是如何实现的</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#ForkJoinPool%E6%98%AF%E4%BB%80%E4%B9%88%EF%BC%8C%E5%92%8CThreadPoolExecutor%E5%8C%BA%E5%88%AB%E6%98%AF%E4%BB%80%E4%B9%88"><span class="toc-text">ForkJoinPool是什么，和ThreadPoolExecutor区别是什么</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#Java%E4%B8%AD%E7%88%B6%E5%AD%90%E7%BA%BF%E7%A8%8B%E5%A6%82%E4%BD%95%E9%80%9A%E4%BF%A1"><span class="toc-text">Java中父子线程如何通信</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#Java%E4%B8%AD%E4%BD%BF%E7%94%A8-InheritableThreadLocal-%E6%9C%89%E4%BB%80%E4%B9%88%E5%9D%91%E5%90%97%EF%BC%9F%E5%9C%A8%E7%BA%BF%E7%A8%8B%E6%B1%A0%E9%87%8C%E5%A5%BD%E7%94%A8%E5%90%97%EF%BC%9F"><span class="toc-text">Java中使用 InheritableThreadLocal 有什么坑吗？在线程池里好用吗？</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#Java%E4%B8%ADvolatile%E6%98%AF%E4%BB%80%E4%B9%88-%E5%A6%82%E4%BD%95%E7%90%86%E8%A7%A3JMM"><span class="toc-text">Java中volatile是什么?如何理解JMM</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%BB%80%E4%B9%88%E6%98%AFhappens-before"><span class="toc-text">什么是happens-before</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%BA%E4%BB%80%E4%B9%88%E5%8D%95%E4%BE%8B%E6%A8%A1%E5%BC%8F%E7%9A%84DCL%E6%A8%A1%E5%BC%8F%E9%9C%80%E8%A6%81%E7%94%A8volatile"><span class="toc-text">为什么单例模式的DCL模式需要用volatile</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%BB%80%E4%B9%88%E6%98%AFCAS-%E4%BB%80%E4%B9%88%E6%98%AFABA%E9%97%AE%E9%A2%98-%E5%A6%82%E4%BD%95%E8%A7%A3%E5%86%B3ABA%E9%97%AE%E9%A2%98"><span class="toc-text">什么是CAS?什么是ABA问题?如何解决ABA问题?</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#Java%E4%B8%ADAtomicInteger-%E9%80%82%E5%90%88%E9%AB%98%E5%B9%B6%E5%8F%91-%E4%BD%86%E5%9C%A8%E7%AB%9E%E4%BA%89%E6%9E%81%E5%85%B6%E6%BF%80%E7%83%88%E7%9A%84%E6%97%B6%E5%80%99%E5%AE%83%E7%9A%84%E6%80%A7%E8%83%BD%E4%BC%9A%E4%B8%8B%E9%99%8D-%E4%BD%A0%E7%9F%A5%E9%81%93%E4%B8%BA%E4%BB%80%E4%B9%88%E5%90%97%EF%BC%9F%E6%9C%89%E4%BB%80%E4%B9%88%E4%BC%98%E5%8C%96%E7%9A%84%E6%96%B9%E6%A1%88%E5%90%97%EF%BC%9F"><span class="toc-text">Java中AtomicInteger 适合高并发,但在竞争极其激烈的时候它的性能会下降,你知道为什么吗？有什么优化的方案吗？</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%AE%9E%E7%8E%B0%E4%B8%80%E4%B8%AA%E7%94%9F%E4%BA%A7%E8%80%85%E6%B6%88%E8%B4%B9%E8%80%85%E7%9A%84%E4%BB%A3%E7%A0%81"><span class="toc-text">实现一个生产者消费者的代码</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%AE%9E%E7%8E%B0DCL%E7%9A%84%E4%BB%A3%E7%A0%81"><span class="toc-text">实现DCL的代码</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%AE%9E%E7%8E%B0%E4%B8%89%E4%B8%AA%E7%BA%BF%E7%A8%8B%E4%BA%A4%E6%9B%BF%E6%89%93%E5%8D%B0ABC%E7%9A%84%E4%BB%A3%E7%A0%81"><span class="toc-text">实现三个线程交替打印ABC的代码</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%AE%9E%E7%8E%B0%E9%A1%BA%E5%BA%8F%E6%89%93%E5%8D%B0%E6%95%B0%E5%AD%97N%E4%B8%AA%E7%BA%BF%E7%A8%8B"><span class="toc-text">实现顺序打印数字N个线程</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%AE%9E%E7%8E%B0%E4%B8%80%E4%B8%AA%E6%AD%BB%E9%94%81%E4%BA%A7%E7%94%9F%E7%A4%BA%E4%BE%8B"><span class="toc-text">实现一个死锁产生示例</span></a></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#JVM"><span class="toc-text">JVM</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#Java%E6%98%AF%E7%BC%96%E8%AF%91%E5%9E%8B%E8%BF%98%E6%98%AF%E8%A7%A3%E9%87%8A%E5%9E%8B"><span class="toc-text">Java是编译型还是解释型?</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%BB%80%E4%B9%88%E6%98%AFJIT%EF%BC%9F"><span class="toc-text">什么是JIT？</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%A6%82%E4%BD%95%E7%90%86%E8%A7%A3JVM%E7%9A%84%E5%86%85%E5%AD%98%E9%80%83%E9%80%B8%EF%BC%9F"><span class="toc-text">如何理解JVM的内存逃逸？</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#JVM%E7%9A%84%E8%BF%90%E8%A1%8C%E5%86%85%E5%AD%98%E5%8C%BA%E5%9F%9F%E6%98%AF%E6%80%8E%E6%A0%B7%E7%9A%84%EF%BC%9F"><span class="toc-text">JVM的运行内存区域是怎样的？</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#JVM%E4%B8%AD%E5%A0%86%E5%92%8C%E6%A0%88%E6%9C%89%E4%BB%80%E4%B9%88%E5%8C%BA%E5%88%AB%EF%BC%9F"><span class="toc-text">JVM中堆和栈有什么区别？</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#Java-%E5%AF%B9%E8%B1%A1%E7%9A%84%E5%86%85%E5%AD%98%E5%B8%83%E5%B1%80%E6%98%AF%E6%80%8E%E6%A0%B7%E7%9A%84"><span class="toc-text">Java 对象的内存布局是怎样的</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%B0%B8%E4%B9%85%E4%BB%A3%E4%B8%BA%E4%BB%80%E4%B9%88%E8%A6%81%E6%94%B9%E6%88%90%E5%85%83%E7%A9%BA%E9%97%B4"><span class="toc-text">永久代为什么要改成元空间</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#JVM%E7%B1%BB%E5%8A%A0%E8%BD%BD%E7%9A%84%E8%BF%87%E7%A8%8B%E6%98%AF%E6%80%8E%E6%A0%B7%E7%9A%84"><span class="toc-text">JVM类加载的过程是怎样的</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%8F%8C%E4%BA%B2%E5%A7%94%E6%B4%BE%E7%9A%84%E8%BF%87%E7%A8%8B%E6%98%AF%E6%80%8E%E6%A0%B7%E7%9A%84%EF%BC%9F%E7%9B%AE%E7%9A%84%E6%98%AF%E4%BB%80%E4%B9%88%EF%BC%9F"><span class="toc-text">双亲委派的过程是怎样的？目的是什么？</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%BB%80%E4%B9%88%E6%83%85%E5%86%B5%E4%B8%8B%E9%9C%80%E8%A6%81%E6%89%93%E7%A0%B4%E5%8F%8C%E4%BA%B2%E5%A7%94%E6%B4%BE"><span class="toc-text">什么情况下需要打破双亲委派</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#JVM%E6%98%AF%E5%A6%82%E4%BD%95%E5%88%A4%E6%96%AD%E4%B8%80%E4%B8%AA%E5%AF%B9%E8%B1%A1%E6%98%AF%E5%8F%AF%E5%9B%9E%E6%94%B6%E7%9A%84"><span class="toc-text">JVM是如何判断一个对象是可回收的</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#Java-%E4%B8%AD%E7%9A%84%E5%BC%BA%E5%BC%95%E7%94%A8%E3%80%81%E8%BD%AF%E5%BC%95%E7%94%A8%E3%80%81%E5%BC%B1%E5%BC%95%E7%94%A8%E3%80%81%E8%99%9A%E5%BC%95%E7%94%A8%E6%9C%89%E4%BB%80%E4%B9%88%E5%8C%BA%E5%88%AB%EF%BC%9F"><span class="toc-text">Java 中的强引用、软引用、弱引用、虚引用有什么区别？</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%B8%B8%E8%A7%81%E7%9A%84%E5%9E%83%E5%9C%BE%E6%94%B6%E9%9B%86%E7%AE%97%E6%B3%95%E6%9C%89%E5%93%AA%E4%BA%9B"><span class="toc-text">常见的垃圾收集算法有哪些</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%BB%80%E4%B9%88%E6%98%AFSTW"><span class="toc-text">什么是STW</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%B8%B8%E8%A7%81%E7%9A%84%E5%9E%83%E5%9C%BE%E6%94%B6%E9%9B%86%E5%99%A8%E6%9C%89%E5%93%AA%E4%BA%9B"><span class="toc-text">常见的垃圾收集器有哪些</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#G1%E5%AF%B9%E6%AF%94CMS%E4%BC%98%E5%8A%BF%E5%9C%A8%E5%93%AA"><span class="toc-text">G1对比CMS优势在哪</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#Java-%E4%B8%AD%E4%BB%80%E4%B9%88%E6%98%AF%E4%B8%89%E8%89%B2%E6%A0%87%E8%AE%B0%E7%AE%97%E6%B3%95"><span class="toc-text">Java 中什么是三色标记算法</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#GC%E9%A2%91%E7%B9%81%E6%9C%89%E5%8F%AF%E8%83%BD%E6%98%AF%E4%BB%80%E4%B9%88%E5%8E%9F%E5%9B%A0%E9%80%A0%E6%88%90%E7%9A%84"><span class="toc-text">GC频繁有可能是什么原因造成的</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%A6%82%E6%9E%9C%E7%BA%BF%E4%B8%8A%E5%87%BA%E7%8E%B0%E4%BA%86%E9%A2%91%E7%B9%81GC%E7%9A%84%E5%91%8A%E8%AD%A6%E5%BA%94%E8%AF%A5%E5%A6%82%E4%BD%95%E6%8E%92%E6%9F%A5"><span class="toc-text">如果线上出现了频繁GC的告警应该如何排查</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#ZGC%E6%98%AF%E4%BB%80%E4%B9%88%E4%BB%80%E4%B9%88%E6%83%85%E5%86%B5%E4%B8%8B%E8%80%83%E8%99%91%E9%80%89%E6%8B%A9"><span class="toc-text">ZGC是什么什么情况下考虑选择</span></a></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#Spring"><span class="toc-text">Spring</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%BB%80%E4%B9%88%E6%98%AFSpring%E6%A1%86%E6%9E%B6"><span class="toc-text">什么是Spring框架</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%A6%82%E4%BD%95%E7%90%86%E8%A7%A3IOC"><span class="toc-text">如何理解IOC</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#Bean%E7%9A%84%E4%BD%9C%E7%94%A8%E5%9F%9F%E6%9C%89%E5%93%AA%E4%BA%9B"><span class="toc-text">Bean的作用域有哪些</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#Bean%E7%9A%84%E7%94%9F%E5%91%BD%E5%91%A8%E6%9C%9F%E6%98%AF%E6%80%8E%E6%A0%B7%E7%9A%84"><span class="toc-text">Bean的生命周期是怎样的</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%8D%95%E4%BE%8BBean%E7%9A%84%E7%BA%BF%E7%A8%8B%E5%AE%89%E5%85%A8%E5%A6%82%E4%BD%95%E7%90%86%E8%A7%A3"><span class="toc-text">单例Bean的线程安全如何理解</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%8D%95%E4%BE%8BBean%E7%9A%84%E5%BE%AA%E7%8E%AF%E4%BE%9D%E8%B5%96%E9%97%AE%E9%A2%98%E6%98%AF%E5%A6%82%E4%BD%95%E8%A7%A3%E5%86%B3%E7%9A%84"><span class="toc-text">单例Bean的循环依赖问题是如何解决的</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%BB%80%E4%B9%88%E6%98%AFAOP-%E6%9C%89%E4%BB%80%E4%B9%88%E5%BA%94%E7%94%A8%E5%9C%BA%E6%99%AF"><span class="toc-text">什么是AOP?有什么应用场景?</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#AOP%E7%9A%84%E5%AE%9E%E7%8E%B0%E5%8E%9F%E7%90%86%E6%98%AF%E6%80%8E%E6%A0%B7%E7%9A%84"><span class="toc-text">AOP的实现原理是怎样的</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%8B%A6%E6%88%AA%E5%99%A8%E5%92%8C%E8%BF%87%E6%BB%A4%E5%99%A8%E6%9C%89%E4%BB%80%E4%B9%88%E5%8C%BA%E5%88%AB"><span class="toc-text">拦截器和过滤器有什么区别</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#Spring%E7%9A%84%E4%BA%8B%E5%8A%A1%E7%AE%A1%E7%90%86%E6%98%AF%E6%80%8E%E6%A0%B7%E7%9A%84"><span class="toc-text">Spring的事务管理是怎样的</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%A3%B0%E6%98%8E%E5%BC%8F%E4%BA%8B%E5%8A%A1%E4%BB%80%E4%B9%88%E6%83%85%E5%86%B5%E4%BC%9A%E5%A4%B1%E6%95%88"><span class="toc-text">声明式事务什么情况会失效</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%BA%8B%E5%8A%A1%E7%9A%84%E4%BC%A0%E6%92%AD%E8%A7%84%E5%88%99%E6%98%AF%E6%80%8E%E6%A0%B7%E7%9A%84"><span class="toc-text">事务的传播规则是怎样的</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#SpringMVC%E6%80%8E%E4%B9%88%E7%90%86%E8%A7%A3"><span class="toc-text">SpringMVC怎么理解</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#SpringBoot%E5%AF%B9%E6%AF%94Spring%E6%9C%89%E4%BD%95%E5%8C%BA%E5%88%AB"><span class="toc-text">SpringBoot对比Spring有何区别</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#BeanFactory%E5%92%8CFactroyBean%E7%9A%84%E5%85%B3%E7%B3%BB"><span class="toc-text">BeanFactory和FactroyBean的关系</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#Spring%E4%B8%AD%E7%94%A8%E5%88%B0%E4%BA%86%E5%93%AA%E4%BA%9B%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F"><span class="toc-text">Spring中用到了哪些设计模式</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#Springboot%E6%98%AF%E5%A6%82%E4%BD%95%E5%AE%9E%E7%8E%B0%E8%87%AA%E5%8A%A8%E9%85%8D%E7%BD%AE%E7%9A%84"><span class="toc-text">Springboot是如何实现自动配置的</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#Springboot%E7%9A%84starter%E6%98%AF%E4%BB%80%E4%B9%88-%E6%9C%89%E4%BB%80%E4%B9%88%E5%BA%94%E7%94%A8%E5%9C%BA%E6%99%AF"><span class="toc-text">Springboot的starter是什么?有什么应用场景</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#Spring%E6%A1%86%E6%9E%B6%E6%9C%89%E5%A4%9A%E7%BA%BF%E7%A8%8B%E5%90%97%EF%BC%88%E6%AF%94%E5%A6%82%E5%90%8C%E4%B8%80%E4%B8%AAcontroller%E8%A2%AB%E5%A4%9A%E4%B8%AA%E7%94%A8%E6%88%B7%E5%90%8C%E6%97%B6%E8%AE%BF%E9%97%AE%EF%BC%89%EF%BC%9F%E5%BA%95%E5%B1%82%E5%8E%9F%E7%90%86%E6%98%AF%E6%80%8E%E6%A0%B7%E7%9A%84%EF%BC%9F"><span class="toc-text">Spring框架有多线程吗（比如同一个controller被多个用户同时访问）？底层原理是怎样的？</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#Spring-Task%E6%98%AF%E4%BB%80%E4%B9%88%EF%BC%9F%E5%AE%9E%E7%8E%B0%E5%8E%9F%E7%90%86%E6%98%AF%E6%80%8E%E6%A0%B7%E7%9A%84%EF%BC%9F"><span class="toc-text">Spring Task是什么？实现原理是怎样的？</span></a></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#MyBatis"><span class="toc-text">MyBatis</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%BB%80%E4%B9%88%E6%98%AFMybatis-%E4%BB%80%E4%B9%88%E6%98%AFORM%E6%A1%86%E6%9E%B6"><span class="toc-text">什么是Mybatis?什么是ORM框架?</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%92%8C-%E7%9A%84%E5%8C%BA%E5%88%AB%E6%98%AF%E4%BB%80%E4%B9%88%EF%BC%9F%E4%BB%80%E4%B9%88%E6%83%85%E5%86%B5%E5%BF%85%E9%A1%BB%E7%94%A8"><span class="toc-text">#和$的区别是什么？什么情况必须用$</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#Mybatis%E6%8F%92%E4%BB%B6%E6%98%AF%E4%BB%80%E4%B9%88%EF%BC%9F%E8%BF%90%E8%A1%8C%E5%8E%9F%E7%90%86%E6%98%AF%E6%80%8E%E6%A0%B7%E7%9A%84%EF%BC%9F"><span class="toc-text">Mybatis插件是什么？运行原理是怎样的？</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#Mybatis%E7%9A%84%E7%BC%93%E5%AD%98%E6%9C%BA%E5%88%B6%E6%98%AF%E6%80%8E%E6%A0%B7%E7%9A%84"><span class="toc-text">Mybatis的缓存机制是怎样的</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#Mybatis%E7%9A%84%E5%8A%A8%E6%80%81SQL%E6%98%AF%E6%80%8E%E6%A0%B7%E7%9A%84"><span class="toc-text">Mybatis的动态SQL是怎样的</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#Mybatis%E5%A6%82%E4%BD%95%E5%AE%9E%E7%8E%B0%E5%88%86%E9%A1%B5%E6%9F%A5%E8%AF%A2"><span class="toc-text">Mybatis如何实现分页查询</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#Mybatis-Plus%E6%98%AF%E4%BB%80%E4%B9%88"><span class="toc-text">Mybatis-Plus是什么</span></a></li></ol></li></ol></aside>
+</div>
+</main>
+  <footer class="site-footer"><div><a class="footer-brand" href="/">Ella 的学习手记</a></div><div><a href="/archives/">文章归档</a><span>© 2026 Ella</span></div></footer>
+</body>
+</html>

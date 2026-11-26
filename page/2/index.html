@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#fff8fa">
+  <meta name="description" content="算法刷题、技术学习与项目实践，记录每一次从理解到实现的过程。">
+  <title>Ella 的学习手记</title>
+  <link rel="icon" href="/images/favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="/assets/ella-ui.css">
+  
+  <link rel="stylesheet" href="/css/pink.css">
+  <link rel="stylesheet" href="/css/game.css"><script defer src="/assets/loopy-game.js"></script>
+  <script defer src="/assets/ella-ui.js"></script>
+  <script defer src="/js/main.js"></script>
+<meta name="generator" content="Hexo 8.1.2"></head>
+<body class="is-game-home">
+  <a class="skip-link" href="#main">跳转到内容</a>
+  <header class="site-header">
+    <div class="header-inner">
+      <a class="brand" href="/" aria-label="Ella 的学习手记，首页"><svg class="brand-symbol" viewBox="0 0 36 36" width="36" height="36" fill="none" aria-hidden="true"><path d="M12 12c-6-6-12 3-9 11 2 5 6 5 10 1h10c4 4 8 4 10-1 3-8-3-17-9-11H12Z" fill="#f7c1d1" stroke="#b5466b" stroke-width="1.6"/><path d="M9 17v8m-4-4h8" stroke="#90374f" stroke-width="1.6" stroke-linecap="round"/><circle cx="24" cy="18" r="2" fill="#b5466b"/><circle cx="28" cy="23" r="2" fill="#b5466b"/></svg><span>Ella<span class="brand-period">.</span></span></a>
+      <button class="menu-toggle" type="button" aria-label="展开导航" aria-expanded="false" aria-controls="navigation"><span></span><span></span><span></span></button>
+      <nav class="navigation" id="navigation" aria-label="主导航">
+        
+        <a href="/" class="active" aria-current="page">首页</a><a href="/algorithms/">算法笔记</a><a href="/notes/">技术笔记</a><a href="/projects/">项目</a><a href="/about/">关于我</a>
+      </nav>
+      <a class="github-link" href="https://github.com/abcElla" target="_blank" rel="noopener noreferrer" aria-label="Ella 的 GitHub"><svg class="icon" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 19c-4 1-4-2-6-2m12 5v-4a3.5 3.5 0 0 0-1-3c3-.3 6-1.5 6-6a5 5 0 0 0-1.4-3.5A4.5 4.5 0 0 0 18.5 2S17.3 1.7 15 3.4a12 12 0 0 0-6 0C6.7 1.7 5.5 2 5.5 2a4.5 4.5 0 0 0-.1 3.5A5 5 0 0 0 4 9c0 4.5 3 5.7 6 6a3.5 3.5 0 0 0-1 3v4"/></svg><span>GitHub</span></a>
+    </div>
+  </header>
+  <main id="main" class="site-main"><section class="game-shell" data-state="loading" aria-labelledby="game-title" data-sprites="/game/loopy-game.webp">
+  <canvas class="game-canvas" id="loopy-game" tabindex="0" aria-label="Loopy 横版闯关游戏" aria-describedby="game-instructions">你的浏览器暂不支持 Canvas，请使用顶部导航阅读笔记和项目。</canvas>
+  <div class="game-hud">
+    <div class="level-info"><span class="level-number">01</span><span>樱桃小径</span><span class="hud-divider"></span><span class="gem-stat"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m12 3 7 9-7 9-7-9Z"/></svg><span data-score>0 / 17</span></span><span class="lives-stat" aria-label="剩余 3 次机会" data-lives></span></div>
+    <div class="game-tools">
+      <button class="game-icon-button" type="button" data-sound aria-label="开启音效" aria-pressed="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><path d="M11 5 6 9H3v6h3l5 4V5Z"/><path class="sound-muted" d="m16 9 5 6m0-6-5 6"/><path class="sound-waves" d="M15 8a6 6 0 0 1 0 8m3-11a10 10 0 0 1 0 14"/></svg></button>
+      <button class="game-icon-button" type="button" data-pause aria-label="暂停游戏" disabled><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><path d="M8 5v14M16 5v14"/></svg></button>
+      <button class="game-icon-button" type="button" data-restart aria-label="重新开始" disabled><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><path d="M4 11a8 8 0 1 1 2 7M4 4v7h7"/></svg></button>
+    </div>
+  </div>
+  <div class="game-overlay" data-overlay>
+    <div class="game-intro" data-dialog>
+      <h1 id="game-title">Loopy 的<br>粉色冒险<span class="title-period">.</span></h1>
+      <p class="game-message" data-message>素材加载中…</p>
+      <button class="game-start" type="button" data-start disabled><svg viewBox="0 0 20 20" aria-hidden="true"><path d="m7 4 9 6-9 6Z"/></svg><span>准备中</span></button>
+      <p class="game-result" data-result hidden></p>
+    </div>
+  </div>
+  <div class="game-bottom-bar"><p class="control-hint" id="game-instructions"><span><kbd>←</kbd><kbd>→</kbd> 移动</span><span><kbd>空格</kbd> 跳跃</span><span><kbd>P</kbd> 暂停</span></p><a class="game-credits" href="/game/credits.txt" target="_blank" rel="noopener">开源说明</a></div>
+  <div class="touch-controls" aria-label="触屏游戏控制"><div class="touch-move"><button type="button" data-move="left" aria-label="向左移动"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m15 6-6 6 6 6"/></svg></button><button type="button" data-move="right" aria-label="向右移动"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m9 6 6 6-6 6"/></svg></button></div><button class="touch-jump" type="button" data-jump aria-label="跳跃"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 19V5m-6 6 6-6 6 6"/></svg></button></div>
+  <p class="sr-only" data-announcement role="status" aria-live="polite"></p>
+  <noscript><div class="game-noscript">游戏需要 JavaScript。你仍然可以通过顶部导航阅读所有笔记和项目。</div></noscript>
+</section>
+</main>
+  
+</body>
+</html>

@@ -1,0 +1,651 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#fff8fa">
+  <meta name="description" content="Redis是一个基于内存的高性能Key-Value数据库。在工程实践中，我们主要利用它极其快速的读写能力（QPS可达10万+）来做缓存，同时利用它丰富的数据结构来实现复杂的业务逻辑（如排行榜、计数器）。">
+  <title>Redis · Ella 的学习手记</title>
+  <link rel="icon" href="/images/favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="/assets/ella-ui.css">
+  <link rel="stylesheet" href="/assets/katex/katex.min.css">
+  <link rel="stylesheet" href="/css/pink.css">
+  
+  <script defer src="/assets/ella-ui.js"></script>
+  <script defer src="/js/main.js"></script>
+<meta name="generator" content="Hexo 8.1.2"></head>
+<body class="is-reading-page">
+  <a class="skip-link" href="#main">跳转到内容</a>
+  <header class="site-header">
+    <div class="header-inner">
+      <a class="brand" href="/" aria-label="Ella 的学习手记，首页"><svg class="brand-symbol" viewBox="0 0 36 36" width="36" height="36" fill="none" aria-hidden="true"><path d="M12 12c-6-6-12 3-9 11 2 5 6 5 10 1h10c4 4 8 4 10-1 3-8-3-17-9-11H12Z" fill="#f7c1d1" stroke="#b5466b" stroke-width="1.6"/><path d="M9 17v8m-4-4h8" stroke="#90374f" stroke-width="1.6" stroke-linecap="round"/><circle cx="24" cy="18" r="2" fill="#b5466b"/><circle cx="28" cy="23" r="2" fill="#b5466b"/></svg><span>Ella<span class="brand-period">.</span></span></a>
+      <button class="menu-toggle" type="button" aria-label="展开导航" aria-expanded="false" aria-controls="navigation"><span></span><span></span><span></span></button>
+      <nav class="navigation" id="navigation" aria-label="主导航">
+        
+        <a href="/">首页</a><a href="/algorithms/">算法笔记</a><a href="/notes/" class="active" aria-current="page">技术笔记</a><a href="/projects/">项目</a><a href="/about/">关于我</a>
+      </nav>
+      <a class="github-link" href="https://github.com/abcElla" target="_blank" rel="noopener noreferrer" aria-label="Ella 的 GitHub"><svg class="icon" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 19c-4 1-4-2-6-2m12 5v-4a3.5 3.5 0 0 0-1-3c3-.3 6-1.5 6-6a5 5 0 0 0-1.4-3.5A4.5 4.5 0 0 0 18.5 2S17.3 1.7 15 3.4a12 12 0 0 0-6 0C6.7 1.7 5.5 2 5.5 2a4.5 4.5 0 0 0-.1 3.5A5 5 0 0 0 4 9c0 4.5 3 5.7 6 6a3.5 3.5 0 0 0-1 3v4"/></svg><span>GitHub</span></a>
+    </div>
+  </header>
+  <main id="main" class="site-main">
+
+<nav class="notion-breadcrumbs" aria-label="笔记位置">
+  <ol>
+    <li><a href="/notes/">技术笔记</a></li>
+    <li><a href="/notion/3f03db4f4b7c809aa284ed7db5e4dd8c/">八股学习</a></li>
+    <li aria-current="page">Redis</li>
+  </ol>
+</nav>
+
+<div class="article-layout">
+  <article class="article">
+    <header class="article-header">
+      <a class="back-link" href="/archives/">全部文章</a>
+      <div class="post-meta">
+        <span>技术笔记</span>
+        <span class="meta-separator">/</span>
+        <time datetime="2026-10-05T04:15:00.000Z">2026.10.05</time>
+      </div>
+      <h1>Redis</h1>
+      <div class="tag-list"><a href="/tags/Notion/"># Notion</a></div>
+      
+    </header>
+    <details class="reading-outline"><summary>本篇目录</summary><ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#%E4%BB%80%E4%B9%88%E6%98%AFRedis"><span class="toc-text">什么是Redis</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E7%9B%B4%E6%8E%A5%E7%94%A8%E4%B8%80%E4%B8%AA%E5%93%88%E5%B8%8C%E8%A1%A8%E6%9B%BF%E4%BB%A3Redis%E6%9D%A5%E5%81%9A%E7%BC%93%E5%AD%98%E5%8F%AF%E4%BB%A5%E5%90%97"><span class="toc-text">直接用一个哈希表替代Redis来做缓存可以吗</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E6%97%A2%E7%84%B6%E7%94%A8%E4%BA%86%E6%9C%AC%E5%9C%B0%E7%BC%93%E5%AD%98%E5%92%8C-Redis-%E4%B8%A4%E5%B1%82%EF%BC%8C%E6%80%8E%E4%B9%88%E4%BF%9D%E8%AF%81%E5%AE%83%E4%BB%AC%E4%B9%8B%E9%97%B4%E7%9A%84%E6%95%B0%E6%8D%AE%E4%B8%80%E8%87%B4%E6%80%A7%E5%91%A2"><span class="toc-text">既然用了本地缓存和 Redis 两层，怎么保证它们之间的数据一致性呢</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E5%A6%82%E6%9E%9CRedis%E7%9A%84%E5%91%BD%E4%BB%A4%E6%89%A7%E8%A1%8C%E4%BD%BF%E7%94%A8%E5%A4%9A%E7%BA%BF%E7%A8%8B%E7%9A%84%E8%AF%9D%E6%80%A7%E8%83%BD%E4%BC%9A%E4%B8%8D%E4%BC%9A%E4%B8%8A%E5%8D%87"><span class="toc-text">如果Redis的命令执行使用多线程的话性能会不会上升</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E4%B8%BA%E4%BB%80%E4%B9%88Redis%E7%9A%84%E6%80%A7%E8%83%BD%E8%BF%99%E4%B9%88%E5%A5%BD"><span class="toc-text">为什么Redis的性能这么好</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E6%95%B4%E4%B8%AARedis%E8%BF%9B%E7%A8%8B%E9%83%BD%E6%9C%89%E5%93%AA%E4%BA%9B%E7%BA%BF%E7%A8%8B"><span class="toc-text">整个Redis进程都有哪些线程</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#Redis%E5%B8%B8%E8%A7%81%E7%9A%84%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84%E6%9C%89%E5%93%AA%E4%BA%9B%EF%BC%9F%E6%9C%89%E4%BB%80%E4%B9%88%E5%BA%94%E7%94%A8%E5%9C%BA%E6%99%AF"><span class="toc-text">Redis常见的数据结构有哪些？有什么应用场景</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#Redis%E7%9A%84String%E6%98%AF%E6%80%8E%E4%B9%88%E5%AE%9E%E7%8E%B0%E7%9A%84"><span class="toc-text">Redis的String是怎么实现的</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#Redis%E7%9A%84List%E6%98%AF%E6%80%8E%E4%B9%88%E5%AE%9E%E7%8E%B0%E7%9A%84"><span class="toc-text">Redis的List是怎么实现的</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#ZipList%E6%9C%89%E8%BF%9E%E9%94%81%E6%9B%B4%E6%96%B0%E7%9A%84%E9%97%AE%E9%A2%98%EF%BC%8C%E9%82%A3Listpack%E6%98%AF%E6%80%8E%E4%B9%88%E8%A7%A3%E5%86%B3%E8%BF%99%E4%B8%AA%E9%97%AE%E9%A2%98%E7%9A%84%EF%BC%9F"><span class="toc-text">ZipList有连锁更新的问题，那Listpack是怎么解决这个问题的？</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#ZSet%E7%9A%84%E5%BA%95%E5%B1%82%E5%AE%9E%E7%8E%B0%E5%8E%9F%E7%90%86%E6%98%AF%E6%80%8E%E6%A0%B7%E7%9A%84"><span class="toc-text">ZSet的底层实现原理是怎样的</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E6%97%A2%E7%84%B6%E5%A4%9A%E7%BA%BF%E7%A8%8B%E6%89%A7%E8%A1%8C%E8%BF%99%E4%B9%88%E9%BA%BB%E7%83%A6%EF%BC%8C%E9%82%A3-Redis-%E6%98%AF%E6%80%8E%E4%B9%88%E8%A7%A3%E5%86%B3-Key-%E8%BF%87%E6%9C%9F%E5%92%8C%E6%B7%98%E6%B1%B0%E7%9A%84%EF%BC%9F%E8%BF%99%E4%BC%9A%E4%B8%8D%E4%BC%9A%E9%98%BB%E5%A1%9E%E4%B8%BB%E7%BA%BF%E7%A8%8B"><span class="toc-text">既然多线程执行这么麻烦，那 Redis 是怎么解决 Key 过期和淘汰的？这会不会阻塞主线程</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#Redis%E7%9A%84%E5%86%85%E5%AD%98%E6%BB%A1%E4%BA%86%E4%BC%9A%E6%80%8E%E6%A0%B7%EF%BC%9F%E6%9C%89%E5%93%AA%E4%BA%9B%E7%AD%96%E7%95%A5%E4%B8%8D%E5%90%8C%E7%AD%96%E7%95%A5%E7%9A%84%E5%BA%94%E7%94%A8%E5%9C%BA%E6%99%AF%E6%9C%89%E4%BB%80%E4%B9%88%E4%B8%8D%E5%90%8C%EF%BC%9F"><span class="toc-text">Redis的内存满了会怎样？有哪些策略不同策略的应用场景有什么不同？</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#Redis%E7%9A%84%E6%8C%81%E4%B9%85%E5%8C%96%E6%9C%BA%E5%88%B6%E6%9C%89%E5%93%AA%E4%BA%9B"><span class="toc-text">Redis的持久化机制有哪些</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E5%AF%B9%E6%AF%94RDB%E5%92%8CAOF"><span class="toc-text">对比RDB和AOF</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E5%A6%82%E4%BD%95%E7%90%86%E8%A7%A3AOF%E9%87%8D%E5%86%99%E6%9C%BA%E5%88%B6"><span class="toc-text">如何理解AOF重写机制</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#Redis%E7%9A%84%E4%BA%8B%E5%8A%A1%E6%98%AF%E6%80%8E%E6%A0%B7%E7%9A%84"><span class="toc-text">Redis的事务是怎样的</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E4%B8%BA%E4%BB%80%E4%B9%88%E8%AF%B4-Lua-%E8%84%9A%E6%9C%AC%E6%98%AF%E5%8E%9F%E5%AD%90%E6%80%A7%E7%9A%84%EF%BC%9F%E5%A6%82%E6%9E%9C-Lua-%E8%84%9A%E6%9C%AC%E6%89%A7%E8%A1%8C%E4%BA%86%E4%B8%80%E5%8D%8A%E6%96%AD%E7%94%B5%E4%BA%86%E6%80%8E%E4%B9%88%E5%8A%9E%EF%BC%9F"><span class="toc-text">为什么说 Lua 脚本是原子性的？如果 Lua 脚本执行了一半断电了怎么办？</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#Lua%E8%84%9A%E6%9C%AC%E5%92%8CRedis%E4%BA%8B%E5%8A%A1%E5%AF%B9%E6%AF%94%E4%B8%80%E4%B8%8B"><span class="toc-text">Lua脚本和Redis事务对比一下</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E4%BB%80%E4%B9%88%E6%98%AF%E7%BC%93%E5%AD%98%E5%87%BB%E7%A9%BF%E3%80%81%E7%BC%93%E5%AD%98%E9%9B%AA%E5%B4%A9%E5%92%8C%E7%BC%93%E5%AD%98%E7%A9%BF%E9%80%8F"><span class="toc-text">什么是缓存击穿、缓存雪崩和缓存穿透</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E4%BB%80%E4%B9%88%E6%98%AF%E5%B8%83%E9%9A%86%E8%BF%87%E6%BB%A4%E5%99%A8%EF%BC%8C%E5%8E%9F%E7%90%86%E6%98%AF%E6%80%8E%E6%A0%B7%E7%9A%84"><span class="toc-text">什么是布隆过滤器，原理是怎样的</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E5%A6%82%E6%9E%9C%E9%9A%8F%E7%9D%80%E7%B3%BB%E7%BB%9F%E8%BF%90%E8%A1%8C%EF%BC%8C%E6%9C%89%E8%B6%8A%E6%9D%A5%E8%B6%8A%E5%A4%9A%E7%9A%84%E6%95%B0%E6%8D%AE%E8%A2%AB%E5%88%A0%E9%99%A4%EF%BC%8C%E5%B8%83%E9%9A%86%E8%BF%87%E6%BB%A4%E5%99%A8%E5%8F%88%E4%B8%8D%E6%94%AF%E6%8C%81%E5%88%A0%E9%99%A4%EF%BC%8C%E4%BC%9A%E5%AF%BC%E8%87%B4%E8%AF%AF%E5%88%A4%E7%8E%87%E8%B6%8A%E6%9D%A5%E8%B6%8A%E9%AB%98%EF%BC%8C%E8%BF%99%E5%BA%94%E8%AF%A5%E6%80%8E%E4%B9%88%E5%A4%84%E7%90%86%EF%BC%9F"><span class="toc-text">如果随着系统运行，有越来越多的数据被删除，布隆过滤器又不支持删除，会导致误判率越来越高，这应该怎么处理？</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E5%A6%82%E4%BD%95%E4%BF%9D%E8%AF%81MySQL%E5%92%8CRedis%E7%9A%84%E6%95%B0%E6%8D%AE%E4%B8%80%E8%87%B4%E6%80%A7"><span class="toc-text">如何保证MySQL和Redis的数据一致性</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#canal%E7%9A%84%E5%B7%A5%E4%BD%9C%E5%8E%9F%E7%90%86%E6%98%AF%E6%80%8E%E6%A0%B7%E7%9A%84"><span class="toc-text">canal的工作原理是怎样的</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#Redis%E5%A6%82%E4%BD%95%E5%AE%9E%E7%8E%B0%E5%88%86%E5%B8%83%E5%BC%8F%E9%94%81"><span class="toc-text">Redis如何实现分布式锁</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#Redission%E7%9A%84%E5%88%86%E5%B8%83%E5%BC%8F%E9%94%81%E6%98%AF%E5%8F%AF%E9%87%8D%E5%85%A5%E7%9A%84%E5%90%97%EF%BC%9F%E5%85%B7%E4%BD%93%E6%98%AF%E5%A6%82%E4%BD%95%E5%AE%9E%E7%8E%B0%E7%9A%84%E5%8F%AF%E9%87%8D%E5%85%A5%EF%BC%9F"><span class="toc-text">Redission的分布式锁是可重入的吗？具体是如何实现的可重入？</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E4%BB%80%E4%B9%88%E6%98%AFRedLock"><span class="toc-text">什么是RedLock</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#Redis%E7%9A%84%E9%9B%86%E7%BE%A4%E6%96%B9%E6%A1%88%E6%9C%89%E5%93%AA%E4%BA%9B"><span class="toc-text">Redis的集群方案有哪些</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#Redis%E5%A6%82%E4%BD%95%E5%AE%9E%E7%8E%B0%E5%BB%B6%E6%97%B6%E9%98%9F%E5%88%97"><span class="toc-text">Redis如何实现延时队列</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E4%B8%BA%E4%BB%80%E4%B9%88%E5%93%88%E5%B8%8C%E6%A7%BD%E7%9A%84%E6%95%B0%E9%87%8F%E5%9B%BA%E5%AE%9A%E6%98%AF16384%E4%B8%AA"><span class="toc-text">为什么哈希槽的数量固定是16384个</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#Redis%E7%9A%84%E7%83%ADKey%E9%97%AE%E9%A2%98%E5%A6%82%E4%BD%95%E7%90%86%E8%A7%A3-%E5%A6%82%E4%BD%95%E8%A7%A3%E5%86%B3"><span class="toc-text">Redis的热Key问题如何理解?如何解决</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#Redis%E7%9A%84%E5%A4%A7Key%E9%97%AE%E9%A2%98%E5%A6%82%E4%BD%95%E7%90%86%E8%A7%A3-%E5%A6%82%E4%BD%95%E8%A7%A3%E5%86%B3"><span class="toc-text">Redis的大Key问题如何理解?如何解决?</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#Redis%E7%9A%84pipeline%E6%98%AF%E4%BB%80%E4%B9%88-%E6%9C%89%E4%BB%80%E4%B9%88%E5%BA%94%E7%94%A8%E5%9C%BA%E6%99%AF"><span class="toc-text">Redis的pipeline是什么?有什么应用场景?</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#Redis%E7%9A%84%E5%8F%91%E5%B8%83%E8%AE%A2%E9%98%85%E6%A8%A1%E5%BC%8F%E6%98%AF%E6%80%8E%E6%A0%B7%E7%9A%84%EF%BC%9F%E6%9C%89%E4%BB%80%E4%B9%88%E5%BA%94%E7%94%A8%E5%9C%BA%E6%99%AF%EF%BC%9F"><span class="toc-text">Redis的发布订阅模式是怎样的？有什么应用场景？</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#Redis%E7%9A%84stream%E6%98%AF%E6%80%8E%E6%A0%B7%E7%9A%84%EF%BC%9F%E6%9C%89%E4%BB%80%E4%B9%88%E5%BA%94%E7%94%A8%E5%9C%BA%E6%99%AF%EF%BC%9F"><span class="toc-text">Redis的stream是怎样的？有什么应用场景？</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#Stream%E5%BA%95%E5%B1%82%E7%9A%84%E5%9F%BA%E6%95%B0%E6%A0%91%E5%AE%9E%E7%8E%B0%E5%8E%9F%E7%90%86%E6%98%AF%E6%80%8E%E6%A0%B7%E7%9A%84"><span class="toc-text">Stream底层的基数树实现原理是怎样的</span></a></li></ol></details>
+    <div class="prose"><h1 id="什么是Redis"><a href="#什么是Redis" class="headerlink" title="什么是Redis"></a>什么是Redis</h1><p>Redis是一个基于内存的高性能Key-Value数据库。在工程实践中，我们主要利用它极其快速的读写能力（QPS可达10万+）来做缓存，同时利用它丰富的数据结构来实现复杂的业务逻辑（如排行榜、计数器）。</p>
+<p><b>第一，关于它的性能核心。</b></p>
+<p>Redis之所以快，主要基于三点：</p>
+<ol>
+<li><b>纯内存操作</b>，避开了磁盘I&#x2F;O的瓶颈。</li>
+<li><b>基于IO多路复用模型</b>，实现了非阻塞的网络I&#x2F;O，能高效处理海量并发连接。</li>
+<li><b>单线程执行模型</b>，避免了多线程频繁的上下文切换开销和竞态条件。</li>
+</ol>
+<p><b>第二，关于数据结构与场景。</b></p>
+<p>它不仅仅存字符串，更重要的是支持复杂数据类型：</p>
+<ul>
+<li>用<b>String</b>做缓存、计数器（INCR）或分布式锁（SETNX）。</li>
+<li>用<b>Hash</b>存储用户对象，修改单个字段不用读取整个对象。</li>
+<li>用<b>List</b>做简单的消息队列。</li>
+<li>用<b>Zset</b>实现实时排行榜，利用其底层的跳表结构进行快速排序。</li>
+</ul>
+<p>第三，关于高可用。</p>
+<p>Redis虽然是内存数据库，但支持RDB和AOF两种持久化方式保证重启数据不丢。在生产环境中，我们通常配合Sentinel（哨兵）做主从切换的高可用，或者使用Redis Cluster做分片集群，以支持海量数据存储和水平扩展。</p>
+<h1 id="直接用一个哈希表替代Redis来做缓存可以吗"><a href="#直接用一个哈希表替代Redis来做缓存可以吗" class="headerlink" title="直接用一个哈希表替代Redis来做缓存可以吗"></a>直接用一个哈希表替代Redis来做缓存可以吗</h1><p>用哈希表直接做缓存是可以的，这在业界被称为本地缓存。但它不能在所有场景下替代Redis，它更多是作为Redis的前置补充。它的核心优势是极低延迟，但存在数据不一致和内存管理复杂两大硬伤。</p>
+<p><b>第一，适用场景与优势。</b></p>
+<p>如果缓存的数据是静态的，或者对一致性要求不高，直接用哈希表是极其高效的。因为它省去了序列化和网络I&#x2F;O的开销，性能比Redis高出1-2个数量级。</p>
+<p><b>第二，不可替代Redis的核心原因。</b></p>
+<ol>
+<li><b>分布式一致性难题</b>：在微服务或多节点部署下，本地哈希表是数据隔离的。修改一个节点的缓存，无法同步更新其他节点。这会导致用户看到的数据在不同请求间“跳变”。</li>
+<li><b>内存不可控</b>：原生哈希表没有内存上限和LRU淘汰机制，容易引发OOM。Redis则提供了成熟的过期和淘汰策略，且进程隔离，不会因为缓存满了拖垮业务服务。</li>
+<li><b>持久性缺失</b>：应用重启即数据丢失，会引发缓存雪崩，对数据库造成瞬间冲击。</li>
+</ol>
+<p><b>第三，最佳实践（多级缓存）。</b></p>
+<p>在高性能系统中，我们通常不会非此即彼，而是采用“本地缓存+Redis”的多级缓存架构。</p>
+<ul>
+<li><b>L1（本地）</b>：用HashMap挡住最热的Key（如热点商品），处理80%的读请求。</li>
+<li><b>L2（Redis）</b>：作为全量缓存和分布式协调层，保证数据最终一致性。</li>
+</ul>
+<p>这样既利用了哈希表的极速，又利用了Redis的可靠性和一致性。</p>
+<h1 id="既然用了本地缓存和-Redis-两层，怎么保证它们之间的数据一致性呢"><a href="#既然用了本地缓存和-Redis-两层，怎么保证它们之间的数据一致性呢" class="headerlink" title="既然用了本地缓存和 Redis 两层，怎么保证它们之间的数据一致性呢"></a>既然用了本地缓存和 Redis 两层，怎么保证它们之间的数据一致性呢</h1><p>在多级缓存架构中，保证一致性的核心策略是“短窗口的过期时间”作为兜底，配合“消息广播机制”进行实时同步。我们一般采用“主动失效”的策略，具体实现分为轻量级和高可靠两种路径。</p>
+<p><b>第一，必须设置本地缓存的短过期时间（TTL）</b></p>
+<p>本地缓存只应该缓存热点数据，且有效期不宜过长。这样即使通知机制完全失效，脏数据造成的影响也被限制在10秒以内，保证了最终一致性。</p>
+<p><b>第二，基于Redis Pub&#x2F;Sub的轻量级通知</b></p>
+<p>在大多数业务场景下，我们利用Redis天然的发布订阅功能。</p>
+<p>当一个业务节点修改了数据并更新Redis后，它会同时向Redis的特定Channel发布一条“清除消息”。集群中其他所有订阅了该Channel的业务节点收到消息后，会立即删除自己本地内存中对应的Key。</p>
+<p>这个方案的优点是架构简单，不引入新组件；缺点是Redis的消息没有持久化，极端网络下可能会丢失消息，但配合TTL兜底，这对大部分互联网业务是可以接受的。</p>
+<p><b>第三，基于MQ广播的高可靠方案</b></p>
+<p>如果业务对一致性要求较高，我们会使用RocketMQ或Kafka的广播模式。</p>
+<p>消息队列保证了消息的可靠传递。即使某个节点暂时Full GC卡顿或网络波动，恢复后依然能消费到积压的消息来清理缓存，从而消除了“漏删”的风险。</p>
+<h1 id="如果Redis的命令执行使用多线程的话性能会不会上升"><a href="#如果Redis的命令执行使用多线程的话性能会不会上升" class="headerlink" title="如果Redis的命令执行使用多线程的话性能会不会上升"></a>如果Redis的命令执行使用多线程的话性能会不会上升</h1><p>关于Redis命令执行是否应该多线程化，我的观点是：在通用场景下，性能不仅不会上升，反而极大概率会下降。这主要是由Redis的业务特征决定的，可以从“锁开销”和“CPU亲和性”两个维度来解释。</p>
+<p><b>第一，常规操作中，锁的开销远大于执行开销。</b></p>
+<p>Redis是纯内存操作，像GET&#x2F;SET这样的指令执行时间是纳秒级的。如果引入多线程，为了保证数据一致性，必须引入锁机制。</p>
+<p>在如此高频的短任务中，竞争锁和管理锁的时间成本，往往会超过直接执行命令的时间。这就好比为了买一瓶水（执行命令），却要花半小时排队安检（处理锁），整体效率反而是降低的。</p>
+<p><b>第二，引入了昂贵的上下文切换成本。</b></p>
+<p>Redis单线程模型的最大优势之一是极高的CPU缓存命中率。数据和指令都在一个核上跑，不需要来回搬运。</p>
+<p>如果改为多线程，CPU需要频繁在不同线程间切换上下文，这会导致CPU缓存频繁失效。对于Redis这种对延迟极度敏感的系统，这种抖动是不可接受的。</p>
+<p><b>第三，特例与现实对比。</b></p>
+<p>当然，确实有像KeyDB这样基于Redis修改的多线程版本，它们在执行复杂查询（如大范围扫描、复杂集合运算）时性能优于Redis。</p>
+<h1 id="为什么Redis的性能这么好"><a href="#为什么Redis的性能这么好" class="headerlink" title="为什么Redis的性能这么好"></a>为什么Redis的性能这么好</h1><p>Redis之所以能达到10万+的QPS，核心原因可以归纳为四点：基于内存、IO多路复用、单线程模型以及高效的数据结构。</p>
+<p><b>第一，纯内存操作。</b></p>
+<p>Redis将所有数据存储在内存中，避开了磁盘I&#x2F;O的物理限制。相比于磁盘毫秒级的读写，内存纳秒级的操作速度是其高性能的物理基础。</p>
+<p><b>第二，采用IO多路复用机制。</b></p>
+<p>Redis利用Linux的epoll技术实现非阻塞I&#x2F;O。它让一个线程就能监听成千上万个客户端连接。只有当网络事件真正发生时，CPU才会被唤醒去处理。这构成了高效的Reactor事件驱动模型，极大地提升了网络吞吐量。</p>
+<p><b>第三，单线程避免了不必要的开销。</b></p>
+<p>Redis的核心命令是单线程的。这带来了两个巨大的优势：</p>
+<ol>
+<li><b>零锁竞争</b>：我们不需要在操作数据结构时加锁，节省了大量的锁开销和死锁风险。</li>
+<li><b>避免上下文切换</b>：避免了多线程在CPU核心间切换带来的寄存器保存和缓存失效问题，保证了极高的CPU利用率。</li>
+</ol>
+<p><b>第四，定制的高效数据结构。</b></p>
+<p>Redis对底层数据结构做了很多针对性优化。比如使用SDS替代C字符串以实现O(1)获取长度；在小数据量时使用ZipList压缩内存以提高缓存局部性；使用SkipList实现有序集合的高效查找。这些细节优化进一步压榨了硬件性能。</p>
+<h1 id="整个Redis进程都有哪些线程"><a href="#整个Redis进程都有哪些线程" class="headerlink" title="整个Redis进程都有哪些线程"></a>整个Redis进程都有哪些线程</h1><p>虽然我们常说Redis是单线程模型，但这指的是核心命令执行是单线程的。实际上，一个运行中的Redis进程是多线程的。具体可以分为三类：主线程、后台BIO线程以及Redis 6.0引入的I&#x2F;O线程。</p>
+<p>第一，核心的主线程</p>
+<p>这是Redis运作的中枢，负责处理网络事件循环、执行所有的KV读写命令等。由于它串行执行命令，保证了操作的原子性。</p>
+<p>第二，后台BIO线程</p>
+<p>为了防止耗时的系统调用阻塞主线程，Redis在启动时会创建3个专用的后台线程，分别处理三类任务：</p>
+<ol>
+<li>bio_close_file：异步关闭大文件。</li>
+<li>bio_aof_fsync：负责AOF的磁盘同步操作，保证数据持久化不拖慢主线程。</li>
+<li>bio_lazy_free（4.0引入）：负责异步释放大对象的内存（Lazy Free），解决删除Big Key造成的阻塞问题。</li>
+</ol>
+<p>第三，I&#x2F;O辅助线程</p>
+<p>在Redis 6.0以后，为了提升网络I&#x2F;O的吞吐量，引入了可配置的I&#x2F;O线程组。它们专门负责socket的读写和协议解析，但不执行命令。这是一种“主线程执行逻辑，多线程分担流量”的设计。</p>
+<h1 id="Redis常见的数据结构有哪些？有什么应用场景"><a href="#Redis常见的数据结构有哪些？有什么应用场景" class="headerlink" title="Redis常见的数据结构有哪些？有什么应用场景"></a>Redis常见的数据结构有哪些？有什么应用场景</h1><p>Redis常用的数据结构主要有5种基础类型，我们在项目中会根据具体的读写场景和算法需求来选择。此外，在一些特定场景（如统计日活）还会用到Bitmap或HyperLogLog。</p>
+<p><b>String（字符串）</b></p>
+<ul>
+<li>特征： 最基本类型，二进制安全。底层是 SDS（简单动态字符串），可以存储 JSON、图片甚至序列化后的对象。支持原子计数（INCR）。</li>
+<li>差异： 很多新手不管三七二十一全用 String 存 JSON，这会导致修改一个字段需要全量读写，浪费带宽。</li>
+<li>应用场景：缓存对象、常规计数、分布式锁</li>
+</ul>
+<p><b>Hash（哈希）</b></p>
+<ul>
+<li>特征： 也就是 Map，内部是 field-value 对。</li>
+<li>核心价值：<b>部分更新。</b>相比于 String 存整个 JSON 字符串，Hash 允许你只修改用户对象中的“年龄”或“余额”字段，而不需要把整个对象取出来反序列化改完再塞回去。</li>
+<li>应用场景：用户&#x2F;商品详情、购物车</li>
+</ul>
+<p><b>List（列表）</b></p>
+<ul>
+<li>特征： 双向链表（底层演进为 QuickList）。</li>
+<li>核心价值：<b>有序性和两端操作。</b>它不适合随机索引访问（O(N)），但非常适合做 FIFO（队列）或 LIFO（栈）的操作。</li>
+<li>应用场景：简单的消息队列、用户最新的N条记录</li>
+</ul>
+<p><b>Set（集合）</b></p>
+<ul>
+<li>特征： 无序、自动去重。</li>
+<li>核心价值：<b>集合运算。</b>它的威力在于服务端支持交集（SINTER）、并集（SUNION）、差集（SDIFF）。比如计算两个人的“共同好友”，直接用 SINTER 也就是一条命令的事，不需要把数据拉到应用层去算。</li>
+<li>应用场景：标签&#x2F;点赞、共同好友&#x2F;关注</li>
+</ul>
+<p><b>ZSet (Sorted Set，有序集合)</b></p>
+<ul>
+<li>特征： 去重 + 权重。底层使用 <b>跳表</b> 实现。</li>
+<li>核心价值：<b>高性能排序。</b>它能支持 O(logN) 级别的按权重查找和范围查找。这是传统数据库做起来很吃力的场景（比如千万级数据的实时排名）。</li>
+<li>应用场景：排行榜、延迟队列</li>
+</ul>
+<p><b>Bitmap（位图）</b></p>
+<ul>
+<li>特点： 它是对 String 类型的位操作，将内存利用率推到了极致。</li>
+<li>场景：<ul>
+<li>用户签到： Key 是年份+用户ID，Offset 是天数（0-365）。签到就是 SETBIT key offset 1。一年下来的签到记录只占 46 字节。</li>
+<li>日活&#x2F;月活统计： Key 是日期，Offset 是用户 ID。用户登录就置 1。计算月活只需将 30 天的 Bitmap 做 BITOP OR 操作。</li>
+<li>状态标志： 比如由 ID 1~1000W 的用户，判断谁是 VIP，谁在线。</li>
+</ul>
+</li>
+</ul>
+<p><b>HyperLogLog</b></p>
+<ul>
+<li>特点： 专门用于基数统计。它的优势是内存占用极小且固定，劣势是有极小的误差。</li>
+<li>场景：<ul>
+<li>网站 UV： 如果我们要统计页面访问的独立 IP 数，每天可能有上亿次访问。用 Set 存 IP 太费内存，用 HLL 只需要 12KB 就能涵盖 <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msup><mn>2</mn><mn>64</mn></msup></mrow><annotation encoding="application/x-tex">2^{64}</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.8141em;"></span><span class="mord"><span class="mord">2</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.8141em;"><span style="top:-3.063em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mtight">64</span></span></span></span></span></span></span></span></span></span></span></span> 个基数，误差在可接受范围内。</li>
+<li>搜索词去重数： 统计用户搜了多少个不重复的关键词。</li>
+</ul>
+</li>
+</ul>
+<p><b>Geo（地理位置）</b></p>
+<ul>
+<li>特点： 基于 ZSet 实现的地理空间索引。它利用 GeoHash 将二维坐标降维成一维 Score，实现了高效的临近查找。</li>
+<li>场景：<ul>
+<li>附近的人&#x2F;门店： 利用 GEORADIUS 命令，快速找出距离当前经纬度 5km 内的店铺，并按距离排序。</li>
+<li>距离计算： 司机和乘客的实时距离计算。</li>
+</ul>
+</li>
+</ul>
+<h1 id="Redis的String是怎么实现的"><a href="#Redis的String是怎么实现的" class="headerlink" title="Redis的String是怎么实现的"></a>Redis的String是怎么实现的</h1><p>Redis的String类型并没有直接使用C语言的字符串，而是构建了一种名为SDS（简单动态字符串）的封装结构。它的核心目的是为了解决C字符串的性能瓶颈和安全性问题。</p>
+<p><b>第一，O(1)的长度查询效率。</b></p>
+<p>C语言获取字符串长度需要遍历，是O(N)的。Redis作为高性能数据库，不能接受这种开销。SDS在头部维护了一个len字段，直接返回即可，确保了STRLEN命令的高效。</p>
+<p><b>第二，二进制安全。</b></p>
+<p>这是Redis能作为缓存存储各种数据的关键。C字符串以\0截断，无法存储图片或序列化后的二进制流。SDS依靠len属性来界定数据边界，中间包含\0也没关系，这使得Redis String可以存储任意二进制数据。</p>
+<p><b>第三，高效的内存分配策略。</b></p>
+<p>SDS有两套策略来减少频繁的系统调用（malloc&#x2F;free）：</p>
+<ol>
+<li>空间预分配：当字符串变长时，SDS会多分配内存（小于1M时翻倍分配）。这样减少了连续执行APPEND操作时的内存重分配次数。</li>
+<li>惰性空间释放：当字符串缩短时，SDS不会立即回收内存，而是保留下来备用，避免了缩短后再增长带来的二次分配开销。</li>
+</ol>
+<p><b>第四，杜绝缓冲区溢出。</b></p>
+<p>SDS的API在进行字符串拼接或修改时，会先检查空间是否满足，不满足会自动扩容。这从根源上避免了C语言中常见的缓冲区溢出隐患。</p>
+<h1 id="Redis的List是怎么实现的"><a href="#Redis的List是怎么实现的" class="headerlink" title="Redis的List是怎么实现的"></a>Redis的List是怎么实现的</h1><p>Redis的List底层实现随着版本演进有过较大变化。在Redis3.2之前，它由ziplist和linkedlist混合实现。而在3.2之后，Redis统一使用了QuickList作为底层实现。</p>
+<p><b>第一，QuickList。</b></p>
+<p>QuickList是一个双向链表和压缩列表的混合体。简单来说，QuickList的宏观结构是双向链表，但链表中的每一个节点实际包含的是一个ZipList（在Redis7.0后替换为Listpack）。</p>
+<p><b>第二，它解决了什么问题。</b></p>
+<p>这种设计完美平衡了内存空间和访问性能：</p>
+<ol>
+<li><b>克服了原生链表的内存浪费</b>：普通的双向链表每个节点都需要两个指针，且内存不连续，容易产生碎片。QuickList将多个元素打包在一个ZipList节点中，大幅减少了指针占用，利用了CPU缓存。</li>
+<li><b>克服了原生数组的修改代价</b>：如果直接用一个巨大的ZipList，插入删除会导致大量的内存拷贝。QuickList将大块数据切分成多个小段，修改操作限制在局部，避免了全局拷贝。</li>
+</ol>
+<h1 id="ZipList有连锁更新的问题，那Listpack是怎么解决这个问题的？"><a href="#ZipList有连锁更新的问题，那Listpack是怎么解决这个问题的？" class="headerlink" title="ZipList有连锁更新的问题，那Listpack是怎么解决这个问题的？"></a>ZipList有连锁更新的问题，那Listpack是怎么解决这个问题的？</h1><p>ZipList的连锁更新问题，根本原因在于其Entry结构的耦合性。Listpack通过改变Entry的编码结构，移除了对前驱节点的长度依赖，从而彻底解决了这个问题。</p>
+<p><b>第一，ZipList的问题。</b></p>
+<p>ZipList为了支持双向遍历，在每个节点的头部保存了prevlen（前一个节点的长度）。这个字段是变长的（1字节或5字节，分界线是254字节）。</p>
+<p>一旦某个节点扩容跨过了254字节的阈值，其后继节点的prevlen就需要扩大内存空间。如果后继节点扩大后也超过了阈值，就会触发多米诺骨牌效应，导致后续大量节点需要连续进行内存重分配，这在极端情况下会将时间复杂度从O(1)拉低到O(N)。</p>
+<p><b>第二，Listpack的解决方案。</b></p>
+<p>Listpack重新设计了Entry结构：encoding + data + backlen。</p>
+<p>核心区别在于两点：</p>
+<ol>
+<li>移除前驱依赖：头部不再存储前一个节点的长度。前一个节点变大变小，跟当前节点完全无关。</li>
+<li>引入backlen：在当前节点的尾部存储当前节点自身的总长度。</li>
+</ol>
+<p><b>第三，如何保持双向遍历能力？</b></p>
+<p>Listpack的巧妙之处在于，通过读取当前节点的backlen，我们可以计算出当前节点的起始位置。而当前节点起始位置的前一个字节，就是前一个节点的backlen。这样我们依然可以从后往前回溯遍历，但消除了节点间的数据耦合，彻底根除了连锁更新的风险。</p>
+<h1 id="ZSet的底层实现原理是怎样的"><a href="#ZSet的底层实现原理是怎样的" class="headerlink" title="ZSet的底层实现原理是怎样的"></a>ZSet的底层实现原理是怎样的</h1><p>ZSet的底层实现采用了<b>“压缩列表”和“跳表+哈希表”</b>两种形态，根据数据量动态切换，以在内存占用和性能之间寻找平衡。</p>
+<p><b>第一，压缩列表形态。</b></p>
+<p>当ZSet存储的元素数量较少（默认小于128个）且元素长度较短时，Redis使用ZipList。这是一块连续的内存，元素和Score按顺序紧凑排列。虽然理论上插入是O(N)，但在小数据量下，利用CPU的缓存行特性，它的实际读写速度极快，且极度节省内存。</p>
+<p><b>第二，跳表+哈希表形态。</b></p>
+<p>当数据量增多，ZSet会升级为复合结构：</p>
+<ol>
+<li>SkipList：这是主存储结构。它通过维护多级索引实现了平均O(logN)的查找效率，支持高效的插入、删除和范围查询。</li>
+<li>Dict：作为一个辅助结构，它维护了Member→Score的映射。这使得ZSCORE命令的复杂度从O(logN)降到了O(1)。</li>
+</ol>
+<p><b>第三，为什么选择跳表而不是红黑树。</b></p>
+<p>核心原因有两点：</p>
+<ol>
+<li><b>范围查询更高效：</b>ZSet极度依赖区间查找。跳表一旦找到区间的起点，剩下的操作就是简单的链表遍历；而红黑树需要进行中序遍历，不仅逻辑复杂，而且内存跳跃大，对CPU缓存不友好。</li>
+<li><b>实现更简单：</b>跳表通过概率平衡代替了红黑树复杂的旋转平衡，代码实现更轻量，也更易于内存管理。</li>
+</ol>
+<h1 id="既然多线程执行这么麻烦，那-Redis-是怎么解决-Key-过期和淘汰的？这会不会阻塞主线程"><a href="#既然多线程执行这么麻烦，那-Redis-是怎么解决-Key-过期和淘汰的？这会不会阻塞主线程" class="headerlink" title="既然多线程执行这么麻烦，那 Redis 是怎么解决 Key 过期和淘汰的？这会不会阻塞主线程"></a>既然多线程执行这么麻烦，那 Redis 是怎么解决 Key 过期和淘汰的？这会不会阻塞主线程</h1><p>Redis处理Key的过期和淘汰，采用的是<b>“惰性删除+定期删除”的混合策略，配合内存淘汰机制</b>。至于阻塞问题，在处理大Key时确实存在风险，但在4.0版本引入Lazy Free后得到了有效解决。</p>
+<p><b>第一，过期删除策略。</b></p>
+<p>Redis不会开启一个独立线程去全量扫描过期Key，因为开销太大。</p>
+<ul>
+<li>它主要靠<b>惰性删除</b>：在访问Key的时候检查，过期就删。</li>
+<li>辅以定期删除：主线程每隔100ms随机采用一小部分Key进行检查。为了不阻塞业务，这个过程有严格的执行时长限制（Time Cap）。</li>
+<li>这既保证了CPU不被耗尽，又防止了冷数据占满内存。</li>
+</ul>
+<p><b>第二，内存淘汰机制。</b></p>
+<p>当内存达到max memory时，每次写入都会触发淘汰逻辑。Redis会利用近似LRU等算法，随机采样并淘汰数据，腾出空间。</p>
+<blockquote class="notion-callout"><span>💡</span><p>Redis 的 LRU 为什么是近似 LRU？</p>
+<p>回答：</p>
+<p>Redis 没有采用传统的哈希表加双向链表实现精确 LRU，因为精确 LRU 要为大量 key 维护额外链表结构，并且每次访问 key 都要调整链表，会增加内存占用和 CPU、内存写开销。Redis 的做法是在对象中用 LRU 时钟记录最近访问时间，当达到 maxmemory 需要淘汰数据时，根据 <code>maxmemory-samples</code> 随机采样若干 key，比较它们的空闲时间，并结合 eviction pool 保存较优的淘汰候选，最终淘汰其中较久未访问的 key。因此它不保证淘汰的一定是全局最久未访问的 key，但用很小的开销获得了接近标准 LRU 的效果。</p>
+<p><b>Redis 近似 LRU 流程：</b></p>
+<pre><code class="language-txt">访问 key
+   ↓
+记录最近访问时钟
+
+<p>内存超过 maxmemory<br>   ↓<br>随机采样若干 key<br>   ↓<br>比较 idle time<br>   ↓<br>加入 &#x2F; 更新 eviction pool<br>   ↓<br>选择最久未访问的候选<br>   ↓<br>删除<br></code></pre></p>
+<p>其中最核心的思想其实不是“LRU”，而是 Redis 经常使用的一种工程思想：<b>牺牲一点理论上的精确性，换取非常大的性能和内存收益。</b></p>
+</blockquote>
+
+<p><b>第三，关于阻塞与解决方案（Big Key问题）。</b></p>
+<p>在Redis 4.0之前，删除是同步的。如果过期或淘汰的是一个Big Key（比如几百万元素的Set），内存回收过程会直接阻塞主线程，导致线上抖动。</p>
+<p>现代Redis（4.0+）引入了Lazy Free机制。</p>
+<ul>
+<li>我们可以配置lazyfree-lazy-expire和lazyfree-lazy-eviction。</li>
+<li>这样一来，主线程只负责把Key从数据库字典中“摘除”（unlink），真正的内存释放操作由后台线程（Background Thread）异步执行。这彻底解决了删除大Key阻塞主线程的问题。</li>
+</ul>
+<h1 id="Redis的内存满了会怎样？有哪些策略不同策略的应用场景有什么不同？"><a href="#Redis的内存满了会怎样？有哪些策略不同策略的应用场景有什么不同？" class="headerlink" title="Redis的内存满了会怎样？有哪些策略不同策略的应用场景有什么不同？"></a>Redis的内存满了会怎样？有哪些策略不同策略的应用场景有什么不同？</h1><p>当Redis内存达到max memory时，它的行为完全取决于我们在配置文件中设置的maxmemory-policy。简单来说，Redis会根据配置尝试淘汰数据来腾出空间；如果策略配置为不淘汰或淘汰失败，针对写请求会直接报OOM错误。</p>
+<p><b>第一，默认策略</b></p>
+<p>这是Redis的默认配置。在这种模式下，Redis不会删除任何数据。当内存满了，任何尝试申请内存的写入命令（如SET）都会报错，但读命令（GET依然正常）。</p>
+<p>应用场景：适用于将Redis用作<b>强一致性数据库</b>的场景，数据一条都不能丢，必须通过监控报警手动扩容。</p>
+<p><b>第二，缓存场景</b></p>
+<p>如果我们把 Redis 当作纯缓存使用（Cache），通常希望保留热数据，淘汰冷数据。</p>
+<ul>
+<li>推荐策略： 一般使用 allkeys-lru。</li>
+<li>进阶策略： 如果业务存在“周期性扫描”或“冷门数据突发访问”的情况，LRU 可能会失效，此时推荐使用 Redis 4.0 引入的 allkeys-lfu（基于访问频率），它能更精准地识别并保留真正的热点数据。</li>
+</ul>
+<blockquote class="notion-callout"><span>💡</span><p>维度一：淘汰的范围</p>
+<ul>
+<li>allkeys：从所有键中筛选。这通常意味着你把 Redis 当纯缓存用，内存满了随便删。</li>
+<li>volatile：仅从设置了过期时间（TTL）的键中筛选。这意味着你希望 Redis 保留那些“永久数据”，只清理临时的。</li>
+</ul>
+<p>维度二：淘汰的算法</p>
+<ul>
+<li>LRU：淘汰<b>最近最少使用的</b>。假设数据有冷热之分，最近没用的将来大概率也没用。</li>
+<li>LFU ：Redis 4.0 引入，淘汰<b>使用频率最低的</b>。避免了 LRU 中“偶尔被扫一次就被误认为是热数据”的问题。</li>
+<li>Random：随机删。</li>
+<li>TTL：谁快过期了删谁（仅限 volatile）。</li>
+</ul>
+</blockquote>
+
+<p><b>第三，混合场景</b></p>
+<p>如果Redis实例中既有缓存数据（设置了TTL），又有持久化数据（没设TTL，当作DB用），我们就不能随便删所有Key。</p>
+<p>推荐策略：使用volatile-lru。这样Redis只会去清理那些本来就会过期的缓存数据，而绝对不会触碰那些持久化的核心数据。</p>
+<h1 id="Redis的持久化机制有哪些"><a href="#Redis的持久化机制有哪些" class="headerlink" title="Redis的持久化机制有哪些"></a>Redis的持久化机制有哪些</h1><p>Redis 的持久化主要有 RDB、AOF 以及 Redis 4.0 引入的混合持久化三种方案。在生产环境中，我们通常追求数据安全与恢复速度的平衡，因此混合持久化是目前的标准选择。</p>
+<p><b>第一，RDB快照</b></p>
+<p>RDB本质上是内存数据的全量二进制快照。</p>
+<ul>
+<li>优点：文件紧凑，非常适合备份和灾难恢复。并且由于是二进制文件，Redis重启加载RDB的速度比回放AOF命令要快得多。</li>
+<li>缺点：存在数据丢失风险。RDB通常是隔几分钟执行一次，如果Redis宕机，最后一次快照之后的数据就全丢了。</li>
+</ul>
+<p><b>第二，AOF日志</b></p>
+<p>AOF记录的是操作指令的日志。</p>
+<ul>
+<li>优点：数据安全性高。通常配置appendfsync everysec（每秒刷盘），最多只会丢失1秒的数据。</li>
+<li>缺点：文件体积大，且重启时的恢复速度慢。虽然后台有Rewrite机制压缩文件，但在大数据量下恢复依然是个瓶颈。</li>
+</ul>
+<p><b>第三，混合持久化</b></p>
+<p>这是Redis 4.0之后的默认推荐方案。</p>
+<p>它结合了RDB和AOF的优点：在AOF重写时，将前半部分数据以RDB格式写入，后半部分的增量数据以AOF格式写入。这样一来，重启时加载速度极快（因为大部分是RDB），同时又能保证数据只丢失极少部分（因为有增量AOF）。</p>
+<h1 id="对比RDB和AOF"><a href="#对比RDB和AOF" class="headerlink" title="对比RDB和AOF"></a>对比RDB和AOF</h1><p>对比 RDB 和 AOF，本质上是在做数据完整性与灾难恢复速度之间的权衡。简单来说，RDB 是“快照”，恢复快但易丢数据；AOF 是“日志”，数据全但恢复慢。</p>
+<p><b>第一，数据安全性。</b></p>
+<p>这是 AOF 最大的优势。</p>
+<ul>
+<li>AOF 默认开启 everysec 策略，每秒刷盘一次，极端情况下最多只丢失 1 秒的数据。</li>
+<li>RDB 是间隔触发的（比如 5 分钟一次），如果 Redis 意外宕机，我们会丢失最后一次快照之后的所有修改，这在很多核心业务中是不可接受的。</li>
+</ul>
+<p><b>第二，恢复速度。</b></p>
+<p>这是 RDB 的绝对优势。</p>
+<ul>
+<li>RDB 文件是紧凑的二进制数据，重启时直接加载进内存，速度极快，适合做冷备。</li>
+<li>AOF 需要将日志中的写命令逐条“重放”，如果是几十 GB 的数据，AOF 的加载时间可能比 RDB 慢一个数量级，这会延长故障恢复时间。</li>
+</ul>
+<p><b>第三，文件体积与优先级。</b></p>
+<ul>
+<li>体积： 相同数据量下，AOF 文件通常比 RDB 大。</li>
+<li>优先级： 如果 Redis 重启时，既有 RDB 又有 AOF，Redis 会优先加载 AOF。因为 AOF 记录的数据通常比 RDB 更完整。</li>
+</ul>
+<h1 id="如何理解AOF重写机制"><a href="#如何理解AOF重写机制" class="headerlink" title="如何理解AOF重写机制"></a>如何理解AOF重写机制</h1><p>AOF 重写机制是为了解决 AOF 文件随时间无限膨胀的问题。它的本质不是对旧日志的分析压缩，而是根据当前内存状态重建一份最小化的命令集。这个过程完全是后台进行的，对主线程的阻塞极小。</p>
+<p>第一，重写的本质。</p>
+<p>AOF记录的是操作流水账。重写则是将这些繁杂的过程合并为最终状态。比如之前有100次INCR操作，重写后只会保留一条SET命令。这极大地减小了文件体积，提升了数据恢复速度。</p>
+<p>第二，增量数据的一致性保证。</p>
+<p>这是最关键的点。在子进程重写期间，主进程依然在处理新的写入请求。为了防止数据丢失，Redis引入了AOF重写缓冲区。</p>
+<ol>
+<li>在重写期间，新的写入命令处理写入原有的AOF缓冲，还会同时写入这个重写缓冲区。</li>
+<li>当子进程完成重写后，通知主线程。</li>
+<li>主线程会将重写缓冲区中的增量数据追加到新文件末尾，然后用新文件原子替换旧文件。</li>
+</ol>
+<h1 id="Redis的事务是怎样的"><a href="#Redis的事务是怎样的" class="headerlink" title="Redis的事务是怎样的"></a>Redis的事务是怎样的</h1><p>Redis的事务和MySQL的事务有本质区别。它本质上是一个命令打包与串行执行的机制。通过MULTI开启，命令入队，最后EXEC触发。它保证了在执行该事务期间，不会被其他客户端的命令插入打断。</p>
+<p><b>第一，不支持回滚</b></p>
+<p>这是Redis事务最大的特点。Redis的原子性是“半吊子”的。</p>
+<p>如果事务中出现语法错误（入队时报错），整个事务会放弃；但如果出现运行时错误（比如类型不匹配），报错的命令会失败，但后续的命令依然会继续执行。Redis并没有Undo Log机制来实现回滚，这是为了追求极致的简单和性能。</p>
+<p><b>第二，关于隔离性</b></p>
+<p>由于Redis是单线程模型，事务中的所有命令是串行执行的。在EXEC之后，Redis会一口气执行完队列里的所有命令，期间不会切换去处理其他客户端的请求。所以 Redis 事务天然满足隔离性，不存在“脏读”或“幻读”。</p>
+<p><b>第三，生产环境的最佳实践（Lua脚本）</b></p>
+<p>在现在的生产环境中，我们很少直接用 MULTI&#x2F;EXEC。如果你需要原子性，或者复杂的逻辑判断（比如：如果 A &gt; 0 则 B - 1），我们通常会使用 Lua 脚本（EVAL）。</p>
+<p>Redis 保证 Lua 脚本的执行是原子性的，且脚本之间可以共享上下文，这比单纯的 Redis 事务强大且高效得多。</p>
+<h1 id="为什么说-Lua-脚本是原子性的？如果-Lua-脚本执行了一半断电了怎么办？"><a href="#为什么说-Lua-脚本是原子性的？如果-Lua-脚本执行了一半断电了怎么办？" class="headerlink" title="为什么说 Lua 脚本是原子性的？如果 Lua 脚本执行了一半断电了怎么办？"></a>为什么说 Lua 脚本是原子性的？如果 Lua 脚本执行了一半断电了怎么办？</h1><p>Redis中Lua脚本的原子性，本质上是由其单线程执行模型保证的。一旦脚本开始执行，Redis就会阻塞所有其他客户端的请求，直到脚本结束。这保证了脚本内的操作序列是不可分割的。</p>
+<p><b>第一，关于执行期间的原子性。</b></p>
+<p>Redis 保证脚本在运行期间，不会有任何其他命令插入进来。这完美解决了“并发竞争”问题，比如抢红包或扣减库存。</p>
+<p><b>第二，关于“部分执行”。</b></p>
+<p>需要特别说明的是，Redis 的 Lua 脚本不支持 ACID 中的原子性回滚。</p>
+<p>如果脚本运行到第 3 行报错了，第 1 行和第 2 行对数据的修改是保留的，不会撤销。Redis 这样做是为了保证极致的性能，避免实现复杂的 Undo Log。</p>
+<p><b>第三，关于“断电”等极端场景。</b></p>
+<p>如果脚本执行一半服务器断电，内存数据全丢，一致性依赖于 AOF 日志。</p>
+<ol>
+<li>如果日志没写进去： 重启后相当于脚本没执行，数据是旧的但完整的。</li>
+<li>如果日志写了一半： Redis 重启加载 AOF 时会发现文件校验和错误。此时通过 redis-check-aof 工具修复，它会直接丢弃文件末尾那条残缺的记录。</li>
+</ol>
+<p>也就是说， 即使在断电场景下，经过 AOF 恢复后，数据状态依然能保证“要么脚本完全执行（已落盘），要么完全没执行（被丢弃）”，不会出现逻辑上的脏数据。</p>
+<h1 id="Lua脚本和Redis事务对比一下"><a href="#Lua脚本和Redis事务对比一下" class="headerlink" title="Lua脚本和Redis事务对比一下"></a>Lua脚本和Redis事务对比一下</h1><p>在 Redis 的演进过程中，Lua 脚本实际上已经成为了 Redis 事务的“完全体”替代方案。虽然两者都保证了隔离性，但在原子性逻辑组合、网络性能以及高并发下的成功率这三个方面，Lua 脚本都要优于传统的 MULTI&#x2F;EXEC 事务。</p>
+<p><b>第一，逻辑判断</b></p>
+<p>Redis 事务最大的痛点是<b>不支持中间逻辑</b>。所有的命令必须在 EXEC 之前就写死，无法根据中间结果动态调整。</p>
+<p>而 Lua 脚本<b>允许我们在服务端进行计算和逻辑判断（如 If-Else）</b>。这意味着我们可以将复杂的业务逻辑（比如：查询库存 -&gt; 判断库存 -&gt; 扣减库存）封装成一个脚本，原子性地一次执行完毕。这彻底解决了应用层需要多次交互才能完成的问题。</p>
+<p><b>第二，网络 I&#x2F;O 优化</b></p>
+<p>使用事务需要<b>分步发送 MULTI、多条命令、EXEC</b>，这涉及多次网络往返（RTT）。</p>
+<p>Lua 脚本通过 EVAL 命令，可以<b>将一组命令打包成一次请求发送给 Redis</b>，极大地减少了网络延迟，这对于通过公网或长链路访问 Redis 的场景优化尤为明显。</p>
+<h1 id="什么是缓存击穿、缓存雪崩和缓存穿透"><a href="#什么是缓存击穿、缓存雪崩和缓存穿透" class="headerlink" title="什么是缓存击穿、缓存雪崩和缓存穿透"></a>什么是缓存击穿、缓存雪崩和缓存穿透</h1><p>这三个问题是缓存系统中最典型的稳定性风险。它们的区别在于：穿透是查不存在的数据；击穿是单点热点过期；雪崩是大面积失效。针对每种场景，我们都有成熟的应对方案。</p>
+<p><b>第一，缓存穿透（防守不存在的数据）。</b></p>
+<p>核心思路是“拦截非法请求”。</p>
+<ol>
+<li><b>布隆过滤器：</b> 这是最推荐的方案。我们在 Redis 前置一个布隆过滤器，把所有可能存在的 ID 存进去。请求来了先查过滤器，如果过滤器说不存在，直接返回，绝不让请求碰数据库。</li>
+<li><b>缓存空对象：</b> 如果数据库查不到，我们也把这个 Key 存入 Redis，Value 设为 null 或特殊标记，并设置一个较短的过期时间（如 30秒）。这样下次请求就能命中缓存了。</li>
+</ol>
+<p><b>第二，缓存击穿（保护热点数据）。</b></p>
+<p>核心思路是“控制重建并发”或“永不过期”。</p>
+<ol>
+<li><b>互斥锁：</b> 当发现缓存过期时，不是所有线程都去查数据库，而是先抢一个 Redis 分布式锁。抢到锁的那个线程去查 DB 并重建缓存，其他线程等待。这样把 10w 并发压成了 1 个 DB 请求。</li>
+<li><b>逻辑过期： </b>很多高并发场景我们会把 Key 设为永不过期，但在 Value 内部存一个时间戳。查询时如果发现“逻辑时间”过期了，后台开一个异步线程去构建新缓存，当前请求直接返回旧值。这保证了高可用。</li>
+</ol>
+<p><b>第三，缓存雪崩（避免集体失效）。</b></p>
+<p>核心思路是“打散过期时间”和“高可用架构”。</p>
+<ol>
+<li><b>随机 TTL：</b> 在设置过期时间时，不要设为固定的 60 秒，而是设为 60 + random(0-10) 秒。让过期时间分散开，避免同一时刻集体失效。</li>
+<li><b>Redis 高可用：</b> 搭建 Sentinel 或 Cluster 集群，防止 Redis 宕机导致的全链路雪崩。</li>
+<li><b>降级与限流：</b> 如果雪崩真的发生了，在网关层进行限流，或者开启服务降级（返回默认值），保住数据库不崩。</li>
+</ol>
+<h1 id="什么是布隆过滤器，原理是怎样的"><a href="#什么是布隆过滤器，原理是怎样的" class="headerlink" title="什么是布隆过滤器，原理是怎样的"></a>什么是布隆过滤器，原理是怎样的</h1><p>布隆过滤器是一种空间效率极高的概率型数据结构，主要用于判断一个元素是否在一个集合中。它的核心特点是：它能100%判定一个元素不存在，但判定存在时会有一定的误判率。</p>
+<p><b>第一，实现原理。</b></p>
+<p>它底层维护了一个bit数组和k个哈希函数。</p>
+<ul>
+<li><b>存储时</b>：将元素经过k次哈希计算，将对应的bit位标记为1。</li>
+<li><b>查询时</b>：同样经过k次哈希，如果发现有任何一位是0，则该元素一定不存在；如果全为1，则该元素可能存在。</li>
+</ul>
+<p><b>第二，优劣。</b></p>
+<ul>
+<li><b>优势</b>：相比于HashSet或HashMap，它不需要存储原本的数据内容，空间占用极小，且插入和查询的时间复杂度都是O(k)，非常快。</li>
+<li><b>劣势</b>：存在<b>误判率</b>，且<b>不支持删除操作</b>。</li>
+</ul>
+<p><b>第三，典型应用场景。</b></p>
+<p>最经典的就是解决 Redis 的缓存穿透问题。</p>
+<p>我们将所有存在的数据库主键（ID）预热加载到布隆过滤器中。当一个请求来查数据时，先问布隆过滤器。如果布隆过滤器说“不存在”，我们直接拦截返回，从而保护数据库不被海量无效请求打垮。此外，像网络爬虫的 URL 去重、垃圾邮件过滤也是常见场景。</p>
+<h1 id="如果随着系统运行，有越来越多的数据被删除，布隆过滤器又不支持删除，会导致误判率越来越高，这应该怎么处理？"><a href="#如果随着系统运行，有越来越多的数据被删除，布隆过滤器又不支持删除，会导致误判率越来越高，这应该怎么处理？" class="headerlink" title="如果随着系统运行，有越来越多的数据被删除，布隆过滤器又不支持删除，会导致误判率越来越高，这应该怎么处理？"></a>如果随着系统运行，有越来越多的数据被删除，布隆过滤器又不支持删除，会导致误判率越来越高，这应该怎么处理？</h1><blockquote class="notion-callout"><span>💡</span><p>为什么不支持删除？</p>
+<p>布隆过滤器的本质只是在做标记，而不是在存数据。</p>
+<p>由于哈希碰撞的存在，不同的数据可能会共用同一个灯泡（bit数组中的同一位），这时删除数据甲会影响到数据乙。</p>
+<p>此外，如果数据只能增加不能删除，灯泡会被全部点亮（bit数组中的每一位都是1），此时不管查什么数据都会显示存在，这时误判率会失控。</p>
+</blockquote>
+
+<p>面对数据删除导致的布隆过滤器误判率升高问题，我们在工程实践中主要有两种处理路径：一种是运维层面的定期重构，适用于大多数场景；另一种是代码层面的更换数据结构，适用于对实时删除要求极高的场景。</p>
+<p><b>第一，定时重建。</b></p>
+<p>这是成本最低的方案。由于标准布隆过滤器不支持删除，残留的“僵尸数据”会占满空间。</p>
+<p>我们会设计一个定时任务，在业务低峰期：</p>
+<ol>
+<li>创建一个新的布隆过滤器。</li>
+<li>从数据库读取所有当前有效的ID。</li>
+<li>将这些ID重新哈希并写入新过滤器。</li>
+<li>利用Redis的RENAME或应用层的引用切换，原子性地替换掉旧过滤器。</li>
+<li>就像定期清理垃圾一样，能始终保持过滤器的“纯净度”和低误判率。</li>
+</ol>
+<p><b>第二，使用计数布隆过滤器。</b></p>
+<p>如果业务要求必须实时删除（比如高频上下架的短时效商品），我们会考虑计数布隆过滤器。</p>
+<p>它将底层的 bitmap 扩展为计数数组。插入时计数器加一，删除时计数器减一。</p>
+<p><b>权衡</b>： 虽然支持了删除，但它带来的空间开销是标准版的 3-4 倍，这需要评估内存成本。</p>
+<h1 id="如何保证MySQL和Redis的数据一致性"><a href="#如何保证MySQL和Redis的数据一致性" class="headerlink" title="如何保证MySQL和Redis的数据一致性"></a>如何保证MySQL和Redis的数据一致性</h1><p>关于MySQL和Redis的一致性，观点是：在非强一致性的场景下，我们追求<b>最终一致性</b>。业务标准的解决方案是 <b>旁路缓存模式</b>，具体操作顺序是<b>“先更新数据库，再删除缓存”</b>。</p>
+<p><b>第一，为什么采用“删除”而非“更新”。</b></p>
+<p>相比于直接更新缓存，删除缓存有优势：<b>避免并发脏数据</b>。在多线程并发写入时，更新缓存容易出现“后写先至”的竞态条件，导致缓存中保留了脏数据。</p>
+<p><b>第二，为什么是“先写库，后删缓存”。</b></p>
+<p>如果先删缓存，在数据库还没更新完的间隙，读请求会将旧数据重新加载回缓存，导致长时间不一致。</p>
+<p>虽然“先写库”也存在理论上的并发漏洞，但由于数据库写入耗时远大于缓存读取，这种概率极低。</p>
+<p><b>第三，如何保证“最终一致性”。</b></p>
+<p>为了防止“删除缓存”失败，或者应对极端的并发场景，我们在生产环境中通常采用异步补偿机制：</p>
+<ol>
+<li><b>消息队列重试：</b>删除缓存失败时，将 Key 发送给 MQ，由消费者进行重试删除。</li>
+<li><b>基于Binlog的异步删除：</b>利用 Canal 监听 MySQL 的 Binlog 变更。一旦监测到数据修改，直接投递消息到 MQ，由下游服务负责清理 Redis。这种方式将缓存维护逻辑与业务逻辑彻底解耦，可靠性最高。</li>
+</ol>
+<p><b>第四，关于延时双删。</b></p>
+<p>如果业务对一致性非常敏感，我们还会采用延时双删策略：在写库前后各删除一次缓存，第二次删除设定一个短暂的延时（如 500ms），以确保清除在这期间可能产生的脏读数据。</p>
+<h1 id="canal的工作原理是怎样的"><a href="#canal的工作原理是怎样的" class="headerlink" title="canal的工作原理是怎样的"></a>canal的工作原理是怎样的</h1><p>Canal的核心原理：基于MySQL数据库增量日志解析，提供增量数据订阅和消费。它通过模拟MySQL Slave的交互协议来实现这一功能。</p>
+<p><b>第一，伪装成Slave</b></p>
+<p>Canal将自己伪装成MySQL的一个Slave节点。它实现了MySQL的底层通信协议。</p>
+<p>在启动时，Canal会向MySQL Master发送COM_BINLOG_DUMP请求。这就好比告诉MySQL：“我是你的 从库，请把最新的Binlog发给我”。</p>
+<p><b>第二，接收与解析Binlog</b></p>
+<p>MySQL Master 收到请求后，会将 binary log 以二进制流的形式推送给 Canal。</p>
+<p>Canal 接收到这些数据后，利用内部的解析器（Parser）对二进制流进行解析。它会将底层的字节流转换为结构化的数据对象（Protobuf 格式），其中包含了库名、表名、字段名、变更前的值和变更后的值。</p>
+<p><b>第三，投递给下游</b></p>
+<p>解析完成的数据，通常会被投递到消息队列（如 Kafka、RocketMQ）或者直接同步到目标存储（如 Elasticsearch、Redis）。这样，业务系统就可以通过监听消息队列，实时感知到数据库的变化，从而实现缓存同步或异构数据同步。</p>
+<h1 id="Redis如何实现分布式锁"><a href="#Redis如何实现分布式锁" class="headerlink" title="Redis如何实现分布式锁"></a>Redis如何实现分布式锁</h1><p>Redis实现分布式锁，在生产环境中我们通常采用Radisson框架来实现，而不是手写，因为手写很容易踩坑。其核心逻辑可以概括为三个层面：原子加锁、Lua解锁和Watchdog续期。</p>
+<p><b>第一，关于加锁。</b></p>
+<p>最底层的实现是使用Redis的SET命令，带上NX和PX参数：SET key requestId NX PX 30000。</p>
+<p>这里有两个关键点：</p>
+<ol>
+<li><b>必须利用SET命令的原子性</b>，一次性设置键值和过期时间，防止因为宕机导致死锁。</li>
+<li><b>Value必须是唯一标识</b>（比如UUID），用于后续解锁时的身份验证。</li>
+</ol>
+<p><b>第二，关于解锁。</b></p>
+<p>解锁时，绝对不能直接调用 DEL。因为这可能导致“A 线程的业务超时了，锁自动过期，B 线程拿到锁，结果 A 执行完把 B 的锁删了”这种 Bug。标准做法是使用Lua脚本。脚本逻辑是：先GET判断锁的Value是否等于当前线程的ID，如果相等再DEL。Lua脚本保证了这两个操作的原子性。</p>
+<p><b>第三，关于锁续期。</b></p>
+<p>这是一个很难处理的业务痛点：我们很难预估业务到底要执行多久。</p>
+<p>Redisson 引入了一个 Watchdog 机制。如果不手动指定锁时间，它默认给 30 秒。只要持有锁的线程还在运行，后台会有一个定时任务自动把锁的时间重新续满。这保证了业务没跑完锁绝不会过期，业务跑完了看门狗停止，锁自然过期。</p>
+<h1 id="Redission的分布式锁是可重入的吗？具体是如何实现的可重入？"><a href="#Redission的分布式锁是可重入的吗？具体是如何实现的可重入？" class="headerlink" title="Redission的分布式锁是可重入的吗？具体是如何实现的可重入？"></a>Redission的分布式锁是可重入的吗？具体是如何实现的可重入？</h1><p>Redisson的分布式锁是支持可重入的。它的核心实现依赖于Redis的Hash数据结构配合Lua脚本。</p>
+<p><b>第一，放弃String，改用Hash。</b></p>
+<p>普通的Redis分布式锁使用String类型的SETNX，但这无法记录锁的持有者和重入次数。</p>
+<p>Redisson采用了Hash结构。Hash的Key是锁的名字，Hash内部的Field是“客户端UUID+线程ID”的组合，这就唯一标识了持有锁的特定线程；Hash的Value则是锁的重入次数。</p>
+<p><b>第二，基于Lua脚本的原子操作。</b></p>
+<p>为了保证并发安全，Redisson将复杂的判断逻辑封装在Lua脚本中发送给Redis执行：</p>
+<ul>
+<li>加锁时：脚本会判断锁是否存在。如果不存在，就写入Hash并将计数置为1；如果锁存在且Field也就是线程标识匹配，就执行HINCRBY让计数加1。</li>
+<li>解锁时：脚本是对计数做减1操作。只有当计数器归零时，才会真正执行DEL命令删除这把锁。</li>
+</ul>
+<h1 id="什么是RedLock"><a href="#什么是RedLock" class="headerlink" title="什么是RedLock"></a>什么是RedLock</h1><p>RedLock是Redis作者Antirez提出的一种<b>基于多节点的分布式锁算法</b>。它的核心目的是为了解决<b>Redis主从异步复制可能导致的“主节点宕机锁丢失”的问题</b>。</p>
+<p><b>第一，核心流程</b></p>
+<p>RedLock 假设有 N 个（通常是 5 个）独立的 Redis 节点。加锁时，客户端需按顺序向这 5 个节点申请锁。</p>
+<p>只有当客户端在大多数节点（N&#x2F;2 + 1）上都成功获取了锁，且总消耗时间小于锁的 TTL 时，我们才认为这把分布式锁加锁成功。</p>
+<p><b>第二，它解决了什么</b></p>
+<p>它解决了单点故障和主从切换的数据丢失问题。即使挂掉 1-2 台机器，只要满足过半数存活，锁依然可用且互斥。</p>
+<p><b>第三，为什么生产环境很少用</b></p>
+<p>虽然算法设计很巧妙，但在实际工程中我们很少使用 RedLock，主要有两个原因：</p>
+<ol>
+<li>太重了： 为了把锁，我得维护 5 个独立的 Redis 实例，运维成本过高。</li>
+<li>安全性争议： 分布式专家 Martin Kleppmann 指出，RedLock 严重依赖服务器的<b>系统时钟</b>。如果发生 NTP 时钟跳跃或长时间的 GC Paused，锁的安全性会崩溃。</li>
+</ol>
+<p><b>选型建议：</b></p>
+<ul>
+<li>如果业务运行极低概率的锁丢失，<b>单机Redis+主从哨兵</b>足够了，性能最高。</li>
+<li>如果业务对数据一致性要求极高，我们会选择<b>ZooKeeper</b>这类强一致性（CP模型）的组件，而不是强行用Redis实现CP特性。</li>
+</ul>
+<h1 id="Redis的集群方案有哪些"><a href="#Redis的集群方案有哪些" class="headerlink" title="Redis的集群方案有哪些"></a>Redis的集群方案有哪些</h1><p>Redis的集群方案随着版本迭代主要经历了三个阶段。目前生产环境中最常用的方案是Redis Sentinel（适合小数据量高可用）和Redis Cluster（适合大数据量分片）。早期的代理方案如Codis正在逐渐退出历史舞台。</p>
+<p><b>第一，高可用方案：Sentinel（哨兵模式）</b></p>
+<p>这是基于主从复制的增强版。</p>
+<ul>
+<li><b>核心能力：</b>监控、通知和自动故障转移。</li>
+<li><b>适用场景：</b>数据量不需要切分（单机内存能装下），主要是为了保证服务不宕机。</li>
+<li><b>局限性：</b>它是垂直扩展，无法解决写操作的瓶颈和海量存储问题。</li>
+</ul>
+<p><b>第二，中间件代理方案：Codis</b></p>
+<p>这是在Redis Cluster成熟之前的主流方案。</p>
+<ul>
+<li><b>核心原理：</b>在客户端和Redis之间架设一层Proxy，由Proxy负责分片逻辑。</li>
+<li><b>现状：</b>虽然 Codis 提供了非常好用的 UI 和扩容工具，但随着 Redis 官方 Cluster 的成熟，Codis 维护成本较高且不再更新，现在新项目一般不再推荐使用。</li>
+</ul>
+<p><b>第三，服务端分片方案：Redis Cluster</b></p>
+<p>这是Redis 3.0引入的去中心化分片方案，是目前的标准。</p>
+<ul>
+<li><b>核心原理：</b>引入了<b>Hash Slot（哈希槽）</b>概念，共有16384个槽。数据通过CRC16(key) % 16384 映射到具体的槽，而集群中的每个节点负责管理一部分槽。</li>
+<li><b>优势：</b>支持水平扩展（Scale Out），性能极高（无代理层损耗），且具备自动故障转移能力。</li>
+</ul>
+<h1 id="Redis如何实现延时队列"><a href="#Redis如何实现延时队列" class="headerlink" title="Redis如何实现延时队列"></a>Redis如何实现延时队列</h1><p>Redis 实现延时队列，最经典且成熟的方案是使用 ZSet。它的核心利用了 ZSet 的 Score 属性来存储任务的执行时间戳，从而实现自动排序。</p>
+<p><b>第一，基于ZSet的实现逻辑。</b></p>
+<p>我们将任务的具体内容作为 ZSet 的 Member，将任务执行的绝对时间戳作为 Score 存入。</p>
+<p>消费者端启动一个线程进行轮询，定期执行 ZRANGEBYSCORE 命令，查询 Score 小于等于当前时间戳的任务，一旦查到，就取出进行消费。</p>
+<p><b>第二，如何解决并发重复消费。</b></p>
+<p>在多消费者分布式场景下，直接查很容易导致同一个任务被多个节点获取。</p>
+<p>我们必须使用 Lua 脚本 来保证原子性。脚本的逻辑遵循 “Check-and-Set” 思想：先查询符合条件的元素，然后直接执行 ZREM 删除。只有删除成功的那个消费者，才真正拿到了执行权，从而确保任务只被执行一次。</p>
+<p><b>第三，开源框架的优化。</b></p>
+<p>在生产环境一般直接使用 Redisson 的 RDelayedQueue。</p>
+<p>它对上述模式进行了优化：它引入了一个阻塞队列。内部会有一个 Watchdog 线程，负责将 ZSet 中到期的任务原子地移动到 List 中。消费者只需要使用 BLPOP 阻塞监听 List 即可。这比客户端频繁轮询 ZSet 要高效得多，也解决了空轮询消耗 CPU 的问题。</p>
+<h1 id="为什么哈希槽的数量固定是16384个"><a href="#为什么哈希槽的数量固定是16384个" class="headerlink" title="为什么哈希槽的数量固定是16384个"></a>为什么哈希槽的数量固定是16384个</h1><p>Redis Cluster选择16384（即<span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msup><mn>2</mn><mn>14</mn></msup></mrow><annotation encoding="application/x-tex">2^{14}</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.8141em;"></span><span class="mord"><span class="mord">2</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.8141em;"><span style="top:-3.063em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mtight">14</span></span></span></span></span></span></span></span></span></span></span></span>）个槽而不是CRC16算法理论最大值65536，主要是出于对网络带宽的优化。这也是Redis作者 Antirez 在设计 Gossip 协议时做出的明确取舍。</p>
+<p><b>第一，减少Gossip协议带来的开销</b></p>
+<p>Redis Cluster的节点之间会频繁地发送Ping&#x2F;Pong心跳包来交换集群状态。在消息头中，包含了一个myslots字段，这是一个Bitmap，用于标记当前节点负责哪些槽。</p>
+<ul>
+<li>如果使用 65536 个槽，Bitmap 大小为 65536&#x2F;8&#x3D;8KB。</li>
+<li>如果使用 16384 个槽，Bitmap 大小为 16384&#x2F;8&#x3D;2KB。</li>
+</ul>
+<p>在频繁的心跳通信中，8KB 的包头过于庞大，会占用大量内网带宽，甚至造成网络拥堵。而 2KB 是一个性能与粒度的最佳平衡点。</p>
+<p><b>第二，Redis Cluster的规模限制</b></p>
+<p>Redis Cluster 的设计初衷并不是为了支持超大规模集群。官方建议的集群规模上限大约是 1000 个节点。</p>
+<p>在 1000 个节点的情况下，16384 个槽足以保证数据分片的均匀性（平均每个节点分到 16 个槽）。因此，没有必要为了追求更大的槽数量（65536）而牺牲网络性能。</p>
+<h1 id="Redis的热Key问题如何理解-如何解决"><a href="#Redis的热Key问题如何理解-如何解决" class="headerlink" title="Redis的热Key问题如何理解?如何解决"></a>Redis的热Key问题如何理解?如何解决</h1><p>热Key问题本质上是流量倾斜导致的单点性能瓶颈。在Redis Cluster架构中，热Key会导致原本均衡的流量全部涌向某一个分片，使其成为系统的短板。</p>
+<p><b>第一，如何精准定位热Key</b></p>
+<p>在生产环境中，我们不能等到服务器挂了才去查。通常采用以下方案：</p>
+<ol>
+<li><b>客户端上报（最常用）：</b>在 Redis 客户端（如 Jedis）的封装层引入原子计数器，对 Key 的访问进行采样统计。一旦某 Key 的 QPS 超过阈值，就将其判定为热 Key 并上报监控系统。</li>
+<li><b>Redis 原生扫描：</b>在低峰期使用 redis-cli –hotkeys 进行扫描分析，作为辅助手段。</li>
+</ol>
+<p><b>第二，核心解决方案：多级缓存</b></p>
+<p>这是解决热 Key 最有效、成本最低的手段。</p>
+<ul>
+<li><b>原理：</b> 当客户端发现某个 Key 是热 Key 后，直接将这个 Key 的数据缓存在<b>应用服务器的本地内存</b>中。</li>
+<li><b>效果：</b> 下次请求这个 Key 时，直接从 JVM 堆内存返回，请求根本不会到达 Redis。这相当于把流量分散到了所有的应用服务器上，彻底解放了 Redis。</li>
+<li><b>代价：</b> 需要接受短时间内的数据不一致（本地缓存过期时间通常设得很短，如 5秒 - 60秒）。</li>
+</ul>
+<p><b>第三，备份&#x2F;分片方案</b></p>
+<p>如果业务对一致性要求高，或者本地缓存不适用，我们会采用“Key备份”策略：</p>
+<ol>
+<li><b>读热点：</b> 将热 Key 复制多份，重命名为 key_1, key_2, key_N，并将它们分散存储在不同的 Redis 节点上。客户端访问时，随机选择一个后缀进行访问。这样就把单节点的压力分摊到了多节点。</li>
+<li><b>写热点：</b> 如果是类似于“微博热搜点赞”这种高频写入，通常需要使用消息队列进行削峰填谷，或者在业务层先做聚合写入（比如在本地累加到 100 次，再一次性去 Redis INCRBY 100）。</li>
+</ol>
+<blockquote class="notion-callout"><span>💡</span><p>Redis 的写热点问题，可以通过消息队列（MQ）进行削峰填谷。核心思想是：不让大量请求直接并发修改 Redis 中的同一个 Key，而是先把请求放进消息队列，再由消费者按照 Redis 能承受的速度逐步处理。</p>
+<p>消息队列只能缓解瞬时写入压力，不能凭空提高 Redis 单个 Key 的写入上限。</p>
+</blockquote>
+
+<h1 id="Redis的大Key问题如何理解-如何解决"><a href="#Redis的大Key问题如何理解-如何解决" class="headerlink" title="Redis的大Key问题如何理解?如何解决?"></a>Redis的大Key问题如何理解?如何解决?</h1><p>Redis的大Key问题是生产环境中必须严格禁止的。它主要指的是Value占用内存过大或集合元素数量过多。它最大的危害在于会阻塞Redis的单线程工作模型以及打爆网卡带宽。</p>
+<p><b>第一，大Key的危害场景</b></p>
+<p>主要体现在三个方面：</p>
+<ol>
+<li><b>读写阻塞：</b>由于Redis是单线程处理命令的，读写大Key会占用主线程大量时间，导致排在后面的正常请求超时。</li>
+<li><b>网络风暴：</b>大Key的高频访问会瞬间占满服务器网卡带宽，导致服务不可用。</li>
+<li><b>删除阻塞：</b>如果直接使用DEL命令删除一个大Key（比如包含千万级数据的Hash），会触发O(N)的内存回收操作，导致Redis阻塞长达数秒甚至更久。</li>
+</ol>
+<p><b>第二，解决方案</b></p>
+<p>针对大Key，我们的核心治理策略是“化整为零”：</p>
+<ol>
+<li><b>拆分：</b>比如一个大的Hash表，我们可以按CRC32取模的方式，把它拆分成hash_0，hash_1 … hash_100等100个小Hash。</li>
+<li><b>压缩：</b>对于String类型的大文本，必须在应用层使用Snappy或Gzip进行压缩后再存入Redis。</li>
+<li><b>不存Redis：</b>如果数据真的很大，说明它可能不适合存Redis，应该考虑CDN或对象存储（S3）。</li>
+</ol>
+<p><b>第三，如何优雅地删除大Key</b></p>
+<p>在 Redis 4.0 之前，我们只能用 SCAN 命令遍历集合，一点点删除（HDEL），最后再删 Key。但在Redis 4.0以后，我们必须使用UNLINK命令替代DEL。</p>
+<p>原理：UNLINK 只是把 Key 从元数据中解绑（逻辑删除），真正的内存回收操作是由后台线程异步执行的。这彻底解决了删除大 Key 阻塞主线程的问题。</p>
+<h1 id="Redis的pipeline是什么-有什么应用场景"><a href="#Redis的pipeline是什么-有什么应用场景" class="headerlink" title="Redis的pipeline是什么?有什么应用场景?"></a>Redis的pipeline是什么?有什么应用场景?</h1><p>Redis Pipeline是一种批量操作的优化手段。它允许客户端将多条命令打包并一次性发生给服务端，服务端依次执行完毕后，将结果一次性返回。它的核心目的是为了解决网络RTT（往返时延）带来的性能损耗。</p>
+<p><b>解决了什么核心问题？</b></p>
+<p>Redis单机QPS很高，瓶颈往往不在CPU，而在网络IO。</p>
+<p>在非Pipeline模式下，每执行一条命令都需要经过“发送-执行-接收”的全过程。如果网络延迟是10ms，哪怕Redis处理只需要1微妙，吞吐量也被限制在了100 QPS。</p>
+<p>Pipeline通过减少网络交互次数和减少系统调用次数，可以极大地提升批量操作的吞吐量。</p>
+<p><b>应用场景</b></p>
+<p>只要是“<b>需要大量写入或读取，且命令之间没有依赖关系</b>”的场景，都适合用Pipeline。</p>
+<p>例如：</p>
+<ol>
+<li><b>数据初始化&#x2F;迁移：</b>需要在一秒内向Redis导入100万条数据。</li>
+<li><b>批量查询：</b>比如进入首页，需要一次性查询50个用户的头像信息（HGET）。</li>
+<li><b>定期任务：</b>比如每分钟将一批统计数据刷入Redis。</li>
+</ol>
+<p>注意事项</p>
+<ol>
+<li><b>非原子性：</b>Pipeline仅仅是网络层面的打包，中间某条命令失败，后续命令依然会执行。如果需要强原子性，应该用Lua脚本。</li>
+<li><b>内存与带宽控制：</b> Pipeline 不能一次打包太多命令。这会导致客户端等待时间过长，也会导致服务端响应包过大，可能造成网络阻塞。通常我们会按 batch（比如 500 条）进行拆分发送。</li>
+</ol>
+<h1 id="Redis的发布订阅模式是怎样的？有什么应用场景？"><a href="#Redis的发布订阅模式是怎样的？有什么应用场景？" class="headerlink" title="Redis的发布订阅模式是怎样的？有什么应用场景？"></a>Redis的发布订阅模式是怎样的？有什么应用场景？</h1><p>Redis的发布订阅（Pub&#x2F;Sub）是一种基于频道的轻量级消息广播机制。它实现了发布者和订阅者的完全解耦。与List结构的“点对点”模式不同，Pub&#x2F;Sub是典型的“一对多”广播模式。</p>
+<p><b>第一，轻量级与实时性</b></p>
+<p>它不需要任何额外的配置，命令非常简单（PUBLISH&#x2F;SUBSCRIBE）。它的吞吐量极高，延迟极低，非常适合需要实时广播的场景。</p>
+<p><b>第二，最大的缺点（数据可靠性）</b></p>
+<p>Redis Pub&#x2F;Sub的消息是不持久化的，它采用“即发即弃”策略。</p>
+<p>如果订阅者下线，哪怕只是短暂的网络抖动，在这期间发送的消息都会永久丢失。Redis并没有为离线客户端维护“消息积压（Backlog）”机制（直到 Redis 5.0 的 Stream 出现）。</p>
+<p>因此，绝不能把它当成专业的MQ（如 Kafka、RabbitMQ）来处理核心业务数据。</p>
+<p><b>第三，典型的应用场景</b></p>
+<p>基于上述特性，它主要用于对可靠性要求不高，但对实时性要求高的场景：</p>
+<ol>
+<li><b>即时聊天室&#x2F;弹幕：</b>丢一两条弹幕无所谓，但速度要快。</li>
+<li><b>系统内部通知：</b>比如“缓存失效广播”。一个服务改了数据，广播一下，让所有服务的本地缓存失效。</li>
+</ol>
+<h1 id="Redis的stream是怎样的？有什么应用场景？"><a href="#Redis的stream是怎样的？有什么应用场景？" class="headerlink" title="Redis的stream是怎样的？有什么应用场景？"></a>Redis的stream是怎样的？有什么应用场景？</h1><p>Redis Stream 是 Redis 5.0 引入的一种专门用于实现消息队列的数据结构。它的设计理念大量参考了Kafka，<b>支持持久化存储、多消费者组以及消息确认（ACK）机制</b>，填补了Redis过去在List和Pub&#x2F;Sub之间缺失的专业MQ能力。</p>
+<p><b>第一，持久化与多播</b></p>
+<p>与Pub&#x2F;Sub的“即发即弃”不同，Stream中的消息是持久化保存在内存中的。</p>
+<blockquote class="notion-callout"><span>💡</span><p>底层结构：基数树（Radix Tree）</p>
+<p>Stream 并不是一个简单的数组或链表，它的底层使用 基数树 来存储。</p>
+<p>为什么用 基数树？ Stream 的消息 ID 是基于时间戳生成的（如 1638429381000-0）。这些 ID 具有很强的前缀相似性。Radix Tree 可以高效地压缩存储这些公共前缀，极大地节省内存空间，同时支持高效的范围查询。</p>
+</blockquote>
+
+<p>这意味着即使消费者下线，消息也不会丢失，重连后可以从上次的偏移量继续消费。同时，它引入了 消费组 概念，既支持同一份数据被多个业务系统（多个组）同时订阅，也支持同一个业务系统内（组内）的多个消费者并发分担压力。</p>
+<blockquote class="notion-callout"><span>💡</span><p><b>分组消费：</b> 多个消费者可以组成一个组。Stream 会自动把消息分发给组内的不同消费者（负载均衡）。比如有 100 条消息，组内有 A、B 两个消费者，它们可能各处理 50 条，互不干扰。</p>
+<p><b>状态维护：</b> 每个消费组都维护了一个游标，记录当前消费到了哪里。即使 Redis 重启，或者消费者挂了重启，都能接着上次的位置继续消费，不会丢数据。</p>
+</blockquote>
+
+<p><b>第二，数据可靠性</b></p>
+<p>这是 Stream 能够作为业务 MQ 的基石。Stream维护了一个PEL（待处理列表）。当消费者读取消息但尚未发送XACK确认时，消息会暂存在PEL中。如果消费者宕机，我们可以通过读取PEL来找回那些“已读取但未处理成功”的消息，并重新分发，从而保证了“至少消费一次”的语义。</p>
+<p><b>第三，底层实现</b></p>
+<p>Stream 的底层使用了 基数树。由于 Stream 的消息 ID 通常是基于时间戳生成的，具有高度的前缀重合性，基数树能够非常高效地压缩存储这些 ID，并在内存占用和查询性能之间取得了很好的平衡。</p>
+<p><b>第四，应用场景与局限</b></p>
+<ul>
+<li>适用场景： 它的定位是<b>轻量级 MQ</b>。非常适合用于中小规模的异步解耦、即时通信记录、或者作为简单的事件溯源存储。</li>
+<li>不适用场景： 如果数据量达到海量级别（TB 级），或者对数据可靠性要求极高（不允许任何内存数据丢失风险），则更加推荐使用 Kafka 或 RocketMQ，因为 Redis 毕竟是内存存储，且 Stream 的内存成本相对较高。</li>
+</ul>
+<h1 id="Stream底层的基数树实现原理是怎样的"><a href="#Stream底层的基数树实现原理是怎样的" class="headerlink" title="Stream底层的基数树实现原理是怎样的"></a>Stream底层的基数树实现原理是怎样的</h1><p>Redis Stream 的底层实现使用的是一种被称为 Rax 的数据结构。它本质上是一个<b>支持前缀压缩的基数树（Radix Tree）与紧凑列表（Listpack）</b>的结合体。这种设计是为了在保证范围查询性能的同时，将内存占用降到最低。</p>
+<p><b>第一，基于前缀压缩的索引结构。</b></p>
+<p>Stream 的消息 ID 由“时间戳+序列号”组成，具有显著的单调递增和前缀重复特性。</p>
+<p>普通的哈希表或二叉树无法有效利用这种特性。而 Rax 通过压缩公共前缀（比如将同一毫秒内的所有 ID 的时间戳部分合并存储），极大地减少了树的节点数量和高度。</p>
+<p><b>第二，宏结点设计。</b></p>
+<p>这是 Redis 对 Radix Tree 最关键的改造。Rax 树的叶子节点并不直接存储单条消息，而是挂载一个 Listpack。</p>
+<ul>
+<li>Listpack 是一个紧凑的连续内存块，内部顺序存储了几十到上百条具体的 Stream 消息。</li>
+<li>Rax 则作为索引层，仅记录每个 Listpack 中第一条消息的 ID。</li>
+</ul>
+<p>这种设计将“随机内存访问”变成了“局部连续内存访问”，不仅减少了内存碎片，还大幅提升了 CPU 缓存命中率。</p>
+<p><b>第三，查询效率与内存的平衡。</b></p>
+<p>当我们执行 XRANGE 进行范围查询时：</p>
+<ol>
+<li>首先在 Rax 树上进行路径查找，利用公共前缀快速定位到目标 ID 所在的 Listpack（复杂度接近 O(K)，K 为 ID 长度）。</li>
+<li>然后在 Listpack 内部进行简单的顺序遍历或二分查找。</li>
+</ol>
+<p>这种“两级索引”机制，使得 Stream 即便存储数百万条消息，内存占用依然非常低，且查询延迟稳定。</p>
+</div>
+    <footer class="article-footer"><a href="/archives/">继续阅读</a></footer>
+  </article>
+  <aside class="article-toc" aria-label="文章目录"><h2>文章目录</h2><ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#%E4%BB%80%E4%B9%88%E6%98%AFRedis"><span class="toc-text">什么是Redis</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E7%9B%B4%E6%8E%A5%E7%94%A8%E4%B8%80%E4%B8%AA%E5%93%88%E5%B8%8C%E8%A1%A8%E6%9B%BF%E4%BB%A3Redis%E6%9D%A5%E5%81%9A%E7%BC%93%E5%AD%98%E5%8F%AF%E4%BB%A5%E5%90%97"><span class="toc-text">直接用一个哈希表替代Redis来做缓存可以吗</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E6%97%A2%E7%84%B6%E7%94%A8%E4%BA%86%E6%9C%AC%E5%9C%B0%E7%BC%93%E5%AD%98%E5%92%8C-Redis-%E4%B8%A4%E5%B1%82%EF%BC%8C%E6%80%8E%E4%B9%88%E4%BF%9D%E8%AF%81%E5%AE%83%E4%BB%AC%E4%B9%8B%E9%97%B4%E7%9A%84%E6%95%B0%E6%8D%AE%E4%B8%80%E8%87%B4%E6%80%A7%E5%91%A2"><span class="toc-text">既然用了本地缓存和 Redis 两层，怎么保证它们之间的数据一致性呢</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E5%A6%82%E6%9E%9CRedis%E7%9A%84%E5%91%BD%E4%BB%A4%E6%89%A7%E8%A1%8C%E4%BD%BF%E7%94%A8%E5%A4%9A%E7%BA%BF%E7%A8%8B%E7%9A%84%E8%AF%9D%E6%80%A7%E8%83%BD%E4%BC%9A%E4%B8%8D%E4%BC%9A%E4%B8%8A%E5%8D%87"><span class="toc-text">如果Redis的命令执行使用多线程的话性能会不会上升</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E4%B8%BA%E4%BB%80%E4%B9%88Redis%E7%9A%84%E6%80%A7%E8%83%BD%E8%BF%99%E4%B9%88%E5%A5%BD"><span class="toc-text">为什么Redis的性能这么好</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E6%95%B4%E4%B8%AARedis%E8%BF%9B%E7%A8%8B%E9%83%BD%E6%9C%89%E5%93%AA%E4%BA%9B%E7%BA%BF%E7%A8%8B"><span class="toc-text">整个Redis进程都有哪些线程</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#Redis%E5%B8%B8%E8%A7%81%E7%9A%84%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84%E6%9C%89%E5%93%AA%E4%BA%9B%EF%BC%9F%E6%9C%89%E4%BB%80%E4%B9%88%E5%BA%94%E7%94%A8%E5%9C%BA%E6%99%AF"><span class="toc-text">Redis常见的数据结构有哪些？有什么应用场景</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#Redis%E7%9A%84String%E6%98%AF%E6%80%8E%E4%B9%88%E5%AE%9E%E7%8E%B0%E7%9A%84"><span class="toc-text">Redis的String是怎么实现的</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#Redis%E7%9A%84List%E6%98%AF%E6%80%8E%E4%B9%88%E5%AE%9E%E7%8E%B0%E7%9A%84"><span class="toc-text">Redis的List是怎么实现的</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#ZipList%E6%9C%89%E8%BF%9E%E9%94%81%E6%9B%B4%E6%96%B0%E7%9A%84%E9%97%AE%E9%A2%98%EF%BC%8C%E9%82%A3Listpack%E6%98%AF%E6%80%8E%E4%B9%88%E8%A7%A3%E5%86%B3%E8%BF%99%E4%B8%AA%E9%97%AE%E9%A2%98%E7%9A%84%EF%BC%9F"><span class="toc-text">ZipList有连锁更新的问题，那Listpack是怎么解决这个问题的？</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#ZSet%E7%9A%84%E5%BA%95%E5%B1%82%E5%AE%9E%E7%8E%B0%E5%8E%9F%E7%90%86%E6%98%AF%E6%80%8E%E6%A0%B7%E7%9A%84"><span class="toc-text">ZSet的底层实现原理是怎样的</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E6%97%A2%E7%84%B6%E5%A4%9A%E7%BA%BF%E7%A8%8B%E6%89%A7%E8%A1%8C%E8%BF%99%E4%B9%88%E9%BA%BB%E7%83%A6%EF%BC%8C%E9%82%A3-Redis-%E6%98%AF%E6%80%8E%E4%B9%88%E8%A7%A3%E5%86%B3-Key-%E8%BF%87%E6%9C%9F%E5%92%8C%E6%B7%98%E6%B1%B0%E7%9A%84%EF%BC%9F%E8%BF%99%E4%BC%9A%E4%B8%8D%E4%BC%9A%E9%98%BB%E5%A1%9E%E4%B8%BB%E7%BA%BF%E7%A8%8B"><span class="toc-text">既然多线程执行这么麻烦，那 Redis 是怎么解决 Key 过期和淘汰的？这会不会阻塞主线程</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#Redis%E7%9A%84%E5%86%85%E5%AD%98%E6%BB%A1%E4%BA%86%E4%BC%9A%E6%80%8E%E6%A0%B7%EF%BC%9F%E6%9C%89%E5%93%AA%E4%BA%9B%E7%AD%96%E7%95%A5%E4%B8%8D%E5%90%8C%E7%AD%96%E7%95%A5%E7%9A%84%E5%BA%94%E7%94%A8%E5%9C%BA%E6%99%AF%E6%9C%89%E4%BB%80%E4%B9%88%E4%B8%8D%E5%90%8C%EF%BC%9F"><span class="toc-text">Redis的内存满了会怎样？有哪些策略不同策略的应用场景有什么不同？</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#Redis%E7%9A%84%E6%8C%81%E4%B9%85%E5%8C%96%E6%9C%BA%E5%88%B6%E6%9C%89%E5%93%AA%E4%BA%9B"><span class="toc-text">Redis的持久化机制有哪些</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E5%AF%B9%E6%AF%94RDB%E5%92%8CAOF"><span class="toc-text">对比RDB和AOF</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E5%A6%82%E4%BD%95%E7%90%86%E8%A7%A3AOF%E9%87%8D%E5%86%99%E6%9C%BA%E5%88%B6"><span class="toc-text">如何理解AOF重写机制</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#Redis%E7%9A%84%E4%BA%8B%E5%8A%A1%E6%98%AF%E6%80%8E%E6%A0%B7%E7%9A%84"><span class="toc-text">Redis的事务是怎样的</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E4%B8%BA%E4%BB%80%E4%B9%88%E8%AF%B4-Lua-%E8%84%9A%E6%9C%AC%E6%98%AF%E5%8E%9F%E5%AD%90%E6%80%A7%E7%9A%84%EF%BC%9F%E5%A6%82%E6%9E%9C-Lua-%E8%84%9A%E6%9C%AC%E6%89%A7%E8%A1%8C%E4%BA%86%E4%B8%80%E5%8D%8A%E6%96%AD%E7%94%B5%E4%BA%86%E6%80%8E%E4%B9%88%E5%8A%9E%EF%BC%9F"><span class="toc-text">为什么说 Lua 脚本是原子性的？如果 Lua 脚本执行了一半断电了怎么办？</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#Lua%E8%84%9A%E6%9C%AC%E5%92%8CRedis%E4%BA%8B%E5%8A%A1%E5%AF%B9%E6%AF%94%E4%B8%80%E4%B8%8B"><span class="toc-text">Lua脚本和Redis事务对比一下</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E4%BB%80%E4%B9%88%E6%98%AF%E7%BC%93%E5%AD%98%E5%87%BB%E7%A9%BF%E3%80%81%E7%BC%93%E5%AD%98%E9%9B%AA%E5%B4%A9%E5%92%8C%E7%BC%93%E5%AD%98%E7%A9%BF%E9%80%8F"><span class="toc-text">什么是缓存击穿、缓存雪崩和缓存穿透</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E4%BB%80%E4%B9%88%E6%98%AF%E5%B8%83%E9%9A%86%E8%BF%87%E6%BB%A4%E5%99%A8%EF%BC%8C%E5%8E%9F%E7%90%86%E6%98%AF%E6%80%8E%E6%A0%B7%E7%9A%84"><span class="toc-text">什么是布隆过滤器，原理是怎样的</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E5%A6%82%E6%9E%9C%E9%9A%8F%E7%9D%80%E7%B3%BB%E7%BB%9F%E8%BF%90%E8%A1%8C%EF%BC%8C%E6%9C%89%E8%B6%8A%E6%9D%A5%E8%B6%8A%E5%A4%9A%E7%9A%84%E6%95%B0%E6%8D%AE%E8%A2%AB%E5%88%A0%E9%99%A4%EF%BC%8C%E5%B8%83%E9%9A%86%E8%BF%87%E6%BB%A4%E5%99%A8%E5%8F%88%E4%B8%8D%E6%94%AF%E6%8C%81%E5%88%A0%E9%99%A4%EF%BC%8C%E4%BC%9A%E5%AF%BC%E8%87%B4%E8%AF%AF%E5%88%A4%E7%8E%87%E8%B6%8A%E6%9D%A5%E8%B6%8A%E9%AB%98%EF%BC%8C%E8%BF%99%E5%BA%94%E8%AF%A5%E6%80%8E%E4%B9%88%E5%A4%84%E7%90%86%EF%BC%9F"><span class="toc-text">如果随着系统运行，有越来越多的数据被删除，布隆过滤器又不支持删除，会导致误判率越来越高，这应该怎么处理？</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E5%A6%82%E4%BD%95%E4%BF%9D%E8%AF%81MySQL%E5%92%8CRedis%E7%9A%84%E6%95%B0%E6%8D%AE%E4%B8%80%E8%87%B4%E6%80%A7"><span class="toc-text">如何保证MySQL和Redis的数据一致性</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#canal%E7%9A%84%E5%B7%A5%E4%BD%9C%E5%8E%9F%E7%90%86%E6%98%AF%E6%80%8E%E6%A0%B7%E7%9A%84"><span class="toc-text">canal的工作原理是怎样的</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#Redis%E5%A6%82%E4%BD%95%E5%AE%9E%E7%8E%B0%E5%88%86%E5%B8%83%E5%BC%8F%E9%94%81"><span class="toc-text">Redis如何实现分布式锁</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#Redission%E7%9A%84%E5%88%86%E5%B8%83%E5%BC%8F%E9%94%81%E6%98%AF%E5%8F%AF%E9%87%8D%E5%85%A5%E7%9A%84%E5%90%97%EF%BC%9F%E5%85%B7%E4%BD%93%E6%98%AF%E5%A6%82%E4%BD%95%E5%AE%9E%E7%8E%B0%E7%9A%84%E5%8F%AF%E9%87%8D%E5%85%A5%EF%BC%9F"><span class="toc-text">Redission的分布式锁是可重入的吗？具体是如何实现的可重入？</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E4%BB%80%E4%B9%88%E6%98%AFRedLock"><span class="toc-text">什么是RedLock</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#Redis%E7%9A%84%E9%9B%86%E7%BE%A4%E6%96%B9%E6%A1%88%E6%9C%89%E5%93%AA%E4%BA%9B"><span class="toc-text">Redis的集群方案有哪些</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#Redis%E5%A6%82%E4%BD%95%E5%AE%9E%E7%8E%B0%E5%BB%B6%E6%97%B6%E9%98%9F%E5%88%97"><span class="toc-text">Redis如何实现延时队列</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E4%B8%BA%E4%BB%80%E4%B9%88%E5%93%88%E5%B8%8C%E6%A7%BD%E7%9A%84%E6%95%B0%E9%87%8F%E5%9B%BA%E5%AE%9A%E6%98%AF16384%E4%B8%AA"><span class="toc-text">为什么哈希槽的数量固定是16384个</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#Redis%E7%9A%84%E7%83%ADKey%E9%97%AE%E9%A2%98%E5%A6%82%E4%BD%95%E7%90%86%E8%A7%A3-%E5%A6%82%E4%BD%95%E8%A7%A3%E5%86%B3"><span class="toc-text">Redis的热Key问题如何理解?如何解决</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#Redis%E7%9A%84%E5%A4%A7Key%E9%97%AE%E9%A2%98%E5%A6%82%E4%BD%95%E7%90%86%E8%A7%A3-%E5%A6%82%E4%BD%95%E8%A7%A3%E5%86%B3"><span class="toc-text">Redis的大Key问题如何理解?如何解决?</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#Redis%E7%9A%84pipeline%E6%98%AF%E4%BB%80%E4%B9%88-%E6%9C%89%E4%BB%80%E4%B9%88%E5%BA%94%E7%94%A8%E5%9C%BA%E6%99%AF"><span class="toc-text">Redis的pipeline是什么?有什么应用场景?</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#Redis%E7%9A%84%E5%8F%91%E5%B8%83%E8%AE%A2%E9%98%85%E6%A8%A1%E5%BC%8F%E6%98%AF%E6%80%8E%E6%A0%B7%E7%9A%84%EF%BC%9F%E6%9C%89%E4%BB%80%E4%B9%88%E5%BA%94%E7%94%A8%E5%9C%BA%E6%99%AF%EF%BC%9F"><span class="toc-text">Redis的发布订阅模式是怎样的？有什么应用场景？</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#Redis%E7%9A%84stream%E6%98%AF%E6%80%8E%E6%A0%B7%E7%9A%84%EF%BC%9F%E6%9C%89%E4%BB%80%E4%B9%88%E5%BA%94%E7%94%A8%E5%9C%BA%E6%99%AF%EF%BC%9F"><span class="toc-text">Redis的stream是怎样的？有什么应用场景？</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#Stream%E5%BA%95%E5%B1%82%E7%9A%84%E5%9F%BA%E6%95%B0%E6%A0%91%E5%AE%9E%E7%8E%B0%E5%8E%9F%E7%90%86%E6%98%AF%E6%80%8E%E6%A0%B7%E7%9A%84"><span class="toc-text">Stream底层的基数树实现原理是怎样的</span></a></li></ol></aside>
+</div>
+</main>
+  <footer class="site-footer"><div><a class="footer-brand" href="/">Ella 的学习手记</a></div><div><a href="/archives/">文章归档</a><span>© 2026 Ella</span></div></footer>
+</body>
+</html>
