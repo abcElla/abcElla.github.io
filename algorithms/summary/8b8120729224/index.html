@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#fff8fa">
+  <meta name="description" content="算法刷题、技术学习与项目实践，记录每一次从理解到实现的过程。">
+  <title>图的建立 · Ella 的学习手记</title>
+  <link rel="icon" href="/images/favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="/assets/ella-ui.css">
+  <link rel="stylesheet" href="/assets/katex/katex.min.css">
+  <link rel="stylesheet" href="/css/pink.css">
+  
+  <script defer src="/assets/ella-ui.js"></script>
+  <script defer src="/js/main.js"></script>
+  <script defer src="/assets/knowledge.js"></script>
+<meta name="generator" content="Hexo 8.1.2"></head>
+<body class="is-reading-page">
+  <a class="skip-link" href="#main">跳转到内容</a>
+  <header class="site-header">
+    <div class="header-inner">
+      <a class="brand" href="/" aria-label="Ella 的学习手记，首页"><svg class="brand-symbol" aria-hidden="true"
+  xmlns="http://www.w3.org/2000/svg"
+  width="30"
+  height="30"
+  viewBox="0 0 24 24"
+  fill="none"
+  stroke="currentColor"
+  stroke-width="1.7"
+  stroke-linecap="round"
+  stroke-linejoin="round"
+>
+  <line x1="6" x2="10" y1="11" y2="11" />
+  <line x1="8" x2="8" y1="9" y2="13" />
+  <line x1="15" x2="15.01" y1="12" y2="12" />
+  <line x1="18" x2="18.01" y1="10" y2="10" />
+  <path d="M17.32 5H6.68a4 4 0 0 0-3.978 3.59c-.006.052-.01.101-.017.152C2.604 9.416 2 14.456 2 16a3 3 0 0 0 3 3c1 0 1.5-.5 2-1l1.414-1.414A2 2 0 0 1 9.828 16h4.344a2 2 0 0 1 1.414.586L17 18c.5.5 1 1 2 1a3 3 0 0 0 3-3c0-1.545-.604-6.584-.685-7.258-.007-.05-.011-.1-.017-.151A4 4 0 0 0 17.32 5z" />
+</svg>
+<span>Ella<span class="brand-period">.</span></span></a>
+      <button class="menu-toggle" type="button" aria-label="展开导航" aria-expanded="false" aria-controls="navigation"><span></span><span></span><span></span></button>
+      <nav class="navigation" id="navigation" aria-label="主导航">
+        
+        <a href="/">首页</a><a href="/algorithms/" class="active" aria-current="page">算法笔记</a><a href="/notes/">技术笔记</a><a href="/projects/">项目</a><a href="/about/">关于我</a>
+      </nav>
+      <div class="header-tools"><a class="search-link" href="/search/" aria-label="搜索笔记和项目"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5"/><path d="m16 16 5 5"/></svg><span>搜索</span></a><a class="github-link" href="https://github.com/abcElla" target="_blank" rel="noopener noreferrer" aria-label="Ella 的 GitHub"><svg class="icon" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 19c-4 1-4-2-6-2m12 5v-4a3.5 3.5 0 0 0-1-3c3-.3 6-1.5 6-6a5 5 0 0 0-1.4-3.5A4.5 4.5 0 0 0 18.5 2S17.3 1.7 15 3.4a12 12 0 0 0-6 0C6.7 1.7 5.5 2 5.5 2a4.5 4.5 0 0 0-.1 3.5A5 5 0 0 0 4 9c0 4.5 3 5.7 6 6a3.5 3.5 0 0 0-1 3v4"/></svg><span>GitHub</span></a></div>
+    </div>
+  </header>
+  <main id="main" class="site-main">
+<div class="article-layout">
+  <article class="article">
+    <header class="article-header">
+      <a class="back-link" href="/algorithms/">返回算法专题</a>
+      <div class="post-meta"><span>专题总结</span><span class="meta-separator">/</span><time datetime="2026-10-29T08:05:00.000Z">2026.10.29</time></div>
+      <h1>图的建立</h1>
+    </header>
+    <details class="reading-outline"><summary>本篇目录</summary><ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E9%82%BB%E6%8E%A5%E7%9F%A9%E9%98%B5"><span class="toc-text">邻接矩阵</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E9%82%BB%E6%8E%A5%E8%A1%A8"><span class="toc-text">邻接表</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%BB%A3%E7%A0%81%E6%A8%A1%E6%9D%BF"><span class="toc-text">代码模板</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E9%82%BB%E6%8E%A5%E7%9F%A9%E9%98%B5%E5%86%99%E6%B3%95"><span class="toc-text">邻接矩阵写法</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E9%82%BB%E6%8E%A5%E8%A1%A8%E5%86%99%E6%B3%95"><span class="toc-text">邻接表写法</span></a></li></ol></li></ol></details>
+    <div class="prose"><p>图论数据范围：节点数N，边数M</p>
+<h2 id="邻接矩阵"><a href="#邻接矩阵" class="headerlink" title="邻接矩阵"></a>邻接矩阵</h2><p>这是最直观的存图方式。既然图是点与点的关系，那我就开一个二维数组 grid[u][v]。</p>
+<ul>
+<li>原理：grid[u][v] = w 表示点 u 到点 v 有一条权重为 w 的边。</li>
+<li>空间复杂度： <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>O</mi><mo stretchy="false">(</mo><msup><mi>N</mi><mn>2</mn></msup><mo stretchy="false">)</mo></mrow><annotation encoding="application/x-tex">O(N^2)</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1.0641em;vertical-align:-0.25em;"></span><span class="mord mathnormal" style="margin-right:0.0278em;">O</span><span class="mopen">(</span><span class="mord"><span class="mord mathnormal" style="margin-right:0.109em;">N</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.8141em;"><span style="top:-3.063em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">2</span></span></span></span></span></span></span></span><span class="mclose">)</span></span></span></span></li>
+<li>时间复杂度：查询两点间是否有边 O(1)，但遍历一个点的所有邻居需要 O(N)。</li>
+<li>适用场景：<ul>
+<li>稠密图（边非常多，接近<span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msup><mi>N</mi><mn>2</mn></msup></mrow><annotation encoding="application/x-tex">N^2</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.8141em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.109em;">N</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.8141em;"><span style="top:-3.063em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">2</span></span></span></span></span></span></span></span></span></span></span>）。</li>
+<li>N非常小（通常N≤2000）。如果<span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>N</mi><mo>=</mo><msup><mn>10</mn><mn>5</mn></msup></mrow><annotation encoding="application/x-tex">N=10^5</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.6833em;"></span><span class="mord mathnormal" style="margin-right:0.109em;">N</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:0.8141em;"></span><span class="mord">1</span><span class="mord"><span class="mord">0</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.8141em;"><span style="top:-3.063em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">5</span></span></span></span></span></span></span></span></span></span></span>，开二维数组直接爆内存。</li>
+<li>需要频繁查询任意两点间边权的情况（如Floyd算法）。</li>
+</ul>
+</li>
+<li>代码注意<ul>
+<li>初始化二维数组时，所有元素设为无穷大，代表一开始两两节点之间不通</li>
+<li>如果求最短路，最好把点自己到自己的距离设为0</li>
+<li>有向图存起点到终点的边的权重，无向图反向的权重也要存，重边情况保留权重最小的</li>
+</ul>
+</li>
+</ul>
+<h2 id="邻接表"><a href="#邻接表" class="headerlink" title="邻接表"></a>邻接表</h2><p>这是处理<b>稀疏图</b>（<i><span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>M</mi><mo>&#x226a;</mo><msup><mi>N</mi><mn>2</mn></msup></mrow><annotation encoding="application/x-tex">M&#x226a;N^2</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.7224em;vertical-align:-0.0391em;"></span><span class="mord mathnormal" style="margin-right:0.109em;">M</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">≪</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:0.8141em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.109em;">N</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.8141em;"><span style="top:-3.063em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">2</span></span></span></span></span></span></span></span></span></span></span></i>）的标准解法，也是绝大多数图论题（如最短路、DFS/BFS、拓扑排序）的默认选择。</p>
+<ul>
+<li>原理：我们不存“没有边”的关系，只存“有边”的关系。对于每个点 u，我们用一个列表存下它所有能直接到达的点。</li>
+<li>空间复杂度：<i><span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>O</mi><mo stretchy="false">(</mo><mi>N</mi><mo>+</mo><mi>M</mi><mo stretchy="false">)</mo></mrow><annotation encoding="application/x-tex">O(N+M)</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathnormal" style="margin-right:0.0278em;">O</span><span class="mopen">(</span><span class="mord mathnormal" style="margin-right:0.109em;">N</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">+</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathnormal" style="margin-right:0.109em;">M</span><span class="mclose">)</span></span></span></span></i>。</li>
+<li>时间复杂度：查询两点是否有边最坏 O(N)，但遍历点 u 的所有邻居只需<i><span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>O</mi><mo stretchy="false">(</mo><mi>d</mi><mi>e</mi><mi>g</mi><mo stretchy="false">(</mo><mi>u</mi><mo stretchy="false">)</mo><mo stretchy="false">)</mo></mrow><annotation encoding="application/x-tex">O(deg(u))</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathnormal" style="margin-right:0.0278em;">O</span><span class="mopen">(</span><span class="mord mathnormal">d</span><span class="mord mathnormal">e</span><span class="mord mathnormal" style="margin-right:0.0359em;">g</span><span class="mopen">(</span><span class="mord mathnormal">u</span><span class="mclose">))</span></span></span></span></i>（即 u 的出度）。</li>
+</ul>
+<h2 id="代码模板"><a href="#代码模板" class="headerlink" title="代码模板"></a>代码模板</h2><p>第一行两个整数 N, M，表示点数和边数。</p>
+<p>接下来 M 行，每行三个整数 u, v, w，表示 u 到 v 有一条权重为 w 的边。</p>
+<h3 id="邻接矩阵写法"><a href="#邻接矩阵写法" class="headerlink" title="邻接矩阵写法"></a>邻接矩阵写法</h3><figure class="highlight py"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span>  sys</span><br><span class="line"><span class="built_in">input</span> = sys.stdin.readline</span><br><span class="line"></span><br><span class="line">n, m = <span class="built_in">map</span>(<span class="built_in">int</span>, <span class="built_in">input</span>().split())</span><br><span class="line"></span><br><span class="line"><span class="comment"># 【核心】建立邻接矩阵</span></span><br><span class="line"><span class="comment"># 初始化为无穷大 float('inf') 或者 -1</span></span><br><span class="line"><span class="comment"># 视题目要求而定（例如求最短路初始化为inf）</span></span><br><span class="line">graph = [[<span class="built_in">float</span>(<span class="string">'inf'</span>)] * (n + <span class="number">1</span>) <span class="keyword">for</span> _ <span class="keyword">in</span> <span class="built_in">range</span>(n + <span class="number">1</span>)]</span><br><span class="line"></span><br><span class="line"><span class="comment"># 自身到自身距离为0（视题目而定）</span></span><br><span class="line"><span class="keyword">for</span> i <span class="keyword">in</span> <span class="built_in">range</span>(<span class="number">1</span>, n + <span class="number">1</span>):</span><br><span class="line">    graph[i][i] = <span class="number">0</span></span><br><span class="line">    </span><br><span class="line"><span class="keyword">for</span> _ <span class="keyword">in</span> <span class="built_in">range</span>(m):</span><br><span class="line">    u, v, w = <span class="built_in">map</span>(<span class="built_in">int</span>, <span class="built_in">input</span>().split())</span><br><span class="line"></span><br><span class="line">    <span class="comment"># 1. 有向图：</span></span><br><span class="line">    graph[u][v] = w</span><br><span class="line"></span><br><span class="line">    <span class="comment"># 2. 无向图（需要反向也存）：</span></span><br><span class="line">    <span class="comment"># graph[v][u] = w</span></span><br><span class="line"></span><br><span class="line">    <span class="comment"># 3. 处理重边（有的题目两点间多条边，通常保留最短的那条）：</span></span><br><span class="line">    <span class="comment"># graph[u][v] = min(graph[u][v], w)</span></span><br></pre></td></tr></table></figure>
+
+<h3 id="邻接表写法"><a href="#邻接表写法" class="headerlink" title="邻接表写法"></a>邻接表写法</h3><figure class="highlight py"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> sys</span><br><span class="line"><span class="built_in">input</span> = sys.stdin.readline</span><br><span class="line"></span><br><span class="line">n, m = <span class="built_in">map</span>(<span class="built_in">int</span>, <span class="built_in">input</span>().split())</span><br><span class="line"></span><br><span class="line"><span class="comment"># 【核心】建立邻接表</span></span><br><span class="line"><span class="comment"># graph[u] 存储从节点 u 出发的所有边 (v, w)</span></span><br><span class="line">graph = [[] <span class="keyword">for</span> _ <span class="keyword">in</span> <span class="built_in">range</span>(n + <span class="number">1</span>)]</span><br><span class="line"></span><br><span class="line"><span class="keyword">for</span> _ <span class="keyword">in</span> <span class="built_in">range</span>(m):</span><br><span class="line">    u, v, w = <span class="built_in">map</span>(<span class="built_in">int</span>, <span class="built_in">input</span>().split())</span><br><span class="line"></span><br><span class="line">    <span class="comment"># 1. 有向图：</span></span><br><span class="line">    graph[u].append((v, w))</span><br><span class="line"></span><br><span class="line">    <span class="comment"># 2. 无向图（需要反向也存）：</span></span><br><span class="line">    <span class="comment"># graph[v].append((u, w))</span></span><br><span class="line"></span><br><span class="line">    <span class="comment"># 3. 处理重边（两点之间存在多条边）</span></span><br><span class="line">    <span class="comment"># 邻接表通常允许重边，最短路算法可以自行处理</span></span><br></pre></td></tr></table></figure>
+
+</div>
+    <footer class="article-footer"><a href="/notion/3f93db4f4b7c8015b9e2d4503553f268/#%E5%9B%BE%E7%9A%84%E5%BB%BA%E7%AB%8B">查看原始笔记</a></footer>
+  </article>
+  <aside class="article-toc" aria-label="文章目录"><h2>文章目录</h2><ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E9%82%BB%E6%8E%A5%E7%9F%A9%E9%98%B5"><span class="toc-text">邻接矩阵</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E9%82%BB%E6%8E%A5%E8%A1%A8"><span class="toc-text">邻接表</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%BB%A3%E7%A0%81%E6%A8%A1%E6%9D%BF"><span class="toc-text">代码模板</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E9%82%BB%E6%8E%A5%E7%9F%A9%E9%98%B5%E5%86%99%E6%B3%95"><span class="toc-text">邻接矩阵写法</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E9%82%BB%E6%8E%A5%E8%A1%A8%E5%86%99%E6%B3%95"><span class="toc-text">邻接表写法</span></a></li></ol></li></ol></aside>
+</div>
+</main>
+  <footer class="site-footer"><div><a class="footer-brand" href="/">Ella 的学习手记</a></div><div><a href="/timeline/">学习动态</a><a href="/archives/">文章归档</a><span>© 2026 Ella</span></div></footer>
+</body>
+</html>

@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#fff8fa">
+  <meta name="description" content="算法刷题、技术学习与项目实践，记录每一次从理解到实现的过程。">
+  <title>并查集 · Ella 的学习手记</title>
+  <link rel="icon" href="/images/favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="/assets/ella-ui.css">
+  <link rel="stylesheet" href="/assets/katex/katex.min.css">
+  <link rel="stylesheet" href="/css/pink.css">
+  
+  <script defer src="/assets/ella-ui.js"></script>
+  <script defer src="/js/main.js"></script>
+  <script defer src="/assets/knowledge.js"></script>
+<meta name="generator" content="Hexo 8.1.2"></head>
+<body class="is-reading-page">
+  <a class="skip-link" href="#main">跳转到内容</a>
+  <header class="site-header">
+    <div class="header-inner">
+      <a class="brand" href="/" aria-label="Ella 的学习手记，首页"><svg class="brand-symbol" aria-hidden="true"
+  xmlns="http://www.w3.org/2000/svg"
+  width="30"
+  height="30"
+  viewBox="0 0 24 24"
+  fill="none"
+  stroke="currentColor"
+  stroke-width="1.7"
+  stroke-linecap="round"
+  stroke-linejoin="round"
+>
+  <line x1="6" x2="10" y1="11" y2="11" />
+  <line x1="8" x2="8" y1="9" y2="13" />
+  <line x1="15" x2="15.01" y1="12" y2="12" />
+  <line x1="18" x2="18.01" y1="10" y2="10" />
+  <path d="M17.32 5H6.68a4 4 0 0 0-3.978 3.59c-.006.052-.01.101-.017.152C2.604 9.416 2 14.456 2 16a3 3 0 0 0 3 3c1 0 1.5-.5 2-1l1.414-1.414A2 2 0 0 1 9.828 16h4.344a2 2 0 0 1 1.414.586L17 18c.5.5 1 1 2 1a3 3 0 0 0 3-3c0-1.545-.604-6.584-.685-7.258-.007-.05-.011-.1-.017-.151A4 4 0 0 0 17.32 5z" />
+</svg>
+<span>Ella<span class="brand-period">.</span></span></a>
+      <button class="menu-toggle" type="button" aria-label="展开导航" aria-expanded="false" aria-controls="navigation"><span></span><span></span><span></span></button>
+      <nav class="navigation" id="navigation" aria-label="主导航">
+        
+        <a href="/">首页</a><a href="/algorithms/" class="active" aria-current="page">算法笔记</a><a href="/notes/">技术笔记</a><a href="/projects/">项目</a><a href="/about/">关于我</a>
+      </nav>
+      <div class="header-tools"><a class="search-link" href="/search/" aria-label="搜索笔记和项目"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5"/><path d="m16 16 5 5"/></svg><span>搜索</span></a><a class="github-link" href="https://github.com/abcElla" target="_blank" rel="noopener noreferrer" aria-label="Ella 的 GitHub"><svg class="icon" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 19c-4 1-4-2-6-2m12 5v-4a3.5 3.5 0 0 0-1-3c3-.3 6-1.5 6-6a5 5 0 0 0-1.4-3.5A4.5 4.5 0 0 0 18.5 2S17.3 1.7 15 3.4a12 12 0 0 0-6 0C6.7 1.7 5.5 2 5.5 2a4.5 4.5 0 0 0-.1 3.5A5 5 0 0 0 4 9c0 4.5 3 5.7 6 6a3.5 3.5 0 0 0-1 3v4"/></svg><span>GitHub</span></a></div>
+    </div>
+  </header>
+  <main id="main" class="site-main">
+<div class="article-layout">
+  <article class="article">
+    <header class="article-header">
+      <a class="back-link" href="/algorithms/">返回算法专题</a>
+      <div class="post-meta"><span>专题总结</span><span class="meta-separator">/</span><time datetime="2026-10-29T08:05:00.000Z">2026.10.29</time></div>
+      <h1>并查集</h1>
+    </header>
+    <details class="reading-outline"><summary>本篇目录</summary><ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%8E%9F%E7%90%86"><span class="toc-text">原理</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%BB%A3%E7%A0%81%E6%A8%A1%E6%9D%BF-1"><span class="toc-text">代码模板</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%B8%A6%E6%9D%83%E5%B9%B6%E6%9F%A5%E9%9B%86"><span class="toc-text">带权并查集</span></a></li></ol></details>
+    <div class="prose"><p>并查集（Disjoint Set Union，简称 DSU）是竞赛中性价比极高的数据结构。</p>
+<p>为什么说“性价比高”？因为它代码极短，但逻辑精妙，能解决<b>连通性、种类划分</b>等看似复杂的图论问题。</p>
+<h2 id="原理"><a href="#原理" class="headerlink" title="原理"></a>原理</h2><p>并查集的本质是维护一个<b>森林</b>（若干棵树的集合）。每一个集合就是一棵树，树根就是这个集合的“代表元素”。</p>
+<p>为了方便理解，我通常把并查集比作“江湖帮派”：</p>
+<ol>
+<li><b>初始化</b>：每个人刚出来混的时候，都是自立门户，自己是自己的老大。</li>
+<li><b>查找（Find）</b>：你要问一个人“由于你是跟谁混的？”，他会告诉你他的上级，上级再告诉上级……直到找到那个“自己领导自己”的总舵主。</li>
+<li><b>合并（Union）</b>：两个帮派要合并，实际上就是两个总舵主谈判。一旦谈妥，其中一个总舵主就变成另一个总舵主的小弟。</li>
+</ol>
+<h2 id="代码模板-1"><a href="#代码模板-1" class="headerlink" title="代码模板"></a>代码模板</h2><p>通常使用一个数组p来存储每个节点的父节点。</p>
+<ol>
+<li>初始化：假设有n个元素，标号0到n-1。最开始，p[i]=i。</li>
+<li>查找：最朴素的查找是一层层向上递归，但这样可能退化成一条链，查询复杂度变成 O(n)。路径压缩是并查集的灵魂。当一个小弟找到总舵主后，他觉得层层上报太麻烦了，于是直接跳过所有中间上级，直接挂在总舵主名下。下次再问他，他就能一步找到总舵主。这使得整棵树变得极其“扁平”。</li>
+<li>合并：找到两个元素的“总舵主”，如果不是同一个人，就让其中一个认另一个做老大。</li>
+</ol>
+<figure class="highlight py"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 初始化</span></span><br><span class="line">N = <span class="number">100005</span></span><br><span class="line">p = [i <span class="keyword">for</span> i <span class="keyword">in</span> <span class="built_in">range</span>(N)]</span><br><span class="line"></span><br><span class="line"><span class="comment"># 查找</span></span><br><span class="line"><span class="keyword">import</span> sys</span><br><span class="line">sys.setrecursionlimit(<span class="number">200000</span>)</span><br><span class="line"></span><br><span class="line"><span class="keyword">def</span> <span class="title function_">find</span>(<span class="params">x</span>):</span><br><span class="line">		<span class="keyword">if</span> p[x] != x:</span><br><span class="line">				<span class="comment"># 递归寻找，并在回溯时把沿途所有节点的父节点直接设为根节点</span></span><br><span class="line">				p[x] = find(p[x])</span><br><span class="line">		<span class="keyword">return</span> p[x]</span><br><span class="line">		</span><br><span class="line"><span class="comment"># 合并</span></span><br><span class="line"><span class="keyword">def</span> <span class="title function_">union</span>(<span class="params">x, y</span>):</span><br><span class="line">		root_x = find(x)</span><br><span class="line">		root_y = find(y)</span><br><span class="line">		<span class="keyword">if</span> root_x != root_y:</span><br><span class="line">				p[root_x] = root_y <span class="comment"># x的老大归顺y的老大</span></span><br><span class="line">				<span class="keyword">return</span> <span class="literal">True</span></span><br><span class="line">		<span class="keyword">return</span> <span class="literal">False</span></span><br><span class="line">		</span><br><span class="line"><span class="comment">###################################################################</span></span><br><span class="line">		</span><br><span class="line">p = [i <span class="keyword">for</span> i <span class="keyword">in</span> <span class="built_in">range</span>(n)]</span><br><span class="line"></span><br><span class="line"><span class="comment"># 维护连通分量数量，初始化为 n</span></span><br><span class="line">count = n</span><br><span class="line"></span><br><span class="line"><span class="keyword">def</span> <span class="title function_">find</span>(<span class="params">x</span>):</span><br><span class="line">    <span class="keyword">if</span> p[x] != x:</span><br><span class="line">        p[x] = find(p[x])  <span class="comment"># 路径压缩</span></span><br><span class="line">    <span class="keyword">return</span> p[x]</span><br><span class="line"></span><br><span class="line"><span class="keyword">def</span> <span class="title function_">union</span>(<span class="params">x, y</span>):</span><br><span class="line">    <span class="keyword">nonlocal</span> count</span><br><span class="line">    root_x = find(x)</span><br><span class="line">    root_y = find(y)</span><br><span class="line">    <span class="keyword">if</span> root_x != root_y:</span><br><span class="line">        p[root_x] = root_y</span><br><span class="line">        count -= <span class="number">1</span>  <span class="comment"># 每次成功合并，连通分量总数减一</span></span><br></pre></td></tr></table></figure>
+
+<h2 id="带权并查集"><a href="#带权并查集" class="headerlink" title="带权并查集"></a>带权并查集</h2><p><b>核心思想</b>：我们在维护 p[x] 的同时，维护一个 d[x]，表示节点 x 到父节点 p[x] 之间的某种关系（通常是距离、差值、奇偶性等）。</p>
+<p>在 find 路径压缩的过程中，我们需要根据逻辑更新 d[x]。</p>
+<figure class="highlight py"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 以加法权值为例</span></span><br><span class="line"><span class="comment"># d[x] 表示 x 到 p[x] 的距离</span></span><br><span class="line">d = [<span class="number">0</span>] * n </span><br><span class="line"></span><br><span class="line"><span class="keyword">def</span> <span class="title function_">find</span>(<span class="params">x</span>):</span><br><span class="line">    <span class="keyword">if</span> p[x] != x:</span><br><span class="line">        original_parent = p[x]</span><br><span class="line">        p[x] = find(p[x]) <span class="comment"># 先递归，把上面处理好</span></span><br><span class="line">        <span class="comment"># 核心：x到新根的距离 = x到原父的距离 + 原父到新根的距离</span></span><br><span class="line">        d[x] += d[original_parent] </span><br><span class="line">    <span class="keyword">return</span> p[x]</span><br></pre></td></tr></table></figure>
+
+</div>
+    <footer class="article-footer"><a href="/notion/3f93db4f4b7c8015b9e2d4503553f268/#%E5%B9%B6%E6%9F%A5%E9%9B%86">查看原始笔记</a></footer>
+  </article>
+  <aside class="article-toc" aria-label="文章目录"><h2>文章目录</h2><ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%8E%9F%E7%90%86"><span class="toc-text">原理</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%BB%A3%E7%A0%81%E6%A8%A1%E6%9D%BF-1"><span class="toc-text">代码模板</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%B8%A6%E6%9D%83%E5%B9%B6%E6%9F%A5%E9%9B%86"><span class="toc-text">带权并查集</span></a></li></ol></aside>
+</div>
+</main>
+  <footer class="site-footer"><div><a class="footer-brand" href="/">Ella 的学习手记</a></div><div><a href="/timeline/">学习动态</a><a href="/archives/">文章归档</a><span>© 2026 Ella</span></div></footer>
+</body>
+</html>

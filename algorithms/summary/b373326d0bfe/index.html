@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#fff8fa">
+  <meta name="description" content="算法刷题、技术学习与项目实践，记录每一次从理解到实现的过程。">
+  <title>图的遍历 · Ella 的学习手记</title>
+  <link rel="icon" href="/images/favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="/assets/ella-ui.css">
+  <link rel="stylesheet" href="/assets/katex/katex.min.css">
+  <link rel="stylesheet" href="/css/pink.css">
+  
+  <script defer src="/assets/ella-ui.js"></script>
+  <script defer src="/js/main.js"></script>
+  <script defer src="/assets/knowledge.js"></script>
+<meta name="generator" content="Hexo 8.1.2"></head>
+<body class="is-reading-page">
+  <a class="skip-link" href="#main">跳转到内容</a>
+  <header class="site-header">
+    <div class="header-inner">
+      <a class="brand" href="/" aria-label="Ella 的学习手记，首页"><svg class="brand-symbol" aria-hidden="true"
+  xmlns="http://www.w3.org/2000/svg"
+  width="30"
+  height="30"
+  viewBox="0 0 24 24"
+  fill="none"
+  stroke="currentColor"
+  stroke-width="1.7"
+  stroke-linecap="round"
+  stroke-linejoin="round"
+>
+  <line x1="6" x2="10" y1="11" y2="11" />
+  <line x1="8" x2="8" y1="9" y2="13" />
+  <line x1="15" x2="15.01" y1="12" y2="12" />
+  <line x1="18" x2="18.01" y1="10" y2="10" />
+  <path d="M17.32 5H6.68a4 4 0 0 0-3.978 3.59c-.006.052-.01.101-.017.152C2.604 9.416 2 14.456 2 16a3 3 0 0 0 3 3c1 0 1.5-.5 2-1l1.414-1.414A2 2 0 0 1 9.828 16h4.344a2 2 0 0 1 1.414.586L17 18c.5.5 1 1 2 1a3 3 0 0 0 3-3c0-1.545-.604-6.584-.685-7.258-.007-.05-.011-.1-.017-.151A4 4 0 0 0 17.32 5z" />
+</svg>
+<span>Ella<span class="brand-period">.</span></span></a>
+      <button class="menu-toggle" type="button" aria-label="展开导航" aria-expanded="false" aria-controls="navigation"><span></span><span></span><span></span></button>
+      <nav class="navigation" id="navigation" aria-label="主导航">
+        
+        <a href="/">首页</a><a href="/algorithms/" class="active" aria-current="page">算法笔记</a><a href="/notes/">技术笔记</a><a href="/projects/">项目</a><a href="/about/">关于我</a>
+      </nav>
+      <div class="header-tools"><a class="search-link" href="/search/" aria-label="搜索笔记和项目"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5"/><path d="m16 16 5 5"/></svg><span>搜索</span></a><a class="github-link" href="https://github.com/abcElla" target="_blank" rel="noopener noreferrer" aria-label="Ella 的 GitHub"><svg class="icon" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 19c-4 1-4-2-6-2m12 5v-4a3.5 3.5 0 0 0-1-3c3-.3 6-1.5 6-6a5 5 0 0 0-1.4-3.5A4.5 4.5 0 0 0 18.5 2S17.3 1.7 15 3.4a12 12 0 0 0-6 0C6.7 1.7 5.5 2 5.5 2a4.5 4.5 0 0 0-.1 3.5A5 5 0 0 0 4 9c0 4.5 3 5.7 6 6a3.5 3.5 0 0 0-1 3v4"/></svg><span>GitHub</span></a></div>
+    </div>
+  </header>
+  <main id="main" class="site-main">
+<div class="article-layout">
+  <article class="article">
+    <header class="article-header">
+      <a class="back-link" href="/algorithms/">返回算法专题</a>
+      <div class="post-meta"><span>专题总结</span><span class="meta-separator">/</span><time datetime="2026-10-29T08:05:00.000Z">2026.10.29</time></div>
+      <h1>图的遍历</h1>
+    </header>
+    <details class="reading-outline"><summary>本篇目录</summary><ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%B7%B1%E5%BA%A6%E4%BC%98%E5%85%88%E6%90%9C%E7%B4%A2%EF%BC%88DFS%EF%BC%89"><span class="toc-text">深度优先搜索（DFS）</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%B9%BF%E5%BA%A6%E4%BC%98%E5%85%88%E6%90%9C%E7%B4%A2%EF%BC%88BFS%EF%BC%89"><span class="toc-text">广度优先搜索（BFS）</span></a></li></ol></details>
+    <div class="prose"><h2 id="深度优先搜索（DFS）"><a href="#深度优先搜索（DFS）" class="headerlink" title="深度优先搜索（DFS）"></a>深度优先搜索（DFS）</h2><p>DFS的策略是一条路走到黑。选定一条路，一直走，直到无路可走（遇到死胡同或已访问节点）。然后回溯到上一个路口，选择另一条没走过的路继续深入。</p>
+<p>在算法考试中，DFS通常用于：</p>
+<ol>
+<li>连通性判断（图是否连通，岛屿数量）。</li>
+<li>寻找路径（只要找到一条即可，不保证最短）。</li>
+<li>枚举/回溯（全排列，搜索剪枝）。</li>
+<li>树形DP/图的性质分析（如求树的重心、直径、拓扑排序）。</li>
+</ol>
+<figure class="highlight py"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># adj 是邻接表：adj[u] = [v1, v2, ...]</span></span><br><span class="line">adj = [[] <span class="keyword">for</span> _ <span class="keyword">in</span> <span class="built_in">range</span>(N + <span class="number">1</span>)]</span><br><span class="line"></span><br><span class="line"><span class="keyword">def</span> <span class="title function_">dfs</span>(<span class="params">u</span>):</span><br><span class="line">		vis[u] = <span class="literal">True</span> <span class="comment"># 1. 标记当前点已访问</span></span><br><span class="line">		</span><br><span class="line">		<span class="keyword">for</span> v <span class="keyword">in</span> adj[u]:</span><br><span class="line">				<span class="keyword">if</span> <span class="keyword">not</span> vis[v]:</span><br><span class="line">						dfs(v) <span class="comment"># 2. 递归访问邻居</span></span><br><span class="line">						</span><br><span class="line"><span class="comment"># 3. 遍历所有点，防止图不连通</span></span><br><span class="line"><span class="keyword">for</span> i <span class="keyword">in</span> <span class="built_in">range</span>(<span class="number">1</span>, N + <span class="number">1</span>):</span><br><span class="line">		<span class="keyword">if</span> <span class="keyword">not</span> vis[i]:</span><br><span class="line">				dfs(i)</span><br></pre></td></tr></table></figure>
+
+<h2 id="广度优先搜索（BFS）"><a href="#广度优先搜索（BFS）" class="headerlink" title="广度优先搜索（BFS）"></a>广度优先搜索（BFS）</h2><p>BFS就是一圈一圈往外扩散。先覆盖离圆心距离为1的地方，再覆盖距离为2的地方。</p>
+<p>BFS在考试中最重要的性质是：<b>在无权图（或边权为1的图）中，BFS第一次访问到某节点时，经过的路径一定是最短路径。</b></p>
+<p>常见应用：</p>
+<ol>
+<li>无权图最短路（迷宫最少步数）</li>
+<li>层序遍历</li>
+<li>拓扑排序（Kahn算法）</li>
+<li>多源BFS（多个起点同时扩散）</li>
+</ol>
+<p>Python中一定要用 collections.deque，因为 list 的 pop(0) 复杂度是 O(N)，而 deque 是 O(1)。</p>
+<figure class="highlight py"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">from</span> collections <span class="keyword">import</span> deque</span><br><span class="line"></span><br><span class="line"><span class="keyword">def</span> <span class="title function_">bfs_template</span>(<span class="params">start_node, N, adj</span>):</span><br><span class="line">		<span class="comment"># 初始化队列和距离/访问数组</span></span><br><span class="line">		<span class="comment"># dist数组通常兼具了visited的功能：-1表示未访问</span></span><br><span class="line">		dist = [-<span class="number">1</span>] * (N + <span class="number">1</span>)</span><br><span class="line">		</span><br><span class="line">		q = deque([start_node])</span><br><span class="line">		dist[start_node] = <span class="number">0</span></span><br><span class="line">		</span><br><span class="line">		<span class="keyword">while</span> q:</span><br><span class="line">				u = q.popleft() <span class="comment"># 取出队首</span></span><br><span class="line">				</span><br><span class="line">				<span class="comment"># 如果是找终点，可以在这里判断</span></span><br><span class="line">				<span class="comment"># if u == target: return dist[u]</span></span><br><span class="line">				</span><br><span class="line">				<span class="keyword">for</span> v <span class="keyword">in</span> adj[u]:</span><br><span class="line">						<span class="keyword">if</span> dist[v] == -<span class="number">1</span>:</span><br><span class="line">								dist[v] = dist[u] + <span class="number">1</span> <span class="comment"># 距离 + 1</span></span><br><span class="line">								q.append(v)</span><br><span class="line">				</span><br><span class="line">		<span class="keyword">return</span> dist</span><br></pre></td></tr></table></figure>
+
+<ol>
+<li>怎么选？<ol>
+<li>求最短路、最小步数、层级关系 -&gt; BFS。</li>
+<li>求路径是否存在、连通块数量、全排列/组合、需要回溯 -&gt; DFS。</li>
+</ol>
+</li>
+<li>空间复杂度差异：<ol>
+<li>DFS极其节省空间（只存一条路径），但在极深的图中容易爆栈。</li>
+<li>BFS需要存储整层的节点，在稠密图中，队列可能会占用大量内存，这点在状态空间搜索中尤为明显。</li>
+</ol>
+</li>
+<li>Debug 技巧：<ol>
+<li>DFS写挂了通常是死循环（没标记 vis）或爆栈。</li>
+<li>BFS写挂了通常是 vis 标记的时机不对（一定要在入队时标记，而不是出队时标记，否则同一个点会被重复入队多次导致TLE）。</li>
+</ol>
+</li>
+</ol>
+</div>
+    <footer class="article-footer"><a href="/notion/3f93db4f4b7c8015b9e2d4503553f268/#%E5%9B%BE%E7%9A%84%E9%81%8D%E5%8E%86">查看原始笔记</a></footer>
+  </article>
+  <aside class="article-toc" aria-label="文章目录"><h2>文章目录</h2><ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%B7%B1%E5%BA%A6%E4%BC%98%E5%85%88%E6%90%9C%E7%B4%A2%EF%BC%88DFS%EF%BC%89"><span class="toc-text">深度优先搜索（DFS）</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%B9%BF%E5%BA%A6%E4%BC%98%E5%85%88%E6%90%9C%E7%B4%A2%EF%BC%88BFS%EF%BC%89"><span class="toc-text">广度优先搜索（BFS）</span></a></li></ol></aside>
+</div>
+</main>
+  <footer class="site-footer"><div><a class="footer-brand" href="/">Ella 的学习手记</a></div><div><a href="/timeline/">学习动态</a><a href="/archives/">文章归档</a><span>© 2026 Ella</span></div></footer>
+</body>
+</html>

@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#fff8fa">
+  <meta name="description" content="算法刷题、技术学习与项目实践，记录每一次从理解到实现的过程。">
+  <title>拓扑排序 · Ella 的学习手记</title>
+  <link rel="icon" href="/images/favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="/assets/ella-ui.css">
+  <link rel="stylesheet" href="/assets/katex/katex.min.css">
+  <link rel="stylesheet" href="/css/pink.css">
+  
+  <script defer src="/assets/ella-ui.js"></script>
+  <script defer src="/js/main.js"></script>
+  <script defer src="/assets/knowledge.js"></script>
+<meta name="generator" content="Hexo 8.1.2"></head>
+<body class="is-reading-page">
+  <a class="skip-link" href="#main">跳转到内容</a>
+  <header class="site-header">
+    <div class="header-inner">
+      <a class="brand" href="/" aria-label="Ella 的学习手记，首页"><svg class="brand-symbol" aria-hidden="true"
+  xmlns="http://www.w3.org/2000/svg"
+  width="30"
+  height="30"
+  viewBox="0 0 24 24"
+  fill="none"
+  stroke="currentColor"
+  stroke-width="1.7"
+  stroke-linecap="round"
+  stroke-linejoin="round"
+>
+  <line x1="6" x2="10" y1="11" y2="11" />
+  <line x1="8" x2="8" y1="9" y2="13" />
+  <line x1="15" x2="15.01" y1="12" y2="12" />
+  <line x1="18" x2="18.01" y1="10" y2="10" />
+  <path d="M17.32 5H6.68a4 4 0 0 0-3.978 3.59c-.006.052-.01.101-.017.152C2.604 9.416 2 14.456 2 16a3 3 0 0 0 3 3c1 0 1.5-.5 2-1l1.414-1.414A2 2 0 0 1 9.828 16h4.344a2 2 0 0 1 1.414.586L17 18c.5.5 1 1 2 1a3 3 0 0 0 3-3c0-1.545-.604-6.584-.685-7.258-.007-.05-.011-.1-.017-.151A4 4 0 0 0 17.32 5z" />
+</svg>
+<span>Ella<span class="brand-period">.</span></span></a>
+      <button class="menu-toggle" type="button" aria-label="展开导航" aria-expanded="false" aria-controls="navigation"><span></span><span></span><span></span></button>
+      <nav class="navigation" id="navigation" aria-label="主导航">
+        
+        <a href="/">首页</a><a href="/algorithms/" class="active" aria-current="page">算法笔记</a><a href="/notes/">技术笔记</a><a href="/projects/">项目</a><a href="/about/">关于我</a>
+      </nav>
+      <div class="header-tools"><a class="search-link" href="/search/" aria-label="搜索笔记和项目"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5"/><path d="m16 16 5 5"/></svg><span>搜索</span></a><a class="github-link" href="https://github.com/abcElla" target="_blank" rel="noopener noreferrer" aria-label="Ella 的 GitHub"><svg class="icon" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 19c-4 1-4-2-6-2m12 5v-4a3.5 3.5 0 0 0-1-3c3-.3 6-1.5 6-6a5 5 0 0 0-1.4-3.5A4.5 4.5 0 0 0 18.5 2S17.3 1.7 15 3.4a12 12 0 0 0-6 0C6.7 1.7 5.5 2 5.5 2a4.5 4.5 0 0 0-.1 3.5A5 5 0 0 0 4 9c0 4.5 3 5.7 6 6a3.5 3.5 0 0 0-1 3v4"/></svg><span>GitHub</span></a></div>
+    </div>
+  </header>
+  <main id="main" class="site-main">
+<div class="article-layout">
+  <article class="article">
+    <header class="article-header">
+      <a class="back-link" href="/algorithms/">返回算法专题</a>
+      <div class="post-meta"><span>专题总结</span><span class="meta-separator">/</span><time datetime="2026-10-29T08:05:00.000Z">2026.10.29</time></div>
+      <h1>拓扑排序</h1>
+    </header>
+    <details class="reading-outline"><summary>本篇目录</summary><ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E7%AE%97%E6%B3%95%E5%8E%9F%E7%90%86%EF%BC%9AKahn-%E7%AE%97%E6%B3%95"><span class="toc-text">算法原理：Kahn 算法</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%BB%A3%E7%A0%81%E6%A8%A1%E6%9D%BF-2"><span class="toc-text">代码模板</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%8F%98%E7%A7%8D%E6%8A%80%E5%B7%A7"><span class="toc-text">变种技巧</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E8%A6%81%E6%B1%82%E5%AD%97%E5%85%B8%E5%BA%8F%E6%9C%80%E5%B0%8F-%E6%9C%80%E5%A4%A7"><span class="toc-text">要求字典序最小&#x2F;最大</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%8F%AA%E6%9C%89%E4%B8%80%E7%A7%8D%E6%8B%93%E6%89%91%E6%8E%92%E5%BA%8F%EF%BC%9F"><span class="toc-text">只有一种拓扑排序？</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%8F%8D%E5%90%91%E6%8B%93%E6%89%91%E6%8E%92%E5%BA%8F"><span class="toc-text">反向拓扑排序</span></a></li></ol></li></ol></details>
+    <div class="prose"><p>简单来说，拓扑排序就是<b>把一张有向无环图 (DAG, Directed Acyclic Graph) 中的所有节点，排成一个线性序列</b>。</p>
+<p>这个序列必须满足一个铁律：</p>
+<p><b>如果图中存在一条边 u-&gt;v，那么在序列中，节点 u 必须出现在节点 v 的前面。</b></p>
+<p><b>关键点：</b></p>
+<ol>
+<li><b>有向无环图 (DAG)</b>：只有 DAG 才有拓扑排序。如果图中有环，永远也解不开依赖关系。</li>
+<li><b>不唯一性</b>：一个图的拓扑序列可能不止一种。比如“穿左脚袜子”和“穿右脚袜子”谁先谁后都行，只要都在穿鞋之前即可。</li>
+</ol>
+<h2 id="算法原理：Kahn-算法"><a href="#算法原理：Kahn-算法" class="headerlink" title="算法原理：Kahn 算法"></a>算法原理：Kahn 算法</h2><p>虽然 DFS 也可以做拓扑排序，但在竞赛中，Kahn 算法（基于 BFS 的贪心思想）更加直观，且更容易处理“字典序最小”等变种要求。</p>
+<p>我们引入一个核心概念：入度 ，即有多少条边指向该节点。</p>
+<p>算法流程</p>
+<ol>
+<li>统计入度：遍历所有边，计算每个节点的入度。</li>
+<li>找起点：将所有 入度为 0 的节点放入一个队列。<ol>
+<li>入度为 0 意味着没有任何前置依赖，可以立即处理。</li>
+</ol>
+</li>
+<li>拆边 ：<ol>
+<li>从队列取出一个节点 u，放入结果集。</li>
+<li>遍历 u 的所有邻居 v（即存在边<i>u</i>→<i>v</i>）。</li>
+<li>将 v 的入度减 1（相当于把 u 拿走后，解除了一条对 v 的限制）。</li>
+<li>如果 v 的入度变为 0，说明 v 的所有前置条件都满足了，将 v 入队。</li>
+</ol>
+</li>
+<li>循环：重复步骤 3，直到队列为空。</li>
+<li>判环：如果你输出的序列长度小于节点总数 N，说明图中存在环（剩下的节点互为依赖，谁的入度都无法变成 0）。</li>
+</ol>
+<h2 id="代码模板-2"><a href="#代码模板-2" class="headerlink" title="代码模板"></a>代码模板</h2><figure class="highlight txt"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br></pre></td><td class="code"><pre><span class="line">import sys</span><br><span class="line">from collections import deque</span><br><span class="line"></span><br><span class="line">def topological_sort(n, edges):</span><br><span class="line">		"""</span><br><span class="line">		n: 节点数量</span><br><span class="line">		edges: 边的列表，形如 [(u, v), (x, y) ...] 表示 u-&gt;v, x-&gt;y</span><br><span class="line">		"""</span><br><span class="line">		# 1. 建图和统计入度</span><br><span class="line">		graph = [[] for _ in range(n + 1)]</span><br><span class="line">		indeg = [0] * (n + 1)</span><br><span class="line">		</span><br><span class="line">		for u, v in edges:</span><br><span class="line">				graph[u].append(v)</span><br><span class="line">				indeg[v] += 1</span><br><span class="line">		</span><br><span class="line">		# 2. 将所有入度为0的节点入队</span><br><span class="line">		q = deque()</span><br><span class="line">		for i in range(1, n + 1):</span><br><span class="line">				if indeg[i] == 0:</span><br><span class="line">						q.append(i)</span><br><span class="line">						</span><br><span class="line">		res = []</span><br><span class="line">		</span><br><span class="line">		# 3. BFS拆边</span><br><span class="line">		while q:</span><br><span class="line">				u = q.popleft() # 如果是要求字典序最小，这里改用 heapq.heappop</span><br><span class="line">				res.append(u)</span><br><span class="line">				</span><br><span class="line">				for v in graph[u]:</span><br><span class="line">						indeg[v] -= 1</span><br><span class="line">						if indeg[v] == 0:</span><br><span class="line">								q.append(v) # 字典序最小则用 heapq.heappush</span><br><span class="line">		</span><br><span class="line">		# 4. 判环：如果结果集长度不等于节点数，说明有环</span><br><span class="line">		if len(res) != n:</span><br><span class="line">				return None</span><br><span class="line">			</span><br><span class="line">		return res</span><br></pre></td></tr></table></figure>
+
+<h2 id="变种技巧"><a href="#变种技巧" class="headerlink" title="变种技巧"></a>变种技巧</h2><h3 id="要求字典序最小-最大"><a href="#要求字典序最小-最大" class="headerlink" title="要求字典序最小/最大"></a>要求字典序最小/最大</h3><p>场景：题目要求如果有多种合法的排序方案，输出字典序最小的那一种。</p>
+<p>技巧：把模版中的 队列 换成 最小堆 。</p>
+<p>原理：每次从入度为 0 的集合中，挑编号最小的那个先处理。</p>
+<p>代码模版</p>
+<figure class="highlight txt"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">import heapq</span><br><span class="line"># ...</span><br><span class="line">q = []</span><br><span class="line">for i in range(1, n + 1):</span><br><span class="line">    if indeg[i] == 0:</span><br><span class="line">        heapq.heappush(q, i)</span><br><span class="line"></span><br><span class="line">while q:</span><br><span class="line">    u = heapq.heappop(q) # 弹出最小的</span><br><span class="line">    # ... 后续逻辑不变，但在 push 时也要用 heappush</span><br></pre></td></tr></table></figure>
+
+<h3 id="只有一种拓扑排序？"><a href="#只有一种拓扑排序？" class="headerlink" title="只有一种拓扑排序？"></a>只有一种拓扑排序？</h3><p>场景：判断拓扑序是否唯一。</p>
+<p>技巧：在 BFS 的过程中，任何时刻，队列 q 中的元素个数必须始终为 1。</p>
+<p>如果某时刻 len(q) &gt; 1，说明此刻有两个任务都可以执行且互不依赖，选谁都可以，因此顺序不唯一。</p>
+<h3 id="反向拓扑排序"><a href="#反向拓扑排序" class="headerlink" title="反向拓扑排序"></a>反向拓扑排序</h3><p>场景：有些题目要求“最晚什么时间完成”，或者处理类似“以此为终点”的逻辑。</p>
+<p>技巧：建反图（把所有边反向 <i>u</i>→<i>v </i>变成<i>v</i>→<i>u</i>），然后跑拓扑排序。</p>
+</div>
+    <footer class="article-footer"><a href="/notion/3f93db4f4b7c8015b9e2d4503553f268/#%E6%8B%93%E6%89%91%E6%8E%92%E5%BA%8F">查看原始笔记</a></footer>
+  </article>
+  <aside class="article-toc" aria-label="文章目录"><h2>文章目录</h2><ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E7%AE%97%E6%B3%95%E5%8E%9F%E7%90%86%EF%BC%9AKahn-%E7%AE%97%E6%B3%95"><span class="toc-text">算法原理：Kahn 算法</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%BB%A3%E7%A0%81%E6%A8%A1%E6%9D%BF-2"><span class="toc-text">代码模板</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%8F%98%E7%A7%8D%E6%8A%80%E5%B7%A7"><span class="toc-text">变种技巧</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E8%A6%81%E6%B1%82%E5%AD%97%E5%85%B8%E5%BA%8F%E6%9C%80%E5%B0%8F-%E6%9C%80%E5%A4%A7"><span class="toc-text">要求字典序最小&#x2F;最大</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%8F%AA%E6%9C%89%E4%B8%80%E7%A7%8D%E6%8B%93%E6%89%91%E6%8E%92%E5%BA%8F%EF%BC%9F"><span class="toc-text">只有一种拓扑排序？</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%8F%8D%E5%90%91%E6%8B%93%E6%89%91%E6%8E%92%E5%BA%8F"><span class="toc-text">反向拓扑排序</span></a></li></ol></li></ol></aside>
+</div>
+</main>
+  <footer class="site-footer"><div><a class="footer-brand" href="/">Ella 的学习手记</a></div><div><a href="/timeline/">学习动态</a><a href="/archives/">文章归档</a><span>© 2026 Ella</span></div></footer>
+</body>
+</html>

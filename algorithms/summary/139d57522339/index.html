@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#fff8fa">
+  <meta name="description" content="算法刷题、技术学习与项目实践，记录每一次从理解到实现的过程。">
+  <title>记忆化搜索 · Ella 的学习手记</title>
+  <link rel="icon" href="/images/favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="/assets/ella-ui.css">
+  <link rel="stylesheet" href="/assets/katex/katex.min.css">
+  <link rel="stylesheet" href="/css/pink.css">
+  
+  <script defer src="/assets/ella-ui.js"></script>
+  <script defer src="/js/main.js"></script>
+  <script defer src="/assets/knowledge.js"></script>
+<meta name="generator" content="Hexo 8.1.2"></head>
+<body class="is-reading-page">
+  <a class="skip-link" href="#main">跳转到内容</a>
+  <header class="site-header">
+    <div class="header-inner">
+      <a class="brand" href="/" aria-label="Ella 的学习手记，首页"><svg class="brand-symbol" aria-hidden="true"
+  xmlns="http://www.w3.org/2000/svg"
+  width="30"
+  height="30"
+  viewBox="0 0 24 24"
+  fill="none"
+  stroke="currentColor"
+  stroke-width="1.7"
+  stroke-linecap="round"
+  stroke-linejoin="round"
+>
+  <line x1="6" x2="10" y1="11" y2="11" />
+  <line x1="8" x2="8" y1="9" y2="13" />
+  <line x1="15" x2="15.01" y1="12" y2="12" />
+  <line x1="18" x2="18.01" y1="10" y2="10" />
+  <path d="M17.32 5H6.68a4 4 0 0 0-3.978 3.59c-.006.052-.01.101-.017.152C2.604 9.416 2 14.456 2 16a3 3 0 0 0 3 3c1 0 1.5-.5 2-1l1.414-1.414A2 2 0 0 1 9.828 16h4.344a2 2 0 0 1 1.414.586L17 18c.5.5 1 1 2 1a3 3 0 0 0 3-3c0-1.545-.604-6.584-.685-7.258-.007-.05-.011-.1-.017-.151A4 4 0 0 0 17.32 5z" />
+</svg>
+<span>Ella<span class="brand-period">.</span></span></a>
+      <button class="menu-toggle" type="button" aria-label="展开导航" aria-expanded="false" aria-controls="navigation"><span></span><span></span><span></span></button>
+      <nav class="navigation" id="navigation" aria-label="主导航">
+        
+        <a href="/">首页</a><a href="/algorithms/" class="active" aria-current="page">算法笔记</a><a href="/notes/">技术笔记</a><a href="/projects/">项目</a><a href="/about/">关于我</a>
+      </nav>
+      <div class="header-tools"><a class="search-link" href="/search/" aria-label="搜索笔记和项目"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5"/><path d="m16 16 5 5"/></svg><span>搜索</span></a><a class="github-link" href="https://github.com/abcElla" target="_blank" rel="noopener noreferrer" aria-label="Ella 的 GitHub"><svg class="icon" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 19c-4 1-4-2-6-2m12 5v-4a3.5 3.5 0 0 0-1-3c3-.3 6-1.5 6-6a5 5 0 0 0-1.4-3.5A4.5 4.5 0 0 0 18.5 2S17.3 1.7 15 3.4a12 12 0 0 0-6 0C6.7 1.7 5.5 2 5.5 2a4.5 4.5 0 0 0-.1 3.5A5 5 0 0 0 4 9c0 4.5 3 5.7 6 6a3.5 3.5 0 0 0-1 3v4"/></svg><span>GitHub</span></a></div>
+    </div>
+  </header>
+  <main id="main" class="site-main">
+<div class="article-layout">
+  <article class="article">
+    <header class="article-header">
+      <a class="back-link" href="/algorithms/">返回算法专题</a>
+      <div class="post-meta"><span>专题总结</span><span class="meta-separator">/</span><time datetime="2026-11-16T06:56:00.000Z">2026.11.16</time></div>
+      <h1>记忆化搜索</h1>
+    </header>
+    <details class="reading-outline"><summary>本篇目录</summary><ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%8E%9F%E7%90%86-1"><span class="toc-text">原理</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%BB%A3%E7%A0%81-1"><span class="toc-text">代码</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%BB%80%E4%B9%88%E6%97%B6%E5%80%99%E8%AF%A5%E7%94%A8%E8%AE%B0%E5%BF%86%E5%8C%96%E6%90%9C%E7%B4%A2%EF%BC%8C%E8%80%8C%E4%B8%8D%E6%98%AF%E8%BF%AD%E4%BB%A3%E5%BC%8F-DP%EF%BC%9F"><span class="toc-text">什么时候该用记忆化搜索，而不是迭代式 DP？</span></a></li></ol></details>
+    <div class="prose"><p>很多时候，当你在考场上推不出复杂的动态规划状态转移方程，或者状态极其稀疏、难以进行迭代时，记忆化搜索往往能救你一命！因为他的写法非常类似我们熟悉的dfs，也就是暴力搜索的过程，是非常可套路化的。</p>
+<h2 id="原理-1"><a href="#原理-1" class="headerlink" title="原理"></a>原理</h2><p>要理解记忆化搜索，必须理清回溯、记忆化搜索和动态规划的关系</p>
+<p><b>回溯/ 暴力DFS</b></p>
+<ul>
+<li>本质就是一种<b>暴力全量搜索</b>，把所有可能性都枚举出来。</li>
+<li>缺点：做了大量重复劳动。比如计算斐波那契数列，算 f(5) 需要算 f(4) 和 f(3)，算 f(4) 又要算 f(3) 和 f(2)……你会发现 f(3) 被重复计算了多次。</li>
+<li>复杂度：通常是指数级，如<i><span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>O</mi><mo stretchy="false">(</mo><msup><mn>2</mn><mi>n</mi></msup><mo stretchy="false">)</mo></mrow><annotation encoding="application/x-tex">O(2^n)</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathnormal" style="margin-right:0.0278em;">O</span><span class="mopen">(</span><span class="mord"><span class="mord">2</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.6644em;"><span style="top:-3.063em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">n</span></span></span></span></span></span></span></span><span class="mclose">)</span></span></span></span></i>。</li>
+</ul>
+<p><b>记忆化搜索</b></p>
+<ul>
+<li>每次算出一个状态的结果，我就把它记下来。下次再遇到这个状态，我查一下缓存直接返回，绝不重复计算。</li>
+<li>本质：<b>自顶向下的动态规划</b>。它保留了DFS的递归逻辑，但剪去了重复的搜索树枝。</li>
+<li>复杂度：通常降维到多项式级，如<i><span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>O</mi><mo stretchy="false">(</mo><msup><mi>n</mi><mn>2</mn></msup><mo stretchy="false">)</mo></mrow><annotation encoding="application/x-tex">O(n^2)</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1.0641em;vertical-align:-0.25em;"></span><span class="mord mathnormal" style="margin-right:0.0278em;">O</span><span class="mopen">(</span><span class="mord"><span class="mord mathnormal">n</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.8141em;"><span style="top:-3.063em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">2</span></span></span></span></span></span></span></span><span class="mclose">)</span></span></span></span></i>或<i><span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>O</mi><mo stretchy="false">(</mo><mi>n</mi><mo>&#x22c5;</mo><mi>W</mi><mo stretchy="false">)</mo></mrow><annotation encoding="application/x-tex">O(n&#x22c5;W)</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathnormal" style="margin-right:0.0278em;">O</span><span class="mopen">(</span><span class="mord mathnormal">n</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">⋅</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathnormal" style="margin-right:0.1389em;">W</span><span class="mclose">)</span></span></span></span></i>。</li>
+</ul>
+<p><b>动态规划</b></p>
+<ul>
+<li>不再递归地去“问”问题，而是根据依赖关系，从最小的问题开始，一行一行地把表格填满。</li>
+<li>本质：<b>自底向上的递推</b>。</li>
+</ul>
+<p>记忆化搜索是通向DP的最佳桥梁。只要你能写出暴力的DFS，加上两行代码（查表、记录），它就变成了记忆化搜索；如果你再仔细观察记录表的填写顺序，反过来写循环，它就变成了迭代式DP。</p>
+<h2 id="代码-1"><a href="#代码-1" class="headerlink" title="代码"></a>代码</h2><figure class="highlight py"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br></pre></td><td class="code"><pre><span class="line"></span><br><span class="line"><span class="keyword">import</span> sys</span><br><span class="line"></span><br><span class="line"><span class="comment"># 1. 设置递归深度（Python必备，默认只有1000，竞赛中不够用）</span></span><br><span class="line">sys.setrecursionlimit(<span class="number">200000</span>)</span><br><span class="line"></span><br><span class="line"><span class="comment"># 2. 定义全局缓存 (Memo)</span></span><br><span class="line"><span class="comment"># 如果状态是整数，可以用数组 [-1] * SIZE</span></span><br><span class="line"><span class="comment"># 如果状态复杂（元组等），可以用字典 {}</span></span><br><span class="line">memo = {} </span><br><span class="line"></span><br><span class="line"><span class="keyword">def</span> <span class="title function_">dfs</span>(<span class="params">state</span>):</span><br><span class="line">		<span class="comment"># 【第一步：查表】</span></span><br><span class="line">		<span class="comment"># 如果这个状态之前算过了，直接返回答案，停止递归</span></span><br><span class="line">    <span class="keyword">if</span> state <span class="keyword">in</span> memo:</span><br><span class="line">        <span class="keyword">return</span> memo[state]</span><br><span class="line">        </span><br><span class="line">    <span class="comment"># 【第二步：Base Case】</span></span><br><span class="line">    <span class="comment"># 递归的边界条件</span></span><br><span class="line">    <span class="keyword">if</span> 满足结束条件:</span><br><span class="line">        <span class="keyword">return</span> 初始值</span><br><span class="line">        </span><br><span class="line">    <span class="comment"># 【第三步：逻辑处理与状态转移】</span></span><br><span class="line">    <span class="comment"># 这里是原本暴力DFS的核心逻辑</span></span><br><span class="line">    res = <span class="number">0</span></span><br><span class="line">    <span class="comment"># ... 进行一系列计算，比如 res = max(dfs(next_state) + val, ...)</span></span><br><span class="line">    </span><br><span class="line">    <span class="comment"># 【第四步：记录并返回】</span></span><br><span class="line">    <span class="comment"># 算好的结果记在本来，再返回</span></span><br><span class="line">    memo[state] = res</span><br><span class="line">    <span class="keyword">return</span> res</span><br></pre></td></tr></table></figure>
+
+<h2 id="什么时候该用记忆化搜索，而不是迭代式-DP？"><a href="#什么时候该用记忆化搜索，而不是迭代式-DP？" class="headerlink" title="什么时候该用记忆化搜索，而不是迭代式 DP？"></a>什么时候该用记忆化搜索，而不是迭代式 DP？</h2><p>虽然大多数教程推崇迭代式 DP（省内存、常数小），但在实战中，以下情况我首选记忆化搜索：</p>
+<ul>
+<li><b>状态稀疏</b>：如果你的 DP 数组是 dp[10000][10000]，通过迭代你需要填满一亿个格子。但实际上可能只有几千个状态是合法的、会被访问到的。记忆化搜索只会计算到达的状态，天然自带“剪枝”效果。</li>
+<li><b>状态转移复杂</b>：有些题目（如树形DP、图上的博弈论），你很难确定遍历的顺序（是从左到右？还是斜着？）。记忆化搜索不需要管顺序，只要逻辑对，递归会自动帮你找到依赖链。</li>
+<li><b>路径输出</b>：递归结构在回溯路径、打印方案时往往更符合人类直觉。</li>
+</ul>
+<p>又或者这样说：如果笔试的时候，你可以很快地使用记忆化搜索来解题，大部份情况下都是可以ac的（主要你的复杂度是合法的），此时就不用去硬写迭代dp了。</p>
+</div>
+    <footer class="article-footer"><a href="/notion/3fd3db4f4b7c80da95c3fe55b4b9356d/#%E8%AE%B0%E5%BF%86%E5%8C%96%E6%90%9C%E7%B4%A2">查看原始笔记</a></footer>
+  </article>
+  <aside class="article-toc" aria-label="文章目录"><h2>文章目录</h2><ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%8E%9F%E7%90%86-1"><span class="toc-text">原理</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%BB%A3%E7%A0%81-1"><span class="toc-text">代码</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%BB%80%E4%B9%88%E6%97%B6%E5%80%99%E8%AF%A5%E7%94%A8%E8%AE%B0%E5%BF%86%E5%8C%96%E6%90%9C%E7%B4%A2%EF%BC%8C%E8%80%8C%E4%B8%8D%E6%98%AF%E8%BF%AD%E4%BB%A3%E5%BC%8F-DP%EF%BC%9F"><span class="toc-text">什么时候该用记忆化搜索，而不是迭代式 DP？</span></a></li></ol></aside>
+</div>
+</main>
+  <footer class="site-footer"><div><a class="footer-brand" href="/">Ella 的学习手记</a></div><div><a href="/timeline/">学习动态</a><a href="/archives/">文章归档</a><span>© 2026 Ella</span></div></footer>
+</body>
+</html>
