@@ -1,0 +1,513 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#fff8fa">
+  <meta name="description" content="本章聚焦“如何把大模型应用做成一个可长期演进、可观测、可回滚的线上系统”">
+  <title>大模型应用开发 · Ella 的学习手记</title>
+  <link rel="icon" href="/images/favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="/assets/ella-ui.css">
+  <link rel="stylesheet" href="/assets/katex/katex.min.css">
+  <link rel="stylesheet" href="/css/pink.css">
+  
+  <script defer src="/assets/ella-ui.js"></script>
+  <script defer src="/js/main.js"></script>
+  <script defer src="/assets/knowledge.js"></script>
+<meta name="generator" content="Hexo 8.1.2"></head>
+<body class="is-reading-page">
+  <a class="skip-link" href="#main">跳转到内容</a>
+  <header class="site-header">
+    <div class="header-inner">
+      <a class="brand" href="/" aria-label="Ella 的学习手记，首页"><svg class="brand-symbol" aria-hidden="true"
+  xmlns="http://www.w3.org/2000/svg"
+  width="30"
+  height="30"
+  viewBox="0 0 24 24"
+  fill="none"
+  stroke="currentColor"
+  stroke-width="1.7"
+  stroke-linecap="round"
+  stroke-linejoin="round"
+>
+  <line x1="6" x2="10" y1="11" y2="11" />
+  <line x1="8" x2="8" y1="9" y2="13" />
+  <line x1="15" x2="15.01" y1="12" y2="12" />
+  <line x1="18" x2="18.01" y1="10" y2="10" />
+  <path d="M17.32 5H6.68a4 4 0 0 0-3.978 3.59c-.006.052-.01.101-.017.152C2.604 9.416 2 14.456 2 16a3 3 0 0 0 3 3c1 0 1.5-.5 2-1l1.414-1.414A2 2 0 0 1 9.828 16h4.344a2 2 0 0 1 1.414.586L17 18c.5.5 1 1 2 1a3 3 0 0 0 3-3c0-1.545-.604-6.584-.685-7.258-.007-.05-.011-.1-.017-.151A4 4 0 0 0 17.32 5z" />
+</svg>
+<span>Ella<span class="brand-period">.</span></span></a>
+      <button class="menu-toggle" type="button" aria-label="展开导航" aria-expanded="false" aria-controls="navigation"><span></span><span></span><span></span></button>
+      <nav class="navigation" id="navigation" aria-label="主导航">
+        
+        <a href="/">首页</a><a href="/algorithms/">算法笔记</a><a href="/notes/" class="active" aria-current="page">技术笔记</a><a href="/projects/">项目</a><a href="/about/">关于我</a>
+      </nav>
+      <div class="header-tools"><a class="search-link" href="/search/" aria-label="搜索笔记和项目"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5"/><path d="m16 16 5 5"/></svg><span>搜索</span></a><a class="github-link" href="https://github.com/abcElla" target="_blank" rel="noopener noreferrer" aria-label="Ella 的 GitHub"><svg class="icon" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 19c-4 1-4-2-6-2m12 5v-4a3.5 3.5 0 0 0-1-3c3-.3 6-1.5 6-6a5 5 0 0 0-1.4-3.5A4.5 4.5 0 0 0 18.5 2S17.3 1.7 15 3.4a12 12 0 0 0-6 0C6.7 1.7 5.5 2 5.5 2a4.5 4.5 0 0 0-.1 3.5A5 5 0 0 0 4 9c0 4.5 3 5.7 6 6a3.5 3.5 0 0 0-1 3v4"/></svg><span>GitHub</span></a></div>
+    </div>
+  </header>
+  <main id="main" class="site-main">
+
+<nav class="notion-breadcrumbs" aria-label="笔记位置">
+  <ol>
+    <li><a href="/notes/">技术笔记</a></li>
+    <li><a href="/notion/3f03db4f4b7c809aa284ed7db5e4dd8c/">八股学习</a></li><li><a href="/notion/3fa3db4f4b7c80c9a9c5dce5b58ea226/">Agent</a></li><li><a href="/notion/4223db4f4b7c80d68398c164fe17e079/">Agent开发理解</a></li>
+    <li aria-current="page"><span>大模型应用开发</span></li>
+  </ol>
+</nav>
+
+<div class="article-layout">
+  <article class="article">
+    <header class="article-header">
+      <a class="back-link" href="/archives/">全部文章</a>
+      <div class="post-meta">
+        <span>技术笔记</span>
+        <span class="meta-separator">/</span>
+        <time datetime="2026-11-27T01:51:00.000Z">2026.11.27</time>
+      </div>
+      <h1>大模型应用开发</h1>
+      <div class="tag-list"><a href="/search/?tag=AI%20Agent"># AI Agent</a><a href="/search/?tag=RAG"># RAG</a><a href="/search/?tag=%E5%A4%A7%E6%A8%A1%E5%9E%8B"># 大模型</a></div>
+      <p class="article-source">来源：Notion · 最近更新 <time datetime="2026-11-27T02:59:00.000Z">2026.11.27</time></p>
+      
+    </header>
+    <details class="reading-outline"><summary>本篇目录</summary><ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#%E7%94%9F%E4%BA%A7%E7%BA%A7RAG%EF%BC%9A%E6%9E%84%E5%BB%BA%E5%8F%AF%E9%9D%A0%E7%9A%84%E7%9F%A5%E8%AF%86%E5%BC%95%E6%93%8E"><span class="toc-text">生产级RAG：构建可靠的知识引擎</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E7%AB%AF%E5%88%B0%E7%AB%AF%E6%9E%B6%E6%9E%84%E4%B8%8E%E6%95%B0%E6%8D%AE%E6%B5%81"><span class="toc-text">端到端架构与数据流</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%A0%B8%E5%BF%83%E7%8E%AF%E8%8A%82%E7%9A%84%E6%8A%80%E6%9C%AF%E9%80%89%E5%9E%8B%E4%B8%8E%E6%9D%83%E8%A1%A1"><span class="toc-text">核心环节的技术选型与权衡</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E4%B8%80%E3%80%81%E6%95%B0%E6%8D%AE%E5%88%86%E5%9D%97%EF%BC%88Chunking%EF%BC%89"><span class="toc-text">一、数据分块（Chunking）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E4%BA%8C%E3%80%81%E5%90%91%E9%87%8F%E5%BA%93%E4%B8%8E%E7%B4%A2%E5%BC%95"><span class="toc-text">二、向量库与索引</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E4%B8%89%E3%80%81%E6%A3%80%E7%B4%A2%E4%B8%8E%E8%9E%8D%E5%90%88%EF%BC%88Hybrid-Search%EF%BC%89"><span class="toc-text">三、检索与融合（Hybrid Search）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%9B%9B%E3%80%81%E9%87%8D%E6%8E%92%E5%BA%8F%E4%B8%8E%E4%B8%8A%E4%B8%8B%E6%96%87%E5%8E%8B%E7%BC%A9%EF%BC%88Re-ranking%EF%BC%89"><span class="toc-text">四、重排序与上下文压缩（Re-ranking）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E4%BA%94%E3%80%81%E5%9C%A8%E7%BA%BF%E6%9B%B4%E6%96%B0%E4%B8%8E%E7%83%AD%E5%90%AF%E5%8A%A8"><span class="toc-text">五、在线更新与热启动</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E7%BB%BC%E5%90%88%E9%A2%98%EF%BC%9A%E5%A6%82%E6%9E%9C%E8%AE%A9%E4%BD%A0%E4%BB%8E%E9%9B%B6%E8%AE%BE%E8%AE%A1%E4%B8%80%E4%B8%AA%E7%94%9F%E4%BA%A7%E7%BA%A7-RAG-%E7%B3%BB%E7%BB%9F%EF%BC%8C%E4%BD%A0%E4%BC%9A%E6%80%8E%E4%B9%88%E8%AE%BE%E8%AE%A1%EF%BC%9F"><span class="toc-text">综合题：如果让你从零设计一个生产级 RAG 系统，你会怎么设计？</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E7%A4%BA%E4%BE%8B%E4%BB%A3%E7%A0%81%EF%BC%9A%E8%B4%B4%E8%BF%91%E7%94%9F%E4%BA%A7%E7%9A%84RAG-Pipeline"><span class="toc-text">示例代码：贴近生产的RAG Pipeline</span></a></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#Agent%E5%B7%A5%E5%85%B7%E6%B5%81%EF%BC%9A%E5%AE%9E%E7%8E%B0%E5%A4%8D%E6%9D%82%E7%9A%84%E4%BB%BB%E5%8A%A1%E7%BC%96%E6%8E%92"><span class="toc-text">Agent工具流：实现复杂的任务编排</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%BB%BB%E5%8A%A1%E5%88%86%E8%A7%A3%E4%B8%8E%E5%B7%A5%E7%A8%8B%E5%8C%96%E7%BC%96%E6%8E%92"><span class="toc-text">任务分解与工程化编排</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%86%85-%E5%A4%96%E9%83%A8%E5%B7%A5%E5%85%B7%E6%8E%A5%E5%85%A5%E4%B8%8E%E7%AE%A1%E7%90%86"><span class="toc-text">内&#x2F;外部工具接入与管理</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E8%AE%B0%E5%BF%86%E4%B8%8E%E7%8A%B6%E6%80%81%E6%8C%81%E4%B9%85%E5%8C%96"><span class="toc-text">记忆与状态持久化</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E7%A4%BA%E4%BE%8B%E4%BB%A3%E7%A0%81%EF%BC%9A"><span class="toc-text">示例代码：</span></a></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#Prompt%E8%BF%9B%E9%98%B6%EF%BC%9A%E4%B8%8E%E6%A8%A1%E5%9E%8B%E9%AB%98%E6%95%88%E6%B2%9F%E9%80%9A%E7%9A%84%E8%89%BA%E6%9C%AF"><span class="toc-text">Prompt进阶：与模型高效沟通的艺术</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#Function-Calling%EF%BC%9A%E6%89%93%E9%80%9A%E6%A8%A1%E5%9E%8B%E4%B8%8E%E5%A4%96%E9%83%A8%E4%B8%96%E7%95%8C%E7%9A%84%E6%A1%A5%E6%A2%81"><span class="toc-text">Function Calling：打通模型与外部世界的桥梁</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E6%A8%A1%E5%9E%8B%E8%AF%84%E6%B5%8B%E4%B8%8E%E5%B9%BB%E8%A7%89%E6%B2%BB%E7%90%86%EF%BC%9A%E7%A1%AE%E4%BF%9D%E7%B3%BB%E7%BB%9F%E8%BE%93%E5%87%BA%E7%9A%84%E8%B4%A8%E9%87%8F%E4%B8%8E%E5%8F%AF%E4%BF%A1%E5%BA%A6"><span class="toc-text">模型评测与幻觉治理：确保系统输出的质量与可信度</span></a></li></ol></details>
+    <div class="prose"><p>本章聚焦“如何把大模型应用做成一个可长期演进、可观测、可回滚的线上系统”</p>
+<h1 id="生产级RAG：构建可靠的知识引擎"><a href="#生产级RAG：构建可靠的知识引擎" class="headerlink" title="生产级RAG：构建可靠的知识引擎"></a>生产级RAG：构建可靠的知识引擎</h1><h2 id="端到端架构与数据流"><a href="#端到端架构与数据流" class="headerlink" title="端到端架构与数据流"></a>端到端架构与数据流</h2><p>一个典型的生产级 RAG 系统包含离线处理（Data Ingestion）和在线检索（Online Retrieval）两大阶段。</p>
+<p><b>关注点：</b></p>
+<ul>
+<li>能否清晰画出并讲解从原始数据（PDF、网页、API）到最终答案生成的完整路径。</li>
+<li>能否说清每个模块（如 Loader, Splitter, Embedder, Index, Retriever, Reranker）的核心职责和上下游依赖。</li>
+<li>是否意识到离线处理流程的耗时特性，并给出将其异步化、任务化的工程方案（如使用任务队列、消息队列、调度系统）。</li>
+</ul>
+<h2 id="核心环节的技术选型与权衡"><a href="#核心环节的技术选型与权衡" class="headerlink" title="核心环节的技术选型与权衡"></a>核心环节的技术选型与权衡</h2><table>
+<tr>
+<td>
+环节
+</td>
+<td>
+策略/技术
+</td>
+<td>
+权衡点 (Trade-offs)
+</td>
+<td>
+面试关注
+</td>
+</tr>
+<tr>
+<td>
+数据分块 (Chunking)
+</td>
+<td>
+●固定大小 (Fixed-size)：实现简单，速度快，但容易切断语义完整的段落。<br />●语义分块 (Semantic)：基于 NLP 库按句子/段落切分，或用模型进行智能分块，保证语义完整，但实现与计算更复杂。
+</td>
+<td>
+●效果 vs. 性能：语义分块效果好，但计算开销大，尤其是数据量很大时。<br />●块大小 (Chunk Size)：块太小，上下文信息不足；块太大，噪声多且易超出窗口。常见取值在 256–512 token。
+</td>
+<td>
+如何根据文档类型（财报 vs. 聊天记录）选择策略？为什么很多系统会采用“固定大小 + 部分语义切分”的折中方案？
+</td>
+</tr>
+<tr>
+<td>
+向量库与索引
+</td>
+<td>
+●向量库选型：FAISS（本地、高性能）、Milvus/Weaviate（分布式、云原生）、pgvector（与业务库共存）。<br />●索引结构：HNSW（高召回、高速度）、IVF（更快但召回略低）、PQ（通过近似压缩换取内存节省）。
+</td>
+<td>
+●性能 vs. 成本：HNSW 占用内存大但查询快；PQ 极大压缩内存但牺牲精度。<br />●场景匹配：亿级向量通常需要分布式方案；中小规模项目可选 FAISS 或 pgvector，方便运维。
+</td>
+<td>
+能否解释 HNSW 的关键参数（例如 M、efConstruction、efSearch）如何影响索引构建成本、查询延迟和召回率？
+</td>
+</tr>
+<tr>
+<td>
+检索与融合
+</td>
+<td>
+●混合检索 (Hybrid Search)：结合稀疏检索（BM25/TF-IDF，关键词精确匹配）和稠密检索（向量，语义匹配）。<br />●融合策略 (Fusion)：Reciprocal Rank Fusion (RRF) 等无参算法，能稳健地融合多路检索结果。
+</td>
+<td>
+●关键词 vs. 语义：BM25 能精准命中专业术语和实体名，弥补向量模型在低频词上的短板。<br />●复杂性：引入混合检索会增加系统复杂度和维护成本，需要考虑工程实现与收益。
+</td>
+<td>
+为什么需要混合检索？RRF 相比人工加权的好处是什么？如何在不显著增加延迟的前提下接入 BM25？
+</td>
+</tr>
+<tr>
+<td>
+重排序与上下文压缩
+</td>
+<td>
+●再排序 (Re-ranking)：使用交叉编码器模型对初步检索出的 Top-K 文档重新打分，提升相关性。<br />●上下文压缩 (Context Compression)：在送入 LLM 前过滤掉与当前问题无关的句子，只保留最重要的证据片段。
+</td>
+<td>
+●效果 vs. 延迟：Re-ranking 通常明显增加 P95/P99 延迟，需要通过缓存、并行等方式控制成本。<br />●信息损失：压缩可能误删关键背景信息，需要用评测来量化利弊。
+</td>
+<td>
+如何选择 Re-ranker 模型？它与用于向量检索的 Bi-encoder 在结构与能力上的本质区别是什么？
+</td>
+</tr>
+<tr>
+<td>
+在线更新与热启动
+</td>
+<td>
+●全量重建索引：实现简单，但停机时间长，不适用于高实时性场景。<br />●增量更新：通过流式处理（消息队列 + 流处理框架）或定时任务，只向索引追加/更新增量数据。<br />●在线热启动：使用 mmap 等方式加载索引，服务重启时秒级恢复。
+</td>
+<td>
+●数据一致性：需要考虑删除、更新的语义，避免“僵尸数据”长期残留在索引中。<br />●资源消耗：频繁增量更新会增加 I/O 与 CPU 开销，需要容量规划与限流保护。
+</td>
+<td>
+如何设计“准实时”更新的 RAG 系统？当文档被删除或下线时，如何确保检索结果不会继续引用它？
+</td>
+</tr>
+</table>
+
+<h3 id="一、数据分块（Chunking）"><a href="#一、数据分块（Chunking）" class="headerlink" title="一、数据分块（Chunking）"></a><b>一、数据分块（Chunking）</b></h3><p><b>1. 如何根据文档类型（财报 vs. 聊天记录）选择分块策略？</b></p>
+<p>我会根据文档的结构特征、语义关联性以及实际检索需求来选择分块策略，而不是对所有文档统一采用固定长度切分。</p>
+<table>
+<thead>
+<tr>
+<th>文档类型</th>
+<th>推荐分块方式</th>
+<th>原因</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>财务报告</td>
+<td>按章节、标题、表格切分</td>
+<td>保留财务指标及其业务背景</td>
+</tr>
+<tr>
+<td>聊天记录</td>
+<td>按对话轮次、主题切分</td>
+<td>避免将问题和回答拆开</td>
+</tr>
+<tr>
+<td>技术文档</td>
+<td>按标题层级、代码块切分</td>
+<td>保证技术概念与代码示例完整</td>
+</tr>
+<tr>
+<td>医学文献</td>
+<td>按章节、段落切分</td>
+<td>保留医学知识及其适用条件</td>
+</tr>
+<tr>
+<td>普通长文本</td>
+<td>固定长度 + 滑动窗口</td>
+<td>实现简单，适合大规模处理</td>
+</tr>
+<tr>
+<td>法律文档</td>
+<td>按条款、章节切分</td>
+<td>保证法律条款及限定条件完整</td>
+</tr>
+</tbody></table>
+<p>例如，财报具有非常明显的结构化特征，我会优先按照章节和标题进行分块，并尽量保持表格的完整性。而对于聊天记录，由于上下文存在较强的依赖关系，我会按照问答轮次或者对话主题切分，避免将用户的问题与对应的回答分到不同的数据块中。</p>
+<p><b>核心原则是让每一个 Chunk 尽可能成为一个可以独立理解、独立检索的语义单元。</b></p>
+<p><b>2. 为什么很多系统采用“固定大小 + 部分语义切分”的折中方案？</b></p>
+<p>纯固定大小切分虽然计算成本低，但是容易破坏语义完整性；而基于 Embedding 相似度或者大模型的纯语义分块，虽然能够更好地识别主题变化，但是在大规模文档处理时会带来较高的计算成本，而且生成的数据块长度不容易控制。</p>
+<p>因此，实际工程中通常采用递归文本切分（Recursive Text Splitting）配合块大小限制和重叠窗口。</p>
+<p><img src="/notion-assets/c7c912c398846e317782ca17.png" alt="笔记插图"></p>
+<p>例如，设置 Chunk Size 为 512 Token、Chunk Overlap 为 64 Token，优先按照章节、段落、句子进行切分，如果某个段落仍然超过最大长度，再进一步拆分。</p>
+<p>这样既能控制每个 Chunk 的大小，又能够通过语义边界和重叠窗口减少上下文信息丢失，同时避免纯模型语义分块带来的大量计算开销。</p>
+<p>需要注意的是，256～512 Token 只是常见的实验起点，并不是最优的固定标准。实际需要结合 Embedding 模型、文档类型和 Recall@K 等检索指标进行调优。</p>
+<h3 id="二、向量库与索引"><a href="#二、向量库与索引" class="headerlink" title="二、向量库与索引"></a><b>二、向量库与索引</b></h3><p><b>1. 能否解释 HNSW 的关键参数 M、efConstruction、efSearch 如何影响索引构建成本、查询延迟和召回率？</b></p>
+<p>首先需要理解 HNSW（Hierarchical Navigable Small World，分层可导航小世界图）的基本原理。</p>
+<p>HNSW 是一种基于多层图结构的近似最近邻搜索（ANN）算法。它类似于跳表，通过上层图进行快速定位，再通过下层图进行精细搜索，从而避免遍历所有向量。</p>
+<p><img src="/notion-assets/d7a2cad6ac04c5f8f4c583c2.png" alt="笔记插图"></p>
+<p>HNSW 主要有三个关键参数：</p>
+<table>
+<thead>
+<tr>
+<th>参数</th>
+<th>含义</th>
+<th>增大后的影响</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>M</td>
+<td>控制每个节点的邻居连接数量</td>
+<td>内存增加、构建成本增加，通常提高召回率</td>
+</tr>
+<tr>
+<td>efConstruction</td>
+<td>构建索引时的候选搜索范围</td>
+<td>构建速度变慢、图结构质量通常提高</td>
+</tr>
+<tr>
+<td>efSearch</td>
+<td>查询时的候选搜索范围</td>
+<td>查询延迟增加、召回率通常提高</td>
+</tr>
+</tbody></table>
+<ul>
+<li><b>M：控制图的连接密度。</b> 每个节点拥有更多邻居，搜索时就有更多可选择的路径，不容易陷入局部最优，但是需要额外的内存存储连接关系。</li>
+<li><b>efConstruction：控制建图时的搜索精细程度。</b> 在插入一个新的向量时，搜索更多的候选节点，从而找到更合适的邻居，代价是索引构建时间增加。</li>
+<li><b>efSearch：控制查询时的搜索精细程度。</b> 搜索时保留更多候选节点，能够降低遗漏真实近邻的概率，但是会增加距离计算次数和查询延迟。</li>
+</ul>
+<p>在实际项目中，我会先根据内存预算确定 M，再根据离线构建时间确定 efConstruction，最后通过调整 efSearch，在满足 P99 延迟要求的前提下尽可能提高 Recall@K。其中 M 和 efConstruction 通常需要在构建索引时确定，而 efSearch 可以在查询阶段调整，因此它是线上性能调优的重要参数。</p>
+<p><b>2. 补充：HNSW、IVF、PQ 应该如何选择？</b></p>
+<table>
+<thead>
+<tr>
+<th>技术</th>
+<th>核心思想</th>
+<th>优点</th>
+<th>缺点</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Flat</td>
+<td>暴力遍历所有向量</td>
+<td>精确检索</td>
+<td>大规模查询成本高</td>
+</tr>
+<tr>
+<td>HNSW</td>
+<td>通过多层图进行搜索</td>
+<td>高召回、低延迟</td>
+<td>图结构占用内存</td>
+</tr>
+<tr>
+<td>IVF</td>
+<td>将向量聚类，只搜索部分簇</td>
+<td>减少搜索范围</td>
+<td>可能遗漏其他簇的近邻</td>
+</tr>
+<tr>
+<td>PQ</td>
+<td>将高维向量分段量化压缩</td>
+<td>大幅减少存储成本</td>
+<td>存在量化误差</td>
+</tr>
+<tr>
+<td>IVF-PQ</td>
+<td>聚类搜索结合向量压缩</td>
+<td>适合大规模数据</td>
+<td>参数调优复杂</td>
+</tr>
+</tbody></table>
+<p>如果是中小规模、对召回率和查询速度要求较高的系统，我会优先考虑 HNSW。如果数据规模非常大，而且内存资源有限，我会考虑 IVF-PQ，通过缩小搜索范围和向量压缩降低资源成本。</p>
+<p>需要注意的是，IVF 并不一定比 HNSW 更快，PQ 也不是与 HNSW 完全互斥的索引结构。具体性能取决于数据分布、向量维度、参数配置和硬件资源。</p>
+<h3 id="三、检索与融合（Hybrid-Search）"><a href="#三、检索与融合（Hybrid-Search）" class="headerlink" title="三、检索与融合（Hybrid Search）"></a><b>三、检索与融合（Hybrid Search）</b></h3><p><b>1. 为什么需要混合检索？</b></p>
+<p>因为单纯的向量检索和单纯的关键词检索都存在局限性，两者具有一定的互补性。</p>
+<p><b>第一，稀疏检索（Sparse Retrieval）。</b> 以 BM25 为代表，通过词频、逆文档频率、文档长度等信息计算相关性，擅长匹配专业术语、产品编号、错误代码等精确词汇，但对于同义词和语义相近的表达，检索能力相对有限。</p>
+<p><b>第二，稠密检索（Dense Retrieval）。</b> 通过 Embedding 模型将文本转换为向量，再计算向量之间的相似度，能够理解文本的语义关系，但是可能无法准确区分低频专业术语、数字和相似实体。</p>
+<p>例如，在一个烧伤医学知识库中：</p>
+<table>
+<thead>
+<tr>
+<th>用户问题</th>
+<th>BM25</th>
+<th>向量检索</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>VSS 评分标准是什么？</td>
+<td>擅长匹配 VSS</td>
+<td>可能召回其他瘢痕评分标准</td>
+</tr>
+<tr>
+<td>烧伤愈合后皮肤凸起怎么办？</td>
+<td>可能缺少对应关键词</td>
+<td>能够理解增生性瘢痕相关语义</td>
+</tr>
+<tr>
+<td>TBSA 10% 的患者如何评估？</td>
+<td>擅长匹配 TBSA 等词汇，但依赖分词</td>
+<td>不一定能够准确区分数值条件</td>
+</tr>
+</tbody></table>
+<p>因此，我会使用混合检索，同时执行 BM25 和向量检索，再将两路结果融合，既保证专业术语的精确匹配，又保证自然语言问题的语义召回。对于必须严格匹配的数值、编号等条件，还可以引入元数据过滤。</p>
+<p><img src="/notion-assets/9c69901e92fd4b07db6705c7.png" alt="笔记插图"></p>
+<p><b>2. RRF 相比人工加权的好处是什么？</b></p>
+<p>传统的人工加权融合通常采用如下公式：<span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>S</mi><mi>c</mi><mi>o</mi><mi>r</mi><mi>e</mi><mo>&#x3D;</mo><mi>α</mi><msub><mi>S</mi><mrow><mi>B</mi><mi>M</mi><mn>25</mn></mrow></msub><mo>+</mo><mo stretchy="false">(</mo><mn>1</mn><mo>−</mo><mi>α</mi><mo stretchy="false">)</mo><msub><mi>S</mi><mrow><mi>v</mi><mi>e</mi><mi>c</mi><mi>t</mi><mi>o</mi><mi>r</mi></mrow></msub></mrow><annotation encoding="application/x-tex">Score&#x3D;\alpha S_{BM25}+(1-\alpha)S_{vector}</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.6833em;"></span><span class="mord mathnormal" style="margin-right:0.0576em;">S</span><span class="mord mathnormal" style="margin-right:0.0278em;">cor</span><span class="mord mathnormal">e</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">&#x3D;</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:0.8333em;vertical-align:-0.15em;"></span><span class="mord mathnormal" style="margin-right:0.0037em;">α</span><span class="mord"><span class="mord mathnormal" style="margin-right:0.0576em;">S</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3283em;"><span style="top:-2.55em;margin-left:-0.0576em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathnormal mtight" style="margin-right:0.0502em;">B</span><span class="mord mathnormal mtight" style="margin-right:0.109em;">M</span><span class="mord mtight">25</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">+</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mopen">(</span><span class="mord">1</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">−</span><span class="mspace" style="margin-right:0.2222em;"></span></span><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathnormal" style="margin-right:0.0037em;">α</span><span class="mclose">)</span><span class="mord"><span class="mord mathnormal" style="margin-right:0.0576em;">S</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.2806em;"><span style="top:-2.55em;margin-left:-0.0576em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathnormal mtight" style="margin-right:0.0359em;">v</span><span class="mord mathnormal mtight">ec</span><span class="mord mathnormal mtight">t</span><span class="mord mathnormal mtight" style="margin-right:0.0278em;">or</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span></span></span></span></p>
+<p>但是 BM25 和向量检索的评分体系不同。例如，BM25 的得分可能是 15.8，而余弦相似度可能是 0.85，直接进行加权是不合理的，需要先进行分数归一化，再通过实验确定权重。</p>
+<p>RRF（Reciprocal Rank Fusion，倒数排名融合）解决了这个问题。它不关心原始分数，而是根据文档在不同检索结果中的排名计算融合得分。</p>
+<p><span class="katex-display"><span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><mi>R</mi><mi>R</mi><mi>F</mi><mo stretchy="false">(</mo><mi>d</mi><mo stretchy="false">)</mo><mo>&#x3D;</mo><munderover><mo>∑</mo><mrow><mi>i</mi><mo>&#x3D;</mo><mn>1</mn></mrow><mi>n</mi></munderover><mfrac><mn>1</mn><mrow><mi>k</mi><mo>+</mo><mi>r</mi><mi>a</mi><mi>n</mi><msub><mi>k</mi><mi>i</mi></msub><mo stretchy="false">(</mo><mi>d</mi><mo stretchy="false">)</mo></mrow></mfrac></mrow><annotation encoding="application/x-tex">RRF(d)&#x3D;\sum_{i&#x3D;1}^{n}\frac{1}{k+rank_i(d)}</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathnormal" style="margin-right:0.0077em;">R</span><span class="mord mathnormal" style="margin-right:0.0077em;">R</span><span class="mord mathnormal" style="margin-right:0.1389em;">F</span><span class="mopen">(</span><span class="mord mathnormal">d</span><span class="mclose">)</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">&#x3D;</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="base"><span class="strut" style="height:2.9291em;vertical-align:-1.2777em;"></span><span class="mop op-limits"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:1.6514em;"><span style="top:-1.8723em;margin-left:0em;"><span class="pstrut" style="height:3.05em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathnormal mtight">i</span><span class="mrel mtight">&#x3D;</span><span class="mord mtight">1</span></span></span></span><span style="top:-3.05em;"><span class="pstrut" style="height:3.05em;"></span><span><span class="mop op-symbol large-op">∑</span></span></span><span style="top:-4.3em;margin-left:0em;"><span class="pstrut" style="height:3.05em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mathnormal mtight">n</span></span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:1.2777em;"><span></span></span></span></span></span><span class="mspace" style="margin-right:0.1667em;"></span><span class="mord"><span class="mopen nulldelimiter"></span><span class="mfrac"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:1.3214em;"><span style="top:-2.314em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord mathnormal" style="margin-right:0.0315em;">k</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mbin">+</span><span class="mspace" style="margin-right:0.2222em;"></span><span class="mord mathnormal" style="margin-right:0.0278em;">r</span><span class="mord mathnormal">an</span><span class="mord"><span class="mord mathnormal" style="margin-right:0.0315em;">k</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3117em;"><span style="top:-2.55em;margin-left:-0.0315em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">i</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mopen">(</span><span class="mord mathnormal">d</span><span class="mclose">)</span></span></span><span style="top:-3.23em;"><span class="pstrut" style="height:3em;"></span><span class="frac-line" style="border-bottom-width:0.04em;"></span></span><span style="top:-3.677em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord">1</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.936em;"><span></span></span></span></span></span><span class="mclose nulldelimiter"></span></span></span></span></span></span></p>
+<p>其中，d 是候选文档，n 是检索器数量，<span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>r</mi><mi>a</mi><mi>n</mi><msub><mi>k</mi><mi>i</mi></msub><mo stretchy="false">(</mo><mi>d</mi><mo stretchy="false">)</mo></mrow><annotation encoding="application/x-tex">rank_i(d)</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1em;vertical-align:-0.25em;"></span><span class="mord mathnormal" style="margin-right:0.0278em;">r</span><span class="mord mathnormal">an</span><span class="mord"><span class="mord mathnormal" style="margin-right:0.0315em;">k</span><span class="msupsub"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:0.3117em;"><span style="top:-2.55em;margin-left:-0.0315em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mathnormal mtight">i</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.15em;"><span></span></span></span></span></span></span><span class="mopen">(</span><span class="mord mathnormal">d</span><span class="mclose">)</span></span></span></span> 是文档在第 i 个检索器中的排名，k 是平滑常数，常见取值为 60。未被某一路检索召回的文档，在该路不产生得分。</p>
+<p>RRF 的主要优势是避免不同检索器之间的分数尺度不一致问题，不需要进行复杂的分数归一化，也不需要为每一路检索器人工指定权重，具有较好的通用性。</p>
+<p>但是 RRF 也有缺点，它忽略了原始分数之间的差距。例如排名第一和第二的文档，可能原本具有非常大的相关性差距，而 RRF 只考虑名次差距。此外，RRF 并不是完全无参数的算法，它仍然存在平滑常数和候选窗口大小等参数。</p>
+<p><b>3. 如何在不显著增加延迟的前提下接入 BM25？</b></p>
+<p>我会从并行执行、索引选型、候选数量和超时降级四个方面进行优化。</p>
+<p><b>首先，采用异步并行检索。</b> BM25 和向量检索之间没有直接依赖关系，因此可以同时执行，而不是等待一路检索完成后再执行另一路。</p>
+<p><img src="/notion-assets/b79557865c21d89d7599ab1d.png" alt="笔记插图"></p>
+<p>其次，可以选择 Elasticsearch 等同时支持全文检索和向量检索的系统，减少维护两套独立检索服务的成本。两路检索只需要返回有限的 Top-K 候选文档，不需要返回大量结果。</p>
+<p>最后，为不同检索器设置超时机制。如果某一路检索超时，可以根据业务要求降级为单路检索，避免整个 RAG 请求被慢服务阻塞。实际生产中还需要使用独立线程池、并发限制和异常处理，上面的代码仅展示并行执行的核心逻辑。</p>
+<h3 id="四、重排序与上下文压缩（Re-ranking）"><a href="#四、重排序与上下文压缩（Re-ranking）" class="headerlink" title="四、重排序与上下文压缩（Re-ranking）"></a><b>四、重排序与上下文压缩（Re-ranking）</b></h3><p><b>1. Re-ranker 与 Bi-encoder 在结构和能力上的本质区别是什么？</b></p>
+<p>两者最核心的区别在于：<b>Query 和 Document 是独立编码，还是联合编码。</b></p>
+<p><img src="/notion-assets/346ca2adc3b02cc9f7c73c3a.png" alt="笔记插图"></p>
+<p><img src="/notion-assets/6e0ffae5154fdd5c9b6b6ca2.png" alt="笔记插图"></p>
+<p>对于 Bi-encoder，Query 和 Document 分别通过编码器生成向量，然后通过余弦相似度或者内积计算相关性。由于 Document 向量可以提前计算，因此适合百万级甚至亿级文档的快速检索。</p>
+<p>而 Cross-encoder 会将 Query 和 Document 拼接后输入同一个 Transformer 模型，通过 Attention 机制充分学习两个文本之间的细粒度语义关系，直接输出相关性得分，因此通常具有更好的排序能力，但无法像 Bi-encoder 那样提前计算独立的文档向量来完成检索。</p>
+<table>
+<thead>
+<tr>
+<th>对比维度</th>
+<th>Bi-encoder</th>
+<th>Cross-encoder</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>输入方式</td>
+<td>Query、Document 独立输入</td>
+<td>Query、Document 联合输入</td>
+</tr>
+<tr>
+<td>输出</td>
+<td>Embedding 向量</td>
+<td>相关性得分</td>
+</tr>
+<tr>
+<td>文本交互</td>
+<td>向量层面</td>
+<td>Token 层面</td>
+</tr>
+<tr>
+<td>文档特征预计算</td>
+<td>可以</td>
+<td>无法预计算完整匹配得分</td>
+</tr>
+<tr>
+<td>查询速度</td>
+<td>快</td>
+<td>相对较慢</td>
+</tr>
+<tr>
+<td>匹配精度</td>
+<td>相对较低</td>
+<td>通常较高</td>
+</tr>
+<tr>
+<td>使用阶段</td>
+<td>初步召回</td>
+<td>精细排序</td>
+</tr>
+</tbody></table>
+<p><b>为什么不直接使用 Cross-encoder 进行检索？</b> 假设知识库中存在 100 万篇文档，如果直接使用 Cross-encoder，就需要针对当前 Query 和每篇文档分别执行相关性推理，计算成本非常高。因此实际系统通常采用两阶段架构，先使用 Bi-encoder 快速召回几十篇候选文档，再使用 Cross-encoder 对候选文档进行精细排序。</p>
+<p><b>2. 如何选择 Re-ranker 模型？</b></p>
+<p>我主要考虑以下几个方面：</p>
+<table>
+<thead>
+<tr>
+<th>考虑因素</th>
+<th>选择依据</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>语言支持</td>
+<td>中文知识库需要较好的中文或多语言能力</td>
+</tr>
+<tr>
+<td>领域适配</td>
+<td>医疗、金融等专业场景需要评估领域术语理解能力</td>
+</tr>
+<tr>
+<td>模型大小</td>
+<td>模型越大不一定越好，需要考虑 GPU 显存和推理成本</td>
+</tr>
+<tr>
+<td>最大输入长度</td>
+<td>避免长文档中的关键信息被截断</td>
+</tr>
+<tr>
+<td>排序效果</td>
+<td>使用 MRR、NDCG@K 等指标进行比较</td>
+</tr>
+<tr>
+<td>推理延迟</td>
+<td>考虑 P95、P99 延迟以及并发吞吐量</td>
+</tr>
+</tbody></table>
+<p>例如，可以选择 BGE-Reranker、Qwen3-Reranker 等模型作为候选方案，但最终应该根据自己的业务数据集进行评测，而不是直接根据公开排行榜选择模型。</p>
+<p>在工程层面，我会先通过混合检索召回 Top 50，再通过 Reranker 重排序选出 Top 5～10，最后送入 LLM。通过批量推理、结果缓存、限制候选数量以及模型量化等方式降低重排序的额外开销。</p>
+<p><b>3. 上下文压缩是什么？为什么不能直接将所有检索结果交给 LLM？</b></p>
+<p>即使检索到的文档整体与问题相关，其中也可能包含大量无关内容。如果直接将这些文档全部输入 LLM，不仅会增加 Token 消耗和推理延迟，还可能引入噪声，干扰模型生成正确答案。</p>
+<p>上下文压缩就是在文档检索和答案生成之间，进一步提取与当前问题相关的信息。</p>
+<p><img src="/notion-assets/812e32db59fc5ad8527223c5.png" alt="笔记插图"></p>
+<p>上下文压缩主要分为两种方式：抽取式压缩直接保留原文中的关键句子，生成式压缩则使用模型对原文进行总结。</p>
+<p>对于医疗知识库等高准确性要求的场景，我会优先考虑抽取式压缩，并保留原始文档引用，因为生成式压缩可能改变原始医学表述，甚至引入新的幻觉。抽取时也需要注意保留适用条件、例外情况和前后文。</p>
+<p><b>Re-ranking 解决的是哪些文档更相关的问题，而 Context Compression 解决的是文档内部哪些内容更相关的问题。</b></p>
+<h3 id="五、在线更新与热启动"><a href="#五、在线更新与热启动" class="headerlink" title="五、在线更新与热启动"></a><b>五、在线更新与热启动</b></h3><p><b>1. 如何设计一个“准实时”更新的 RAG 系统？</b></p>
+<p>我会将整个系统拆分为离线数据处理链路和在线检索链路，通过消息队列将文档变更事件与索引更新过程解耦，从而避免文档上传、修改和删除操作阻塞在线问答服务。</p>
+<p><img src="/notion-assets/b1b7c7ffcc4d65c4cc3c6291.png" alt="笔记插图"></p>
+<p>整个流程可以分为四个阶段。</p>
+<p><b>第一阶段：捕获数据变更。</b> 当用户新增、修改或删除文档时，通过业务事件或者 CDC（Change Data Capture，变更数据捕获）机制产生变更事件，再将事件写入消息队列。为了避免数据库修改成功但消息发送失败，可以使用 Transactional Outbox 等机制保证事件可靠投递。</p>
+<p><b>第二阶段：异步处理数据。</b> 后台 Worker 消费消息，对新增或修改的文档进行解析、分块和 Embedding 计算。对于已经处理过的内容，可以通过内容 Hash 判断是否发生变化，避免重复计算。</p>
+<p><b>第三阶段：增量更新索引。</b> 通过 Upsert 操作更新向量索引和关键词索引，而不是每次修改都重新构建整个索引。需要结合文档 ID、Chunk ID 和 Version 实现幂等处理，防止消息重复消费和旧消息覆盖新数据。</p>
+<p><b>第四阶段：保证数据一致性。</b> 只有当新版本所需的索引更新完成后，才将其标记为当前可检索版本。对于失败的更新任务，通过重试机制、死信队列和定期数据校验进行补偿。</p>
+<p>这里采用的是<b>最终一致性架构</b>，允许新增或修改的文档在短时间内尚未进入检索系统，以换取系统吞吐量、可扩展性和稳定性。</p>
+<p><b>2. 当文档被删除或下线时，如何确保检索结果不会继续引用它？</b></p>
+<p>这是 RAG 数据一致性中非常重要的一个问题。如果只删除原始数据库中的文档，但是没有及时删除对应的向量数据，检索系统就可能继续召回已经失效的信息，这就是所谓的僵尸数据问题。</p>
+<p>我会采用<b>逻辑删除 + 在线过滤 + 异步物理删除 + 定期校验</b>的方案。</p>
+<p>假设每一个 Chunk 都维护如下元数据：</p>
+<figure class="highlight py"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">&#123;</span><br><span class="line">    <span class="string">&quot;chunk_id&quot;</span>: <span class="string">&quot;doc_1001_v3_chunk_001&quot;</span>,</span><br><span class="line">    <span class="string">&quot;document_id&quot;</span>: <span class="string">&quot;doc_1001&quot;</span>,</span><br><span class="line">    <span class="string">&quot;version&quot;</span>: <span class="number">3</span>,</span><br><span class="line">    <span class="string">&quot;status&quot;</span>: <span class="string">&quot;ACTIVE&quot;</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>当用户删除文档时，具体流程如下：</p>
+<p><img src="/notion-assets/e1b3bb15c8379e01b639663f.png" alt="笔记插图"></p>
+<p>其中，最关键的是在线检索阶段必须根据权威元数据判断文档是否有效，而不能只依赖向量库中的状态字段，因为向量库中的状态更新本身也可能存在延迟。</p>
+<p>例如，在检索出 Top-K 文档之后，批量校验 Document ID、Version 和 Status，只允许当前有效版本进入 LLM。同时，对已经缓存的检索结果和生成答案进行失效处理。对严格要求即时下线的场景，还应考虑正在执行的请求，在最终输出前再次验证文档状态。</p>
+<p>这样即使异步删除任务出现延迟或失败，也可以避免后续请求继续使用已经失效的知识。</p>
+<p><b>3. 如何实现索引热启动？</b></p>
+<p>如果向量索引规模非常大，服务每次重启时都重新构建索引，会产生很长的不可用时间。</p>
+<p>因此，我会采用索引持久化、快照恢复、增量日志回放以及预热机制。</p>
+<table>
+<thead>
+<tr>
+<th>技术</th>
+<th>作用</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>索引持久化</td>
+<td>将已经构建好的索引保存到磁盘</td>
+</tr>
+<tr>
+<td>Snapshot 快照</td>
+<td>保存某一时刻的完整索引状态</td>
+</tr>
+<tr>
+<td>WAL &#x2F; 增量日志</td>
+<td>记录快照之后发生的数据变更</td>
+</tr>
+<tr>
+<td>mmap 内存映射</td>
+<td>对支持该机制的索引减少初始加载开销</td>
+</tr>
+<tr>
+<td>索引预热</td>
+<td>提前加载热点数据，减少首次查询延迟</td>
+</tr>
+<tr>
+<td>双索引切换</td>
+<td>在后台构建新索引，完成后切换流量</td>
+</tr>
+</tbody></table>
+<p>对于全量重建，我不会直接删除旧索引再创建新索引，而是采用类似蓝绿部署的方式。</p>
+<p><img src="/notion-assets/fa219bc199c81599ef3c9103.png" alt="笔记插图"></p>
+<p>在线请求继续访问旧索引，同时在后台构建新索引。在新索引构建完成后，通过增量日志追平数据差异，进行一致性校验和性能测试，再通过索引别名或路由配置进行原子切换。旧索引可以暂时保留，以便出现问题时快速回滚。</p>
+<p>需要注意的是，mmap 并不意味着所有索引都可以秒级恢复，具体恢复速度取决于索引格式、向量库实现、磁盘性能和数据规模。</p>
+<h3 id="综合题：如果让你从零设计一个生产级-RAG-系统，你会怎么设计？"><a href="#综合题：如果让你从零设计一个生产级-RAG-系统，你会怎么设计？" class="headerlink" title="综合题：如果让你从零设计一个生产级 RAG 系统，你会怎么设计？"></a>综合题：<b>如果让你从零设计一个生产级 RAG 系统，你会怎么设计？</b></h3><p><img src="/notion-assets/b46433e248975f2a7f6a1fb9.png" alt="笔记插图"></p>
+<p><img src="/notion-assets/4bdfbfbb85d875821bf08939.png" alt="笔记插图"></p>
+<p>如果让我设计一个生产级 RAG 系统，我会将系统拆分为离线索引、在线检索、答案生成和数据更新四个核心模块。</p>
+<p><b>在离线索引阶段</b>，我会根据文档结构采用语义边界结合固定长度的分块策略，通过 Chunk Size 和 Overlap 保证语义完整性，再使用 Embedding 模型生成向量，并构建 HNSW 向量索引和 BM25 倒排索引。</p>
+<p><b>在在线检索阶段</b>，我会采用混合检索架构，通过异步并行的方式同时执行关键词检索和向量检索，再使用 RRF 算法融合两路结果，解决不同检索器评分体系不一致的问题。</p>
+<p><b>在精细排序阶段</b>，我会引入 Cross-encoder 类型的 Reranker，对初步召回的候选文档进行重新打分，然后通过上下文压缩减少无关信息和 Token 消耗，最终将高质量的上下文交给 LLM 生成答案。</p>
+<p><b>在数据更新方面</b>，我会通过消息队列实现异步增量更新，使用文档版本号、幂等机制和逻辑删除保证数据一致性，并通过索引快照和双索引切换实现快速恢复和不停机重建。</p>
+<p>最后，<b>在系统性能方面</b>，我会通过并行检索、批量推理、缓存、超时降级等手段控制延迟，同时建立离线评测和在线监控机制，在检索准确率、答案质量、系统延迟和资源成本之间进行平衡。</p>
+<h2 id="示例代码：贴近生产的RAG-Pipeline"><a href="#示例代码：贴近生产的RAG-Pipeline" class="headerlink" title="示例代码：贴近生产的RAG Pipeline"></a>示例代码：贴近生产的RAG Pipeline</h2><figure class="highlight py"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 使用 LlamaIndex/LangChain 实现的高阶 RAG 流程</span></span><br><span class="line"><span class="keyword">from</span> llama_index.core <span class="keyword">import</span> VectorStoreIndex, SimpleDirectoryReader</span><br><span class="line"><span class="keyword">from</span> llama_index.core.node_parser <span class="keyword">import</span> SemanticSplitterNodeParser</span><br><span class="line"><span class="keyword">from</span> llama_index.embeddings.huggingface <span class="keyword">import</span> HuggingFaceEmbedding</span><br><span class="line"><span class="keyword">from</span> llama_index.vector_stores.faiss <span class="keyword">import</span> FaissVectorStore</span><br><span class="line"><span class="keyword">from</span> llama_index.core.postprocessor <span class="keyword">import</span> SentenceTransformerRerank</span><br><span class="line"><span class="keyword">from</span> llama_index.retrievers.bm25 <span class="keyword">import</span> BM25Retriever</span><br><span class="line"><span class="keyword">from</span> llama_index.core.retrievers <span class="keyword">import</span> QueryFusionRetriever</span><br><span class="line"></span><br><span class="line"><span class="comment"># 1. 数据加载与处理 (离线)</span></span><br><span class="line">documents = SimpleDirectoryReader(<span class="string">&quot;./data&quot;</span>).load_data()</span><br><span class="line"></span><br><span class="line"><span class="comment"># 使用语义分块</span></span><br><span class="line">embed_model = HuggingFaceEmbedding(model_name=<span class="string">&quot;bge-m3&quot;</span>)</span><br><span class="line">splitter = SemanticSplitterNodeParser(</span><br><span class="line">    buffer_size=<span class="number">1</span>,</span><br><span class="line">    breakpoint_percentile_threshold=<span class="number">95</span>,</span><br><span class="line">    embed_model=embed_model,</span><br><span class="line">)</span><br><span class="line">nodes = splitter.get_nodes_from_documents(documents)</span><br><span class="line"></span><br><span class="line"><span class="comment"># 初始化向量存储与索引</span></span><br><span class="line">vector_store = FaissVectorStore()</span><br><span class="line">index = VectorStoreIndex(nodes, embed_model=embed_model, vector_store=vector_store)</span><br><span class="line"></span><br><span class="line"><span class="comment"># 2. 在线检索</span></span><br><span class="line"><span class="comment"># 2.1 初始化多路检索器</span></span><br><span class="line">vector_retriever = index.as_retriever(similarity_top_k=<span class="number">5</span>)</span><br><span class="line">bm25_retriever = BM25Retriever.from_defaults(nodes=nodes, similarity_top_k=<span class="number">5</span>)</span><br><span class="line"></span><br><span class="line"><span class="comment"># 2.2 RRF 融合检索器</span></span><br><span class="line">fusion_retriever = QueryFusionRetriever(</span><br><span class="line">    [vector_retriever, bm25_retriever],</span><br><span class="line">    similarity_top_k=<span class="number">5</span>,</span><br><span class="line">    num_queries=<span class="number">1</span>,  <span class="comment"># 仅用原始查询</span></span><br><span class="line">    mode=<span class="string">&quot;reciprocal_rank&quot;</span>,</span><br><span class="line">)</span><br><span class="line"></span><br><span class="line"><span class="comment"># 2.3 初始化重排序器</span></span><br><span class="line">reranker = SentenceTransformerRerank(</span><br><span class="line">    model=<span class="string">&quot;bge-reranker-large&quot;</span>,</span><br><span class="line">    top_n=<span class="number">3</span>,</span><br><span class="line">)</span><br><span class="line"></span><br><span class="line"><span class="comment"># 3. 构建查询引擎</span></span><br><span class="line">query_engine = RetrieverQueryEngine(</span><br><span class="line">    retriever=fusion_retriever,</span><br><span class="line">    node_postprocessors=[reranker],</span><br><span class="line">    response_synthesizer=...,  <span class="comment"># 配置 LLM 和 Prompt</span></span><br><span class="line">)</span><br><span class="line"></span><br><span class="line"><span class="comment"># 4. 执行查询</span></span><br><span class="line">response = query_engine.query(<span class="string">&quot;如何评估大模型的幻觉问题？&quot;</span>)</span><br><span class="line"><span class="built_in">print</span>(response)</span><br></pre></td></tr></table></figure>
+
+<h1 id="Agent工具流：实现复杂的任务编排"><a href="#Agent工具流：实现复杂的任务编排" class="headerlink" title="Agent工具流：实现复杂的任务编排"></a>Agent工具流：实现复杂的任务编排</h1><p>当单一的 LLM 调用或 RAG 无法解决复杂问题时，就需要 Agent 工作流。Agent 的核心思想是：<b>让 LLM 能够合理地使用工具（Tools）、进行任务分解（Planning），并在必要时进行反思与修正（Self-Correction）。</b></p>
+<h2 id="任务分解与工程化编排"><a href="#任务分解与工程化编排" class="headerlink" title="任务分解与工程化编排"></a>任务分解与工程化编排</h2><h2 id="内-外部工具接入与管理"><a href="#内-外部工具接入与管理" class="headerlink" title="内&#x2F;外部工具接入与管理"></a>内&#x2F;外部工具接入与管理</h2><h2 id="记忆与状态持久化"><a href="#记忆与状态持久化" class="headerlink" title="记忆与状态持久化"></a>记忆与状态持久化</h2><h2 id="示例代码："><a href="#示例代码：" class="headerlink" title="示例代码："></a>示例代码：</h2><h1 id="Prompt进阶：与模型高效沟通的艺术"><a href="#Prompt进阶：与模型高效沟通的艺术" class="headerlink" title="Prompt进阶：与模型高效沟通的艺术"></a>Prompt进阶：与模型高效沟通的艺术</h1><h1 id="Function-Calling：打通模型与外部世界的桥梁"><a href="#Function-Calling：打通模型与外部世界的桥梁" class="headerlink" title="Function Calling：打通模型与外部世界的桥梁"></a>Function Calling：打通模型与外部世界的桥梁</h1><h1 id="模型评测与幻觉治理：确保系统输出的质量与可信度"><a href="#模型评测与幻觉治理：确保系统输出的质量与可信度" class="headerlink" title="模型评测与幻觉治理：确保系统输出的质量与可信度"></a>模型评测与幻觉治理：确保系统输出的质量与可信度</h1></div>
+    <footer class="article-footer"><a href="/archives/">继续阅读</a></footer>
+  </article>
+  <aside class="article-toc" aria-label="文章目录"><h2>文章目录</h2><ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#%E7%94%9F%E4%BA%A7%E7%BA%A7RAG%EF%BC%9A%E6%9E%84%E5%BB%BA%E5%8F%AF%E9%9D%A0%E7%9A%84%E7%9F%A5%E8%AF%86%E5%BC%95%E6%93%8E"><span class="toc-text">生产级RAG：构建可靠的知识引擎</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E7%AB%AF%E5%88%B0%E7%AB%AF%E6%9E%B6%E6%9E%84%E4%B8%8E%E6%95%B0%E6%8D%AE%E6%B5%81"><span class="toc-text">端到端架构与数据流</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%A0%B8%E5%BF%83%E7%8E%AF%E8%8A%82%E7%9A%84%E6%8A%80%E6%9C%AF%E9%80%89%E5%9E%8B%E4%B8%8E%E6%9D%83%E8%A1%A1"><span class="toc-text">核心环节的技术选型与权衡</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E4%B8%80%E3%80%81%E6%95%B0%E6%8D%AE%E5%88%86%E5%9D%97%EF%BC%88Chunking%EF%BC%89"><span class="toc-text">一、数据分块（Chunking）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E4%BA%8C%E3%80%81%E5%90%91%E9%87%8F%E5%BA%93%E4%B8%8E%E7%B4%A2%E5%BC%95"><span class="toc-text">二、向量库与索引</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E4%B8%89%E3%80%81%E6%A3%80%E7%B4%A2%E4%B8%8E%E8%9E%8D%E5%90%88%EF%BC%88Hybrid-Search%EF%BC%89"><span class="toc-text">三、检索与融合（Hybrid Search）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%9B%9B%E3%80%81%E9%87%8D%E6%8E%92%E5%BA%8F%E4%B8%8E%E4%B8%8A%E4%B8%8B%E6%96%87%E5%8E%8B%E7%BC%A9%EF%BC%88Re-ranking%EF%BC%89"><span class="toc-text">四、重排序与上下文压缩（Re-ranking）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E4%BA%94%E3%80%81%E5%9C%A8%E7%BA%BF%E6%9B%B4%E6%96%B0%E4%B8%8E%E7%83%AD%E5%90%AF%E5%8A%A8"><span class="toc-text">五、在线更新与热启动</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E7%BB%BC%E5%90%88%E9%A2%98%EF%BC%9A%E5%A6%82%E6%9E%9C%E8%AE%A9%E4%BD%A0%E4%BB%8E%E9%9B%B6%E8%AE%BE%E8%AE%A1%E4%B8%80%E4%B8%AA%E7%94%9F%E4%BA%A7%E7%BA%A7-RAG-%E7%B3%BB%E7%BB%9F%EF%BC%8C%E4%BD%A0%E4%BC%9A%E6%80%8E%E4%B9%88%E8%AE%BE%E8%AE%A1%EF%BC%9F"><span class="toc-text">综合题：如果让你从零设计一个生产级 RAG 系统，你会怎么设计？</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E7%A4%BA%E4%BE%8B%E4%BB%A3%E7%A0%81%EF%BC%9A%E8%B4%B4%E8%BF%91%E7%94%9F%E4%BA%A7%E7%9A%84RAG-Pipeline"><span class="toc-text">示例代码：贴近生产的RAG Pipeline</span></a></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#Agent%E5%B7%A5%E5%85%B7%E6%B5%81%EF%BC%9A%E5%AE%9E%E7%8E%B0%E5%A4%8D%E6%9D%82%E7%9A%84%E4%BB%BB%E5%8A%A1%E7%BC%96%E6%8E%92"><span class="toc-text">Agent工具流：实现复杂的任务编排</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%BB%BB%E5%8A%A1%E5%88%86%E8%A7%A3%E4%B8%8E%E5%B7%A5%E7%A8%8B%E5%8C%96%E7%BC%96%E6%8E%92"><span class="toc-text">任务分解与工程化编排</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%86%85-%E5%A4%96%E9%83%A8%E5%B7%A5%E5%85%B7%E6%8E%A5%E5%85%A5%E4%B8%8E%E7%AE%A1%E7%90%86"><span class="toc-text">内&#x2F;外部工具接入与管理</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E8%AE%B0%E5%BF%86%E4%B8%8E%E7%8A%B6%E6%80%81%E6%8C%81%E4%B9%85%E5%8C%96"><span class="toc-text">记忆与状态持久化</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E7%A4%BA%E4%BE%8B%E4%BB%A3%E7%A0%81%EF%BC%9A"><span class="toc-text">示例代码：</span></a></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#Prompt%E8%BF%9B%E9%98%B6%EF%BC%9A%E4%B8%8E%E6%A8%A1%E5%9E%8B%E9%AB%98%E6%95%88%E6%B2%9F%E9%80%9A%E7%9A%84%E8%89%BA%E6%9C%AF"><span class="toc-text">Prompt进阶：与模型高效沟通的艺术</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#Function-Calling%EF%BC%9A%E6%89%93%E9%80%9A%E6%A8%A1%E5%9E%8B%E4%B8%8E%E5%A4%96%E9%83%A8%E4%B8%96%E7%95%8C%E7%9A%84%E6%A1%A5%E6%A2%81"><span class="toc-text">Function Calling：打通模型与外部世界的桥梁</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E6%A8%A1%E5%9E%8B%E8%AF%84%E6%B5%8B%E4%B8%8E%E5%B9%BB%E8%A7%89%E6%B2%BB%E7%90%86%EF%BC%9A%E7%A1%AE%E4%BF%9D%E7%B3%BB%E7%BB%9F%E8%BE%93%E5%87%BA%E7%9A%84%E8%B4%A8%E9%87%8F%E4%B8%8E%E5%8F%AF%E4%BF%A1%E5%BA%A6"><span class="toc-text">模型评测与幻觉治理：确保系统输出的质量与可信度</span></a></li></ol></aside>
+</div>
+</main>
+  <footer class="site-footer"><div><a class="footer-brand" href="/">Ella 的学习手记</a></div><div><a href="/timeline/">学习动态</a><a href="/archives/">文章归档</a><span>© 2026 Ella</span></div></footer>
+</body>
+</html>
